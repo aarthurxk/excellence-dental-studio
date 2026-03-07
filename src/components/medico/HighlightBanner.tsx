@@ -1,30 +1,36 @@
 import { motion } from "framer-motion";
-import { Clock, CheckCircle } from "lucide-react";
+import { Clock, ShieldCheck } from "lucide-react";
 
 const items = [
-  { icon: Clock, text: "Não fechamos para o almoço" },
-  { icon: CheckCircle, text: "AQUI VOCÊ PODE!" },
+  { icon: Clock, text: "Não fechamos para o almoço — Atendemos até 18h", iconClass: "text-primary" },
+  { icon: ShieldCheck, text: "Avaliação Gratuita para Novos Pacientes", iconClass: "text-green-400" },
 ];
 
 const HighlightBanner = () => (
   <section className="bg-secondary">
     <div className="container">
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-secondary-foreground/20">
-        {items.map((item, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: i * 0.15 }}
-            className="flex items-center justify-center gap-3 py-5 px-6"
-          >
-            <item.icon className="h-7 w-7 text-primary flex-shrink-0" strokeWidth={2} />
-            <span className="text-lg md:text-xl font-bold text-secondary-foreground tracking-wide">
-              {item.text}
-            </span>
-          </motion.div>
-        ))}
+        {items.map((item, i) => {
+          const parts = item.text.split("—");
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.15 }}
+              className="flex items-center justify-center gap-3 py-5 px-6"
+            >
+              <item.icon className={`h-7 w-7 flex-shrink-0 ${item.iconClass}`} strokeWidth={2} />
+              <span className="text-lg md:text-xl text-secondary-foreground tracking-wide">
+                <strong className="font-bold">{parts[0].trim()}</strong>
+                {parts[1] && (
+                  <span className="font-normal text-secondary-foreground/70 text-base"> — {parts[1].trim()}</span>
+                )}
+              </span>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   </section>
