@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo-small.png";
+import logo from "@/assets/logo-recife.png";
 
 const FooterMedico = () => {
   const { data: settings } = useSiteSettings();

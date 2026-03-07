@@ -4,7 +4,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { getWhatsAppUrl, useSiteSettings } from "@/hooks/useSiteSettings";
-import logo from "@/assets/logo-small.png";
+import logo from "@/assets/logo-recife.png";
 
 const navItems = [
   { label: "Home", href: "/" },

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import logoSmall from "@/assets/logo-small.png";
+import logoSmall from "@/assets/logo-recife.png";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
