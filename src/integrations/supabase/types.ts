@@ -188,6 +188,66 @@ export type Database = {
         }
         Relationships: []
       }
+      roadmap_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          phase: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          phase?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          phase?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_edit: boolean | null
+          can_view: boolean | null
+          id: string
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          id?: string
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          id?: string
+          module?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           active: boolean
@@ -385,6 +445,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
