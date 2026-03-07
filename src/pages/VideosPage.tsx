@@ -1,13 +1,22 @@
 import Layout from "@/components/layout/Layout";
-
-const videos = [
-  { title: "Conheça a Odonto Excellence", description: "Tour pela nossa clínica e conheça nossa estrutura.", youtubeId: "dQw4w9WgXcQ" },
-  { title: "Nossos Tratamentos", description: "Saiba mais sobre os tratamentos que oferecemos.", youtubeId: "dQw4w9WgXcQ" },
-  { title: "Depoimento de Paciente", description: "Veja o que nossos pacientes falam sobre nós.", youtubeId: "dQw4w9WgXcQ" },
-  { title: "Implantes Dentários", description: "Entenda como funciona o tratamento com implantes.", youtubeId: "dQw4w9WgXcQ" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const VideosPage = () => {
+  const { data: videos, isLoading } = useQuery({
+    queryKey: ["videos_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("videos")
+        .select("*")
+        .eq("active", true)
+        .order("display_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <Layout>
       <section className="py-20 bg-background">
@@ -19,17 +28,34 @@ const VideosPage = () => {
             </h1>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {videos.map((v) => (
-              <div key={v.title} className="rounded-2xl overflow-hidden border border-border bg-card">
-                <div className="aspect-video bg-clinic-dark flex items-center justify-center">
-                  <p className="text-sm text-clinic-gray/50">Vídeo YouTube</p>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-display font-semibold text-foreground">{v.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{v.description}</p>
-                </div>
-              </div>
-            ))}
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-2xl overflow-hidden border border-border bg-card">
+                    <Skeleton className="aspect-video" />
+                    <div className="p-5 space-y-2">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ))
+              : videos?.map((v) => (
+                  <div key={v.id} className="rounded-2xl overflow-hidden border border-border bg-card">
+                    <div className="aspect-video">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${v.youtube_id}`}
+                        title={v.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-display font-semibold text-foreground">{v.title}</h3>
+                      {v.description && <p className="text-sm text-muted-foreground mt-1">{v.description}</p>}
+                    </div>
+                  </div>
+                ))}
           </div>
         </div>
       </section>

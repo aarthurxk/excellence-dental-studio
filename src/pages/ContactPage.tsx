@@ -3,8 +3,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
+import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const contactSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório").max(200),
+  phone: z.string().optional().default(""),
+  email: z.string().email("E-mail inválido").optional().or(z.literal("")).default(""),
+  message: z.string().min(1, "Mensagem é obrigatória").max(2000),
+});
+
+type ContactForm = z.infer<typeof contactSchema>;
 
 const ContactPage = () => {
+  const { data: settings, isLoading } = useSiteSettings();
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactForm>({
+    resolver: zodResolver(contactSchema),
+  });
+
+  const onSubmit = async (values: ContactForm) => {
+    setSubmitting(true);
+    const { error } = await supabase.from("contact_messages").insert({
+      name: values.name,
+      phone: values.phone || "",
+      email: values.email || "",
+      message: values.message,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast({ title: "Erro ao enviar", description: "Tente novamente mais tarde.", variant: "destructive" });
+    } else {
+      toast({ title: "Mensagem enviada!", description: "Entraremos em contato em breve." });
+      reset();
+    }
+  };
+
   return (
     <Layout>
       <section className="py-20 bg-background">
@@ -17,32 +60,35 @@ const ContactPage = () => {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
             <div>
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Nome</label>
-                  <Input placeholder="Seu nome completo" />
+                  <Input placeholder="Seu nome completo" {...register("name")} />
+                  {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Telefone</label>
-                  <Input placeholder="(81) 99999-9999" />
+                  <Input placeholder="(81) 99999-9999" {...register("phone")} />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">E-mail</label>
-                  <Input type="email" placeholder="seu@email.com" />
+                  <Input type="email" placeholder="seu@email.com" {...register("email")} />
+                  {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Mensagem</label>
-                  <Textarea placeholder="Como podemos ajudar?" rows={4} />
+                  <Textarea placeholder="Como podemos ajudar?" rows={4} {...register("message")} />
+                  {errors.message && <p className="text-xs text-destructive mt-1">{errors.message.message}</p>}
                 </div>
-                <Button type="submit" size="lg" className="w-full font-semibold">
-                  Enviar Mensagem
+                <Button type="submit" size="lg" className="w-full font-semibold" disabled={submitting}>
+                  {submitting ? "Enviando..." : "Enviar Mensagem"}
                 </Button>
               </form>
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground mb-3">Ou entre em contato diretamente:</p>
                 <Button asChild variant="outline" size="lg" className="font-semibold">
                   <a
-                    href="https://wa.me/5581991360132?text=Olá! Gostaria de mais informações."
+                    href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -59,7 +105,9 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-foreground mb-1">Endereço</h3>
-                  <p className="text-muted-foreground text-sm">Rua Exemplo, 123 – Ipsep, Recife – PE</p>
+                  {isLoading ? <Skeleton className="h-4 w-48" /> : (
+                    <p className="text-muted-foreground text-sm">{settings?.address}</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -68,8 +116,12 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-foreground mb-1">Telefone</h3>
-                  <p className="text-muted-foreground text-sm">(81) 99136-0132</p>
-                  <p className="text-muted-foreground text-sm">(81) 3299-3019</p>
+                  {isLoading ? <Skeleton className="h-4 w-32" /> : (
+                    <>
+                      <p className="text-muted-foreground text-sm">{settings?.phone}</p>
+                      {settings?.phone_secondary && <p className="text-muted-foreground text-sm">{settings.phone_secondary}</p>}
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -78,7 +130,9 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-foreground mb-1">E-mail</h3>
-                  <p className="text-muted-foreground text-sm">contato@odontoexcellence.com.br</p>
+                  {isLoading ? <Skeleton className="h-4 w-48" /> : (
+                    <p className="text-muted-foreground text-sm">{settings?.email}</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -87,20 +141,30 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-foreground mb-1">Horários</h3>
-                  <p className="text-muted-foreground text-sm">Seg a Sex: 8h – 18h</p>
-                  <p className="text-muted-foreground text-sm">Sáb: 8h – 12h</p>
+                  {isLoading ? <Skeleton className="h-4 w-40" /> : (
+                    <>
+                      <p className="text-muted-foreground text-sm">{settings?.hours_weekday}</p>
+                      {settings?.hours_saturday && <p className="text-muted-foreground text-sm">{settings.hours_saturday}</p>}
+                    </>
+                  )}
                 </div>
               </div>
               <div className="rounded-2xl overflow-hidden border border-border aspect-video">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3950.5!2d-34.92!3d-8.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOMKwMDYnMDAuMCJTIDM0wrA1NScxMi4wIlc!5e0!3m2!1spt-BR!2sbr!4v1"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  title="Localização"
-                />
+                {settings?.google_maps_embed_url ? (
+                  <iframe
+                    src={settings.google_maps_embed_url}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    title="Localização"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm bg-muted">
+                    Mapa em breve
+                  </div>
+                )}
               </div>
             </div>
           </div>
