@@ -1,82 +1,81 @@
 
 
-# Conectar Frontend ao Banco de Dados
+## Plano: Paleta Vermelho/Preto + Timetable + Fotos Editáveis pelo Admin
 
-## Resumo
-Substituir todos os dados hardcoded em 15 componentes/páginas por queries dinâmicas ao banco usando React Query + Supabase client. Criar um hook centralizado `useSiteSettings` para dados compartilhados (telefone, WhatsApp, endereço, etc.).
+### 1. Substituir paleta Teal → Vermelho/Preto
 
-## Componentes a alterar
+**Arquivos:** `src/index.css`, `tailwind.config.ts`
 
-### 1. Hook compartilhado: `useSiteSettings`
-- Novo hook que busca `site_settings` (1 row) e cacheia globalmente
-- Usado por: Header, Footer, Hero, Location, CTABanner, WhatsAppButton, ContactPage
+Trocar as CSS variables:
+- `--primary`: de `168 100% 37%` (teal) para `0 83% 51%` (#E31E24 vermelho)
+- `--secondary`: de `210 40% 20%` para `0 0% 10%` (#1A1A1A preto)
+- `--teal` → `--brand-red`: `0 83% 51%`
+- `--mint-bg` → fundo rosado claro: `0 40% 97%`
+- `--teal-light` → `0 40% 96%`
+- Ajustar dark mode correspondente
+- Renomear referências de `teal` para `brand` no tailwind.config e nos componentes
 
-### 2. Home sections (7 componentes)
-| Componente | Tabela | Query |
-|---|---|---|
-| `Hero.tsx` | `site_settings` | hero_title, hero_subtitle, whatsapp_number, whatsapp_message |
-| `Features.tsx` | `features` | all, ordered by display_order |
-| `ServicesPreview.tsx` | `services` | active=true, ordered by display_order, limit 6 |
-| `About.tsx` | `about_content` | single row (maybeSingle) |
-| `Team.tsx` | `dentists` | active=true, ordered by display_order, limit 4 |
-| `Testimonials.tsx` | `testimonials` | active=true, featured first, limit 3 |
-| `Videos.tsx` | `videos` | active=true, featured first, limit 2 |
-| `Events.tsx` | `events` | active=true, ordered by event_date, limit 3 |
+**Componentes a atualizar** (referências diretas a cores teal):
+- `Navbar.tsx` linha 89: `bg-teal-light` → `bg-clinic-red-light`
+- `DepartmentsSection.tsx` linha 53: box-shadow hardcoded teal → vermelho
+- Nenhum outro hardcode encontrado; o resto usa variáveis CSS (`primary`, `secondary`)
 
-### 3. Sub-páginas (6 páginas)
-| Página | Tabela |
+### 2. Criar Timetable (Grade Semanal)
+
+**Novo arquivo:** `src/components/medico/TimetableSection.tsx`
+
+- Tabela com colunas: Segunda a Domingo
+- Linhas alternadas: fundo branco e fundo `primary` (vermelho)
+- Nas linhas vermelhas: texto branco, nome do dentista em destaque
+- Dados estáticos iniciais (lorem) com estrutura: horário, nome do dentista, especialidade
+- Hover em linha: destaque com sombra
+- Scroll-triggered fade-in com Framer Motion
+- Usar `SectionDivider` para heading
+
+**Adicionar à Home:** `src/pages/Index.tsx` — inserir `<TimetableSection />` após `DoctorsSection`
+
+### 3. Fotos Editáveis pelo Admin (imagens do site)
+
+**Migração de banco** — Adicionar colunas de imagem à tabela `site_settings`:
+```sql
+ALTER TABLE public.site_settings 
+  ADD COLUMN hero_bg_image TEXT DEFAULT '',
+  ADD COLUMN hero_doctor_image TEXT DEFAULT '',
+  ADD COLUMN about_image TEXT DEFAULT '';
+```
+
+**Atualizar componentes do site:**
+- `HeroSection.tsx`: usar `settings?.hero_bg_image` e `settings?.hero_doctor_image` no lugar dos placeholders
+- `AboutSection.tsx`: usar `settings?.about_image` no lugar do placeholder
+- `BlogSection.tsx`: manter estático (não há tabela de blog ainda)
+
+**Atualizar admin:**
+- `AdminSettings.tsx`: adicionar 3 campos de upload de imagem (hero background, hero doctor, about) usando o bucket `clinic-images` existente
+- Criar componente reutilizável `ImageUpload.tsx` com preview, botão de upload ao storage, e retorno de URL pública
+- Os dentistas já possuem `photo_url` — adicionar `ImageUpload` ao `AdminDentists.tsx` no lugar do campo de texto "URL da Foto"
+- Os eventos já possuem `image_url` — adicionar `ImageUpload` ao `AdminEvents.tsx` no lugar do campo de texto
+
+**Componente `ImageUpload`:**
+- Props: `bucket`, `folder`, `value`, `onChange`
+- Upload via `supabase.storage.from(bucket).upload()`
+- Preview da imagem atual
+- Botão para remover/trocar
+
+### Resumo de Arquivos
+
+| Ação | Arquivo |
 |---|---|
-| `ServicesPage.tsx` | `services` (active) |
-| `TeamPage.tsx` | `dentists` (active) |
-| `TestimonialsPage.tsx` | `testimonials` (active) |
-| `VideosPage.tsx` | `videos` (active) |
-| `EventsPage.tsx` | `events` (active) |
-| `About.tsx` | `about_content` |
-
-### 4. Layout components (4 componentes)
-| Componente | Dados do `site_settings` |
-|---|---|
-| `Header.tsx` | phone, whatsapp_number, whatsapp_message |
-| `Footer.tsx` | phone, phone_secondary, email, address, hours_weekday, hours_saturday, instagram_url, facebook_url |
-| `Location.tsx` | address, phone, phone_secondary, email, hours_weekday, hours_saturday, google_maps_embed_url |
-| `CTABanner.tsx` | whatsapp_number, whatsapp_message, phone_secondary |
-| `WhatsAppButton.tsx` | whatsapp_number, whatsapp_message |
-
-### 5. ContactPage
-- Usar `site_settings` para dados de contato
-- Formulário funcional: submit insere na tabela `contact_messages` com validação zod
-- Toast de sucesso/erro
-
-## Padrão de implementação
-
-- Cada componente terá loading skeleton e fallback para dados hardcoded caso a query falhe
-- `useSiteSettings` com `staleTime: 5min` para evitar re-fetches desnecessários
-- Icon mapping: criar helper `getIconComponent(iconName)` para mapear string do banco para componente Lucide (usado em Features e Services)
-- Videos: embed real do YouTube usando `youtube_id`
-
-## Arquivos novos
-- `src/hooks/useSiteSettings.ts`
-- `src/lib/icon-map.ts`
-
-## Arquivos editados (15)
-- `src/components/home/Hero.tsx`
-- `src/components/home/Features.tsx`
-- `src/components/home/ServicesPreview.tsx`
-- `src/components/home/About.tsx`
-- `src/components/home/Team.tsx`
-- `src/components/home/Testimonials.tsx`
-- `src/components/home/Videos.tsx`
-- `src/components/home/Events.tsx`
-- `src/components/home/Location.tsx`
-- `src/components/home/CTABanner.tsx`
-- `src/components/layout/Header.tsx`
-- `src/components/layout/Footer.tsx`
-- `src/components/layout/WhatsAppButton.tsx`
-- `src/pages/ContactPage.tsx` (+ formulário funcional)
-- `src/pages/ServicesPage.tsx`
-- `src/pages/TeamPage.tsx`
-- `src/pages/TestimonialsPage.tsx`
-- `src/pages/VideosPage.tsx`
-- `src/pages/EventsPage.tsx`
-- `src/pages/About.tsx`
+| Editar | `src/index.css` (variáveis CSS) |
+| Editar | `tailwind.config.ts` (nomes de cores) |
+| Editar | `src/components/medico/Navbar.tsx` |
+| Editar | `src/components/medico/DepartmentsSection.tsx` |
+| Criar | `src/components/medico/TimetableSection.tsx` |
+| Editar | `src/pages/Index.tsx` |
+| Criar | `src/components/admin/ImageUpload.tsx` |
+| Editar | `src/pages/admin/AdminSettings.tsx` |
+| Editar | `src/pages/admin/AdminDentists.tsx` |
+| Editar | `src/pages/admin/AdminEvents.tsx` |
+| Editar | `src/components/medico/HeroSection.tsx` |
+| Editar | `src/components/medico/AboutSection.tsx` |
+| Migração | `site_settings`: 3 novas colunas de imagem |
 
