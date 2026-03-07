@@ -1,10 +1,21 @@
 import { Phone, Mail, MapPin, Facebook, Linkedin, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo-small.png";
 
 const FooterMedico = () => {
   const { data: settings } = useSiteSettings();
+  const { data: services } = useQuery({
+    queryKey: ["footer_services"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("services").select("title").eq("active", true).order("display_order").limit(5);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   return (
     <footer className="bg-secondary text-primary-foreground">
@@ -54,7 +65,7 @@ const FooterMedico = () => {
           <div>
             <h4 className="font-bold text-lg mb-4">Tratamentos</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              {["Implantes", "Ortodontia", "Clareamento", "Próteses", "Endodontia"].map((s) => (
+              {(services && services.length > 0 ? services.map(s => s.title) : ["Implantes", "Ortodontia", "Clareamento", "Próteses", "Endodontia"]).map((s) => (
                 <li key={s}>
                   <Link to="/tratamentos" className="hover:text-primary transition-colors">{s}</Link>
                 </li>

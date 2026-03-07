@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { getWhatsAppUrl, useSiteSettings } from "@/hooks/useSiteSettings";
@@ -56,9 +56,7 @@ const Navbar = () => {
         </ul>
 
         <div className="flex items-center gap-3">
-          <button className="hidden lg:flex h-10 w-10 items-center justify-center text-foreground hover:text-primary transition-colors">
-            <Search className="h-5 w-5" />
-          </button>
+          
           <Button asChild className="rounded font-medium text-sm px-6">
             <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
               AGENDAR

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Facebook, Linkedin, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -78,25 +78,7 @@ const DoctorsSection = () => {
                   </div>
 
                   <div className="p-6">
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">{doc.bio || "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"}</p>
-                    <div className="h-0.5 w-12 bg-primary mx-auto mb-4" />
-                    <div className="flex justify-center gap-2">
-                      {[Facebook, () => <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>, Linkedin].map((IconComp, j) => (
-                        <motion.a
-                          key={j}
-                          href="#"
-                          whileHover={{ scale: 1.1 }}
-                          className="h-9 w-9 rounded bg-primary flex items-center justify-center text-primary-foreground hover:bg-secondary transition-colors"
-                        >
-                          {typeof IconComp === 'function' && IconComp.length === 0 ? (
-                            <IconComp />
-                          ) : (
-                            // @ts-ignore
-                            <IconComp className="h-4 w-4" />
-                          )}
-                        </motion.a>
-                      ))}
-                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{doc.bio || "Profissional dedicado ao cuidado do seu sorriso."}</p>
                   </div>
                 </motion.div>
               ))}
