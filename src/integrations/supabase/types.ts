@@ -292,6 +292,7 @@ export type Database = {
           email: string
           facebook_url: string | null
           google_maps_embed_url: string | null
+          google_reviews_url: string | null
           hero_bg_image: string | null
           hero_doctor_image: string | null
           hero_subtitle: string
@@ -313,6 +314,7 @@ export type Database = {
           email?: string
           facebook_url?: string | null
           google_maps_embed_url?: string | null
+          google_reviews_url?: string | null
           hero_bg_image?: string | null
           hero_doctor_image?: string | null
           hero_subtitle?: string
@@ -334,6 +336,7 @@ export type Database = {
           email?: string
           facebook_url?: string | null
           google_maps_embed_url?: string | null
+          google_reviews_url?: string | null
           hero_bg_image?: string | null
           hero_doctor_image?: string | null
           hero_subtitle?: string

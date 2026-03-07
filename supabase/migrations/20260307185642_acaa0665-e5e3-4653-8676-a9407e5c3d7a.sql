@@ -1,0 +1,1 @@
+ALTER TABLE public.site_settings ADD COLUMN google_reviews_url text DEFAULT '';
