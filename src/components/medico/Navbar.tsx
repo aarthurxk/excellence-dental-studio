@@ -32,7 +32,7 @@ const Navbar = () => {
       <div className="container flex items-center justify-between h-16">
         {/* Mobile logo */}
         <a href="/" className="lg:hidden flex items-center">
-          <img src={logo} alt="Logo" className="h-8" />
+          <img src={logo} alt="Logo" className="h-10" />
         </a>
 
         {/* Desktop nav */}
