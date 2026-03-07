@@ -76,6 +76,25 @@ const AboutSection = () => {
               ))}
             </ul>
 
+            <div className="grid grid-cols-3 gap-4 py-6 border-y border-border mt-4">
+              {[
+                { value: data?.stat_patients || "500+", label: "Pacientes" },
+                { value: data?.stat_treatments || "15+", label: "Especialidades" },
+                { value: data?.stat_years || "10+", label: "Anos" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-center"
+                >
+                  <p className="text-2xl font-bold text-primary font-display">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button size="lg" className="rounded font-semibold px-8" asChild>
                 <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
