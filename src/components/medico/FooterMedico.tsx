@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo-small.png";
+import logo from "@/assets/logo-recife.png";
 
 const FooterMedico = () => {
   const { data: settings } = useSiteSettings();
@@ -23,7 +23,7 @@ const FooterMedico = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Logo & Description */}
           <div className="space-y-4">
-            <img src={logo} alt="Logo" className="h-12 brightness-0 invert" />
+            <img src={logo} alt="Logo" className="h-14 brightness-0 invert" />
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Cuidando do seu sorriso com excelência, tecnologia e atendimento humanizado.
             </p>

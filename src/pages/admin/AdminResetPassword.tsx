@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import logoSmall from "@/assets/logo-small.png";
+import logoSmall from "@/assets/logo-recife.png";
 
 export default function AdminResetPassword() {
   const [password, setPassword] = useState("");
@@ -30,7 +30,7 @@ export default function AdminResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
-          <img src={logoSmall} alt="Odonto Excellence" className="h-12 mx-auto" />
+          <img src={logoSmall} alt="Odonto Excellence" className="h-14 mx-auto" />
           <CardTitle className="text-xl">Nova Senha</CardTitle>
         </CardHeader>
         <CardContent>

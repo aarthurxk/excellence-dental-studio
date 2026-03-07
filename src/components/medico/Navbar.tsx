@@ -4,7 +4,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { getWhatsAppUrl, useSiteSettings } from "@/hooks/useSiteSettings";
-import logo from "@/assets/logo-small.png";
+import logo from "@/assets/logo-recife.png";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -32,7 +32,7 @@ const Navbar = () => {
       <div className="container flex items-center justify-between h-16">
         {/* Mobile logo */}
         <a href="/" className="lg:hidden flex items-center">
-          <img src={logo} alt="Logo" className="h-8" />
+          <img src={logo} alt="Logo" className="h-10" />
         </a>
 
         {/* Desktop nav */}

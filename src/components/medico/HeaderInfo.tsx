@@ -1,6 +1,6 @@
 import { Phone, Mail, MapPin } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import logo from "@/assets/logo-small.png";
+import logo from "@/assets/logo-recife.png";
 
 const HeaderInfo = () => {
   const { data: settings } = useSiteSettings();
@@ -24,7 +24,7 @@ const HeaderInfo = () => {
     <div className="bg-background py-4 hidden lg:block border-b border-border">
       <div className="container flex justify-between items-center">
         <a href="/" className="flex items-center gap-2">
-          <img src={logo} alt="Logo" className="h-12" />
+          <img src={logo} alt="Logo" className="h-14" />
         </a>
         <div className="flex items-center gap-10">
           {infoBlocks.map((block, i) => (
