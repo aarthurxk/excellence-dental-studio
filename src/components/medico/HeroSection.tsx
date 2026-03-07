@@ -41,7 +41,7 @@ const HeroSection = () => {
               className="flex flex-wrap gap-4"
             >
               <Button size="lg" className="rounded font-semibold text-sm px-8 py-6" asChild>
-                <a href={getWhatsAppUrl(settings)} target="_blank" rel="noopener noreferrer">
+                <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   AGENDAR AGORA
                 </a>
