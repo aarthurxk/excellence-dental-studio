@@ -11,7 +11,7 @@ const HeroSection = () => {
       {/* Background image */}
       <div className="absolute inset-0">
         <img
-          src="https://placehold.co/1920x700/2d3748/2d3748"
+          src={settings?.hero_bg_image || "https://placehold.co/1920x700/1a1a1a/1a1a1a"}
           alt=""
           className="w-full h-full object-cover opacity-40"
         />
