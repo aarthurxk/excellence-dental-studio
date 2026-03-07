@@ -7,7 +7,7 @@ import DepartmentsSection from "@/components/medico/DepartmentsSection";
 import DoctorsSection from "@/components/medico/DoctorsSection";
 
 import TestimonialsSection from "@/components/medico/TestimonialsSection";
-import BlogSection from "@/components/medico/BlogSection";
+
 import Location from "@/components/home/Location";
 
 const Index = () => {
