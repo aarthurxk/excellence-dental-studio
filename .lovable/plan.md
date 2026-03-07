@@ -1,13 +1,25 @@
 
-The user wants to change the email in the header. Looking at the codebase, there are header components:
 
-1. **`src/components/layout/Header.tsx`** - Desktop header with phone and WhatsApp button (no email display)
-2. **`src/components/medico/Navbar.tsx`** - Navigation navbar for medical section (no email display)
-3. **`src/components/medico/HeaderInfo.tsx`** - Shows contact info including email with Mail icon
-4. **`src/components/medico/TopBar.tsx`** - Shows date, clinic hours, social media links (no email display)
+## Diagnosis
 
-The only header component that displays email is **`src/components/medico/HeaderInfo.tsx`**, which already has the correct fallback: `adm@odontoexcellencerecife.com.br`.
+All code fallbacks already use `adm@odontoexcellencerecife.com.br`. The old email `contato@odontoexcellence.com.br` exists in two places in the **database**:
 
-**Action**: No changes needed. The email in the header component is already updated to `adm@odontoexcellencerecife.com.br` from the previous edit.
+1. **`site_settings` table data** — the actual row has `email = 'contato@odontoexcellence.com.br'`
+2. **`site_settings` column default** — the column default is `'contato@odontoexcellence.com.br'::text`
 
-If the user wants to verify the email displays correctly in the header section of the site, that would require checking the preview.
+Since the database value overrides all code fallbacks, the old email keeps showing up.
+
+## Plan
+
+1. **Update the existing record** (using insert/update tool):
+   ```sql
+   UPDATE site_settings SET email = 'adm@odontoexcellencerecife.com.br' WHERE id = '03684baa-7f82-4906-ae80-bec6b4d4792b';
+   ```
+
+2. **Update the column default** (using migration tool):
+   ```sql
+   ALTER TABLE site_settings ALTER COLUMN email SET DEFAULT 'adm@odontoexcellencerecife.com.br';
+   ```
+
+No code changes needed — all components already have the correct fallback.
+
