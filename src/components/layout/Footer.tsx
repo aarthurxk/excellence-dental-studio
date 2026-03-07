@@ -1,17 +1,36 @@
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Instagram, Facebook, MessageCircle } from "lucide-react";
 import logoQuadrado from "@/assets/logo-quadrado.png";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
 
 const Footer = () => {
   const { data: settings } = useSiteSettings();
+  const whatsappUrl = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message);
 
   return (
     <footer className="bg-clinic-dark text-clinic-gray">
       <div className="container py-16">
+        {/* CTA strip */}
+        <div className="border-b border-clinic-gray/10 py-10 mb-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 className="text-lg font-bold text-primary-foreground font-display">Agende pelo WhatsApp</h3>
+              <p className="text-sm text-clinic-gray/60 mt-1">Resposta rápida · Sem filas · Atendimento humanizado</p>
+            </div>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-[#25D366] hover:bg-[#22c55e] text-white font-bold px-6 py-3 rounded-lg transition-colors shrink-0"
+            >
+              <MessageCircle className="h-5 w-5" /> Agendar no WhatsApp
+            </a>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-2 inline-block"><img src={logoQuadrado} alt="Odonto Excellence" className="h-16 w-auto" /></div>
+            <img src={logoQuadrado} alt="Odonto Excellence" className="h-16 w-auto brightness-0 invert" />
             <p className="text-sm text-clinic-gray/70 leading-relaxed">
               Clínica odontológica especializada em transformar sorrisos com excelência e tecnologia de ponta.
             </p>
@@ -24,6 +43,11 @@ const Footer = () => {
               {settings?.facebook_url && (
                 <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Facebook">
                   <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {(settings as any)?.tiktok_url && (
+                <a href={(settings as any).tiktok_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="TikTok">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.2 8.2 0 004.79 1.52V6.75a4.85 4.85 0 01-1.02-.06z"/></svg>
                 </a>
               )}
               {!settings?.instagram_url && !settings?.facebook_url && (
@@ -99,6 +123,7 @@ const Footer = () => {
           <p className="text-xs text-clinic-gray/50">
             © {new Date().getFullYear()} Odonto Excellence – Unidade Ipsep. Todos os direitos reservados.
           </p>
+          <span className="text-xs text-clinic-gray/30 hidden md:block">Feito com ♥ em Recife</span>
           <Link to="/admin/login" className="text-xs text-clinic-gray/30 hover:text-clinic-gray/50 transition-colors">
             Admin
           </Link>
