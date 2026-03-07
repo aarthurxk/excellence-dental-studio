@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
-import Header from "./Header";
-import Footer from "./Footer";
+import TopBar from "@/components/medico/TopBar";
+import HeaderInfo from "@/components/medico/HeaderInfo";
+import Navbar from "@/components/medico/Navbar";
+import FooterMedico from "@/components/medico/FooterMedico";
 import WhatsAppButton from "./WhatsAppButton";
 
 interface LayoutProps {
@@ -10,9 +12,11 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <TopBar />
+      <HeaderInfo />
+      <Navbar />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <FooterMedico />
       <WhatsAppButton />
     </div>
   );
