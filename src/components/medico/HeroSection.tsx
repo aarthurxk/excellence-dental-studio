@@ -52,12 +52,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="hidden lg:flex justify-end items-end"
+            className="hidden lg:block absolute bottom-0 right-0 translate-y-[30%] z-20"
           >
             <img
               src={settings?.hero_doctor_image || "https://placehold.co/500x600/1a1a1a/cccccc?text=Dentista"}
               alt="Profissional"
-              className="h-[500px] object-contain"
+              className="h-[550px] object-contain"
             />
           </motion.div>
         </div>
