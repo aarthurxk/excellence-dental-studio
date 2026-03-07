@@ -11,6 +11,7 @@ import DataTable, { Column } from "@/components/admin/DataTable";
 import FormDialog from "@/components/admin/FormDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { Plus } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Dentist = Tables<"dentists">;
 const empty = { id: "", name: "", specialty: "", cro: "", bio: "", photo_url: "", display_order: 0, active: true };
