@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { Calendar, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ const EventsPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Eventos" description="Confira os eventos e ações sociais da Odonto Excellence Ipsep em Recife." path="/eventos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

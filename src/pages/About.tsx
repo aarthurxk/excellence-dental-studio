@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ const AboutPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Sobre Nós" description="Conheça a história e os diferenciais da Odonto Excellence, clínica odontológica no Ipsep, Recife." path="/sobre" />
       <section className="py-20 bg-background">
         <div className="container max-w-4xl">
           <span className="text-primary font-medium text-sm uppercase tracking-wider">Sobre Nós</span>

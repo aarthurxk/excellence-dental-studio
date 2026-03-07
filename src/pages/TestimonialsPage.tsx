@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { Star, Quote } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const TestimonialsPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Depoimentos" description="Veja o que nossos pacientes dizem sobre a Odonto Excellence Ipsep." path="/depoimentos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

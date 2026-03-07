@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/medico/HeroSection";
 import InfoStrip from "@/components/medico/InfoStrip";
 import HighlightBanner from "@/components/medico/HighlightBanner";
@@ -13,6 +14,11 @@ import Location from "@/components/home/Location";
 const Index = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Odonto Excellence Ipsep | Dentista em Recife"
+        description="Clínica odontológica no Ipsep, Recife. Implantes, clareamento, ortodontia e mais. Agende sua avaliação!"
+        path="/"
+      />
       <HeroSection />
       <InfoStrip />
       <HighlightBanner />

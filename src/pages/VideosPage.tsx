@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +20,7 @@ const VideosPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Vídeos" description="Assista vídeos sobre tratamentos e novidades da Odonto Excellence Ipsep." path="/videos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

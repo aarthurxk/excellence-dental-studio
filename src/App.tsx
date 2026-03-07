@@ -27,6 +27,7 @@ import AdminMessages from "./pages/admin/AdminMessages";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminRoadmap from "./pages/admin/AdminRoadmap";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/contato" element={<ContactPage />} />
 
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
             <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
             <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
