@@ -87,7 +87,7 @@ const FooterMedico = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{settings?.email || "contato@odontoexcellencerecife.com.br"}</span>
+                <span>{settings?.email || "adm@odontoexcellencerecife.com.br"}</span>
               </li>
             </ul>
           </div>
