@@ -11,6 +11,7 @@ import DataTable, { Column } from "@/components/admin/DataTable";
 import FormDialog from "@/components/admin/FormDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { Plus } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Event = Tables<"events">;
 const empty = { id: "", title: "", description: "", event_date: new Date().toISOString().split("T")[0], location: "", image_url: "", active: true };
