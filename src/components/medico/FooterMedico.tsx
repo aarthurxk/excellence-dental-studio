@@ -65,7 +65,7 @@ const FooterMedico = () => {
           <div>
             <h4 className="font-bold text-lg mb-4">Tratamentos</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              {["Implantes", "Ortodontia", "Clareamento", "Próteses", "Endodontia"].map((s) => (
+              {(services && services.length > 0 ? services.map(s => s.title) : ["Implantes", "Ortodontia", "Clareamento", "Próteses", "Endodontia"]).map((s) => (
                 <li key={s}>
                   <Link to="/tratamentos" className="hover:text-primary transition-colors">{s}</Link>
                 </li>

@@ -4,19 +4,34 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-function isClinicOpen(): boolean {
+function parseHourRange(text: string | null | undefined): [number, number] | null {
+  if (!text) return null;
+  const match = text.match(/(\d{1,2})h?\s*[–-]\s*(\d{1,2})h?/);
+  if (!match) return null;
+  return [parseInt(match[1]), parseInt(match[2])];
+}
+
+function isClinicOpen(weekday?: string | null, saturday?: string | null): boolean {
   const now = new Date();
   const day = now.getDay();
   const hour = now.getHours();
 
-  if (day >= 1 && day <= 5) return hour >= 9 && hour < 19;
-  if (day === 6) return hour >= 9 && hour < 17;
+  if (day >= 1 && day <= 5) {
+    const range = parseHourRange(weekday);
+    if (range) return hour >= range[0] && hour < range[1];
+    return hour >= 9 && hour < 19;
+  }
+  if (day === 6) {
+    const range = parseHourRange(saturday);
+    if (range) return hour >= range[0] && hour < range[1];
+    return hour >= 9 && hour < 17;
+  }
   return false;
 }
 
 const TopBar = () => {
   const { data: settings } = useSiteSettings();
-  const open = isClinicOpen();
+  const open = isClinicOpen(settings?.hours_weekday, settings?.hours_saturday);
   const now = new Date();
   const dateStr = format(now, "dd/MM/yy");
   const dayName = format(now, "EEEE", { locale: ptBR });

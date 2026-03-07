@@ -21,7 +21,7 @@ const Index = () => {
       <DoctorsSection />
       
       <TestimonialsSection />
-      <BlogSection />
+      
       <Location />
     </Layout>
   );
