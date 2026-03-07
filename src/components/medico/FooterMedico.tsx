@@ -7,6 +7,15 @@ import logo from "@/assets/logo-small.png";
 
 const FooterMedico = () => {
   const { data: settings } = useSiteSettings();
+  const { data: services } = useQuery({
+    queryKey: ["footer_services"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("services").select("title").eq("active", true).order("display_order").limit(5);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   return (
     <footer className="bg-secondary text-primary-foreground">
