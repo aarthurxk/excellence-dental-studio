@@ -33,7 +33,7 @@ const InfoStrip = () => {
   ];
 
   return (
-    <section className="bg-primary">
+    <section className="relative z-10 bg-primary">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3">
           {items.map((item, i) => (
