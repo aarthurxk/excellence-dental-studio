@@ -33,6 +33,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
+import WhatsAppButton from "./components/layout/WhatsAppButton";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AppRoutes />
+          <WhatsAppButton />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
