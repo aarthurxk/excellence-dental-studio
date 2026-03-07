@@ -10,6 +10,7 @@ import TestimonialsSection from "@/components/medico/TestimonialsSection";
 import Videos from "@/components/home/Videos";
 import Events from "@/components/home/Events";
 import CTABanner from "@/components/home/CTABanner";
+import FAQ from "@/components/home/FAQ";
 import Location from "@/components/home/Location";
 
 const Index = () => {
@@ -30,6 +31,7 @@ const Index = () => {
       <Videos />
       <Events />
       <CTABanner />
+      <FAQ />
       <Location />
     </Layout>
   );
