@@ -2,8 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ScrollToTop from "@/components/layout/ScrollToTop";
+import PageTransition from "@/components/layout/PageTransition";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import TeamPage from "./pages/TeamPage";
@@ -41,6 +44,42 @@ function AdminPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AppRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/sobre" element={<PageTransition><About /></PageTransition>} />
+        <Route path="/equipe" element={<PageTransition><TeamPage /></PageTransition>} />
+        <Route path="/tratamentos" element={<PageTransition><ServicesPage /></PageTransition>} />
+        <Route path="/depoimentos" element={<PageTransition><TestimonialsPage /></PageTransition>} />
+        <Route path="/videos" element={<PageTransition><VideosPage /></PageTransition>} />
+        <Route path="/eventos" element={<PageTransition><EventsPage /></PageTransition>} />
+        <Route path="/contato" element={<PageTransition><ContactPage /></PageTransition>} />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+        <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
+        <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
+        <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
+        <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
+        <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
+        <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
+        <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
+        <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
+        <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
+        <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
+        <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
+        <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -48,33 +87,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/sobre" element={<About />} />
-            <Route path="/equipe" element={<TeamPage />} />
-            <Route path="/tratamentos" element={<ServicesPage />} />
-            <Route path="/depoimentos" element={<TestimonialsPage />} />
-            <Route path="/videos" element={<VideosPage />} />
-            <Route path="/eventos" element={<EventsPage />} />
-            <Route path="/contato" element={<ContactPage />} />
-
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
-            <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
-            <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
-            <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
-            <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
-            <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
-            <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
-            <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
-            <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
-            <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
-            <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
-            <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
-            <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <ScrollToTop />
+          <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
