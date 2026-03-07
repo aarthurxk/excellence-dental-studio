@@ -1,0 +1,1 @@
+ALTER TABLE site_settings ALTER COLUMN email SET DEFAULT 'adm@odontoexcellencerecife.com.br';
