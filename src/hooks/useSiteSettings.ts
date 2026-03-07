@@ -19,6 +19,9 @@ const fallback: SiteSettings = {
   instagram_url: "",
   facebook_url: "",
   google_maps_embed_url: "",
+  hero_bg_image: "",
+  hero_doctor_image: "",
+  about_image: "",
   created_at: "",
   updated_at: "",
 };

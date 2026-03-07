@@ -70,7 +70,7 @@ export default function AdminEvents() {
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={editing.description} onChange={(ev) => setEditing({ ...editing, description: ev.target.value })} /></div>
             <div className="space-y-2"><Label>Data</Label><Input type="date" value={editing.event_date} onChange={(ev) => setEditing({ ...editing, event_date: ev.target.value })} required /></div>
             <div className="space-y-2"><Label>Local</Label><Input value={editing.location} onChange={(ev) => setEditing({ ...editing, location: ev.target.value })} /></div>
-            <div className="space-y-2"><Label>URL da Imagem</Label><Input value={editing.image_url} onChange={(ev) => setEditing({ ...editing, image_url: ev.target.value })} /></div>
+            <div className="space-y-2"><Label>Imagem</Label><ImageUpload bucket="clinic-images" folder="events" value={editing.image_url} onChange={(url) => setEditing({ ...editing, image_url: url })} /></div>
             <div className="flex items-center gap-2"><Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} /><Label>Ativo</Label></div>
             <Button type="submit" className="w-full" disabled={save.isPending}>{save.isPending ? "Salvando..." : "Salvar"}</Button>
           </form>

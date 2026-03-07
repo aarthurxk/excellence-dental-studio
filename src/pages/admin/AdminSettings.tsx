@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import type { Tables } from "@/integrations/supabase/types";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Settings = Tables<"site_settings">;
 
@@ -25,6 +26,7 @@ export default function AdminSettings() {
     hero_title: "", hero_subtitle: "", phone: "", phone_secondary: "", email: "",
     address: "", hours_weekday: "", hours_saturday: "", whatsapp_number: "",
     whatsapp_message: "", instagram_url: "", facebook_url: "", google_maps_embed_url: "",
+    hero_bg_image: "", hero_doctor_image: "", about_image: "",
   });
 
   useEffect(() => {
@@ -36,6 +38,8 @@ export default function AdminSettings() {
       whatsapp_number: data.whatsapp_number, whatsapp_message: data.whatsapp_message ?? "",
       instagram_url: data.instagram_url ?? "", facebook_url: data.facebook_url ?? "",
       google_maps_embed_url: data.google_maps_embed_url ?? "",
+      hero_bg_image: data.hero_bg_image ?? "", hero_doctor_image: data.hero_doctor_image ?? "",
+      about_image: data.about_image ?? "",
     });
   }, [data]);
 
@@ -63,6 +67,13 @@ export default function AdminSettings() {
           <legend className="text-sm font-semibold px-2">Hero</legend>
           <div className="space-y-2"><Label>Título</Label><Input value={form.hero_title} onChange={(e) => setForm({ ...form, hero_title: e.target.value })} /></div>
           <div className="space-y-2"><Label>Subtítulo</Label><Input value={form.hero_subtitle} onChange={(e) => setForm({ ...form, hero_subtitle: e.target.value })} /></div>
+          <div className="space-y-2"><Label>Imagem de Fundo</Label><ImageUpload bucket="clinic-images" folder="hero" value={form.hero_bg_image} onChange={(url) => setForm({ ...form, hero_bg_image: url })} /></div>
+          <div className="space-y-2"><Label>Foto do Dentista</Label><ImageUpload bucket="clinic-images" folder="hero" value={form.hero_doctor_image} onChange={(url) => setForm({ ...form, hero_doctor_image: url })} /></div>
+        </fieldset>
+
+        <fieldset className="space-y-4 border rounded-lg p-4">
+          <legend className="text-sm font-semibold px-2">Sobre (Imagem)</legend>
+          <div className="space-y-2"><Label>Foto da Clínica</Label><ImageUpload bucket="clinic-images" folder="about" value={form.about_image} onChange={(url) => setForm({ ...form, about_image: url })} /></div>
         </fieldset>
 
         <fieldset className="space-y-4 border rounded-lg p-4">
