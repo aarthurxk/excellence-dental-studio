@@ -49,11 +49,11 @@
     --sidebar-accent: 0 0% 95%;
     --sidebar-accent-foreground: 210 29% 18%;
     --sidebar-border: 210 15% 90%;
-    --sidebar-ring: 168 100% 37%;
+    --sidebar-ring: 0 83% 51%;
 
-    --clinic-dark: 210 45% 15%;
+    --clinic-dark: 0 0% 7%;
     --clinic-gray: 0 0% 96%;
-    --clinic-red-light: 168 50% 95%;
+    --clinic-red-light: 0 40% 96%;
   }
 
   .dark {
