@@ -226,11 +226,14 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          about_image: string | null
           address: string
           created_at: string
           email: string
           facebook_url: string | null
           google_maps_embed_url: string | null
+          hero_bg_image: string | null
+          hero_doctor_image: string | null
           hero_subtitle: string
           hero_title: string
           hours_saturday: string | null
@@ -244,11 +247,14 @@ export type Database = {
           whatsapp_number: string
         }
         Insert: {
+          about_image?: string | null
           address?: string
           created_at?: string
           email?: string
           facebook_url?: string | null
           google_maps_embed_url?: string | null
+          hero_bg_image?: string | null
+          hero_doctor_image?: string | null
           hero_subtitle?: string
           hero_title?: string
           hours_saturday?: string | null
@@ -262,11 +268,14 @@ export type Database = {
           whatsapp_number?: string
         }
         Update: {
+          about_image?: string | null
           address?: string
           created_at?: string
           email?: string
           facebook_url?: string | null
           google_maps_embed_url?: string | null
+          hero_bg_image?: string | null
+          hero_doctor_image?: string | null
           hero_subtitle?: string
           hero_title?: string
           hours_saturday?: string | null
