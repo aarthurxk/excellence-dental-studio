@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
