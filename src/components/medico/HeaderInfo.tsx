@@ -16,7 +16,7 @@ const HeaderInfo = () => {
     },
     {
       icon: MapPin,
-      lines: [settings?.address?.split(",")[0] || "Rua Example, 220", settings?.address?.split(",").slice(1).join(",").trim() || "Ipsep – Recife"],
+      lines: [settings?.address?.split(",")[0] || "Rua Jean Emile Favre", settings?.address?.split(",").slice(1).join(",").trim() || "1712 – Ipsep, Recife – PE, 51190-450"],
     },
   ];
 
