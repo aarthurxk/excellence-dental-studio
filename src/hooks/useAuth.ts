@@ -18,34 +18,48 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    let initialSessionHandled = false;
+    let ignore = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, sess) => {
+      (_event, sess) => {
+        if (ignore) return;
         setSession(sess);
         setUser(sess?.user ?? null);
+
         if (sess?.user) {
-          await checkAdmin(sess.user.id);
+          // Defer RPC call outside the Web Lock to avoid deadlock
+          setTimeout(async () => {
+            if (ignore) return;
+            await checkAdmin(sess.user.id);
+            if (!ignore) setLoading(false);
+          }, 0);
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
-        initialSessionHandled = true;
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
-      if (!initialSessionHandled) {
-        setSession(sess);
-        setUser(sess?.user ?? null);
-        if (sess?.user) {
+    supabase.auth.getSession().then(({ data: { session: sess } }) => {
+      if (ignore) return;
+      setSession(sess);
+      setUser(sess?.user ?? null);
+
+      if (sess?.user) {
+        setTimeout(async () => {
+          if (ignore) return;
           await checkAdmin(sess.user.id);
-        }
+          if (!ignore) setLoading(false);
+        }, 0);
+      } else {
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      ignore = true;
+      subscription.unsubscribe();
+    };
   }, [checkAdmin]);
 
   const signIn = async (email: string, password: string) => {
