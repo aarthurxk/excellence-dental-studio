@@ -99,9 +99,9 @@ const Footer = () => {
           <p className="text-xs text-clinic-gray/50">
             © {new Date().getFullYear()} Odonto Excellence – Unidade Ipsep. Todos os direitos reservados.
           </p>
-          <p className="text-xs text-clinic-gray/50">
-            Desenvolvido com ❤️
-          </p>
+          <Link to="/admin/login" className="text-xs text-clinic-gray/30 hover:text-clinic-gray/50 transition-colors">
+            Admin
+          </Link>
         </div>
       </div>
     </footer>
