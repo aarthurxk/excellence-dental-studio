@@ -1,82 +1,82 @@
 
 
-# O que falta para o site ficar 100% (com painel admin editável)
+# Conectar Frontend ao Banco de Dados
 
-## Estado atual
-O site tem toda a estrutura frontend pronta com dados hardcoded: Home (11 seções), 7 sub-páginas, Header, Footer e WhatsApp button. Não há banco de dados, autenticação, nem painel administrativo.
+## Resumo
+Substituir todos os dados hardcoded em 15 componentes/páginas por queries dinâmicas ao banco usando React Query + Supabase client. Criar um hook centralizado `useSiteSettings` para dados compartilhados (telefone, WhatsApp, endereço, etc.).
 
-## O que falta
+## Componentes a alterar
 
-### 1. Backend — Banco de dados (Lovable Cloud / Supabase)
-Criar tabelas para todo o conteúdo editável:
+### 1. Hook compartilhado: `useSiteSettings`
+- Novo hook que busca `site_settings` (1 row) e cacheia globalmente
+- Usado por: Header, Footer, Hero, Location, CTABanner, WhatsAppButton, ContactPage
 
-- **`site_settings`** — textos do Hero (título, subtítulo), telefone, e-mail, endereço, horários, links de redes sociais, URL do Google Maps, número do WhatsApp
-- **`services`** — título, descrição, ícone, benefícios, ordem de exibição, ativo
-- **`dentists`** — nome, especialidade, CRO, bio, foto, ordem, ativo
-- **`testimonials`** — nome do paciente, texto, nota (estrelas), destaque, ativo
-- **`videos`** — título, descrição, youtubeId, destaque, ordem, ativo
-- **`events`** — título, descrição, data, local, imagem, ativo
-- **`about_content`** — textos da seção Sobre (título, parágrafos, stats)
-- **`features`** — diferenciais (ícone, título, descrição, ordem)
+### 2. Home sections (7 componentes)
+| Componente | Tabela | Query |
+|---|---|---|
+| `Hero.tsx` | `site_settings` | hero_title, hero_subtitle, whatsapp_number, whatsapp_message |
+| `Features.tsx` | `features` | all, ordered by display_order |
+| `ServicesPreview.tsx` | `services` | active=true, ordered by display_order, limit 6 |
+| `About.tsx` | `about_content` | single row (maybeSingle) |
+| `Team.tsx` | `dentists` | active=true, ordered by display_order, limit 4 |
+| `Testimonials.tsx` | `testimonials` | active=true, featured first, limit 3 |
+| `Videos.tsx` | `videos` | active=true, featured first, limit 2 |
+| `Events.tsx` | `events` | active=true, ordered by event_date, limit 3 |
 
-### 2. Autenticação — Login de administrador
-- Criar sistema de login com email/senha via Supabase Auth
-- Tabela `user_roles` com role `admin` (security definer function `has_role`)
-- Rota `/admin/login` e proteção de rotas admin
-- Sem necessidade de perfis de usuário público
+### 3. Sub-páginas (6 páginas)
+| Página | Tabela |
+|---|---|
+| `ServicesPage.tsx` | `services` (active) |
+| `TeamPage.tsx` | `dentists` (active) |
+| `TestimonialsPage.tsx` | `testimonials` (active) |
+| `VideosPage.tsx` | `videos` (active) |
+| `EventsPage.tsx` | `events` (active) |
+| `About.tsx` | `about_content` |
 
-### 3. Painel Administrativo — CRUD completo
-Criar `/admin` com sidebar e páginas para gerenciar:
+### 4. Layout components (4 componentes)
+| Componente | Dados do `site_settings` |
+|---|---|
+| `Header.tsx` | phone, whatsapp_number, whatsapp_message |
+| `Footer.tsx` | phone, phone_secondary, email, address, hours_weekday, hours_saturday, instagram_url, facebook_url |
+| `Location.tsx` | address, phone, phone_secondary, email, hours_weekday, hours_saturday, google_maps_embed_url |
+| `CTABanner.tsx` | whatsapp_number, whatsapp_message, phone_secondary |
+| `WhatsAppButton.tsx` | whatsapp_number, whatsapp_message |
 
-- **Dashboard** — visão geral com contadores
-- **Configurações gerais** — editar textos do Hero, contatos, horários, redes sociais, WhatsApp
-- **Tratamentos** — listar, adicionar, editar, remover, reordenar
-- **Equipe** — listar, adicionar, editar, remover com upload de foto
-- **Depoimentos** — listar, adicionar, editar, remover, marcar destaque
-- **Vídeos** — listar, adicionar, editar, remover, marcar destaque
-- **Eventos** — listar, adicionar, editar, remover
-- **Sobre** — editar textos e stats da seção Sobre
-- **Diferenciais** — listar, editar os 4 cards de Features
+### 5. ContactPage
+- Usar `site_settings` para dados de contato
+- Formulário funcional: submit insere na tabela `contact_messages` com validação zod
+- Toast de sucesso/erro
 
-### 4. Storage — Upload de imagens
-- Bucket para fotos da equipe, imagens de eventos e foto do Hero/Sobre
-- Políticas RLS para upload apenas por admin
+## Padrão de implementação
 
-### 5. Conectar frontend ao banco
-- Substituir todos os dados hardcoded por queries ao Supabase (React Query)
-- Loading states e fallbacks para quando não há dados
-- Home e sub-páginas puxando dados dinâmicos
+- Cada componente terá loading skeleton e fallback para dados hardcoded caso a query falhe
+- `useSiteSettings` com `staleTime: 5min` para evitar re-fetches desnecessários
+- Icon mapping: criar helper `getIconComponent(iconName)` para mapear string do banco para componente Lucide (usado em Features e Services)
+- Videos: embed real do YouTube usando `youtube_id`
 
-### 6. Formulário de contato funcional
-- Edge function para receber mensagens do formulário de contato
-- Salvar no banco (tabela `contact_messages`) ou enviar por email
-- Validação client-side com zod + server-side
-- Listagem de mensagens no admin
+## Arquivos novos
+- `src/hooks/useSiteSettings.ts`
+- `src/lib/icon-map.ts`
 
-### 7. Imagens reais nos placeholders
-- Substituir todos os "Foto" / "Vídeo YouTube" por imagens e embeds reais
-- Hero, Equipe, Sobre, Vídeos (YouTube embed real)
-
-### 8. SEO e meta tags dinâmicas
-- Meta tags corretas por página (title, description, og:image)
-- Sitemap e robots.txt refinados
-
-### 9. Dados reais da clínica
-- Endereço real, telefones, e-mail, horários corretos
-- URL correta do Google Maps embed
-- Links reais de Instagram e Facebook
-- IDs reais dos vídeos do YouTube
-
-## Ordem sugerida de implementação
-1. Ativar Lovable Cloud / Supabase
-2. Criar tabelas + RLS + auth
-3. Painel admin (login + CRUD)
-4. Storage para uploads
-5. Conectar frontend ao banco
-6. Formulário de contato funcional
-7. Inserir dados reais + imagens
-8. SEO final
-
-## Estimativa
-Aproximadamente 15-25 mensagens para implementar tudo, dependendo da complexidade de cada etapa.
+## Arquivos editados (15)
+- `src/components/home/Hero.tsx`
+- `src/components/home/Features.tsx`
+- `src/components/home/ServicesPreview.tsx`
+- `src/components/home/About.tsx`
+- `src/components/home/Team.tsx`
+- `src/components/home/Testimonials.tsx`
+- `src/components/home/Videos.tsx`
+- `src/components/home/Events.tsx`
+- `src/components/home/Location.tsx`
+- `src/components/home/CTABanner.tsx`
+- `src/components/layout/Header.tsx`
+- `src/components/layout/Footer.tsx`
+- `src/components/layout/WhatsAppButton.tsx`
+- `src/pages/ContactPage.tsx` (+ formulário funcional)
+- `src/pages/ServicesPage.tsx`
+- `src/pages/TeamPage.tsx`
+- `src/pages/TestimonialsPage.tsx`
+- `src/pages/VideosPage.tsx`
+- `src/pages/EventsPage.tsx`
+- `src/pages/About.tsx`
 
