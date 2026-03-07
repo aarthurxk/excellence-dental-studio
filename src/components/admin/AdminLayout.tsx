@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
