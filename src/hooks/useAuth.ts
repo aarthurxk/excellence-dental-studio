@@ -9,11 +9,17 @@ export function useAuth() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const checkAdmin = useCallback(async (userId: string) => {
-    const { data } = await supabase.rpc("is_admin", { _user_id: userId });
-    setIsAdmin(!!data);
+    try {
+      const { data } = await supabase.rpc("is_admin", { _user_id: userId });
+      setIsAdmin(!!data);
+    } catch {
+      setIsAdmin(false);
+    }
   }, []);
 
   useEffect(() => {
+    let initialSessionHandled = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, sess) => {
         setSession(sess);
@@ -23,17 +29,20 @@ export function useAuth() {
         } else {
           setIsAdmin(false);
         }
+        initialSessionHandled = true;
         setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        await checkAdmin(sess.user.id);
+      if (!initialSessionHandled) {
+        setSession(sess);
+        setUser(sess?.user ?? null);
+        if (sess?.user) {
+          await checkAdmin(sess.user.id);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
