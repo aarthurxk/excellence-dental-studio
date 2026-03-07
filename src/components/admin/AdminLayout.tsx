@@ -1,42 +1,68 @@
 import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar,
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  socio: "Sócio",
+  gerente: "Gerente",
+  dentista: "Dentista",
+  recepcionista: "Recepcionista",
+  user: "Usuário",
+};
 
 const navItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Tratamentos", url: "/admin/tratamentos", icon: Stethoscope },
-  { title: "Dentistas", url: "/admin/dentistas", icon: Users },
-  { title: "Depoimentos", url: "/admin/depoimentos", icon: Star },
-  { title: "Vídeos", url: "/admin/videos", icon: Video },
-  { title: "Eventos", url: "/admin/eventos", icon: CalendarDays },
-  { title: "Diferenciais", url: "/admin/diferenciais", icon: Sparkles },
-  { title: "Sobre", url: "/admin/sobre", icon: Info },
-  { title: "Mensagens", url: "/admin/mensagens", icon: MessageSquare },
-  { title: "Configurações", url: "/admin/configuracoes", icon: Settings },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard, module: null },
+  { title: "Tratamentos", url: "/admin/tratamentos", icon: Stethoscope, module: "services" },
+  { title: "Dentistas", url: "/admin/dentistas", icon: Users, module: "dentists" },
+  { title: "Depoimentos", url: "/admin/depoimentos", icon: Star, module: "testimonials" },
+  { title: "Vídeos", url: "/admin/videos", icon: Video, module: "videos" },
+  { title: "Eventos", url: "/admin/eventos", icon: CalendarDays, module: "events" },
+  { title: "Diferenciais", url: "/admin/diferenciais", icon: Sparkles, module: "features" },
+  { title: "Sobre", url: "/admin/sobre", icon: Info, module: "about" },
+  { title: "Mensagens", url: "/admin/mensagens", icon: MessageSquare, module: "messages" },
+  { title: "Roadmap", url: "/admin/roadmap", icon: Map, module: "roadmap" },
+  { title: "Usuários", url: "/admin/usuarios", icon: UserCog, module: "users" },
+  { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "settings" },
 ];
 
 function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
+  const allPerms = usePermissions() as Record<string, { can_view: boolean }>;
+
+  const visibleItems = navItems.filter((item) => {
+    if (!item.module) return true; // Dashboard always visible
+    const perm = allPerms[item.module];
+    return perm?.can_view !== false; // Show if can_view is true or undefined (loading)
+  });
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            Menu
+            {!collapsed && role && (
+              <Badge variant="secondary" className="text-[10px] ml-auto">
+                {ROLE_LABELS[role] ?? role}
+              </Badge>
+            )}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">

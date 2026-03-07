@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import TeamPage from "./pages/TeamPage";
@@ -24,6 +25,8 @@ import AdminFeatures from "./pages/admin/AdminFeatures";
 import AdminAbout from "./pages/admin/AdminAbout";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminRoadmap from "./pages/admin/AdminRoadmap";
+import AdminUsers from "./pages/admin/AdminUsers";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -40,34 +43,38 @@ function AdminPage({ children }: { children: React.ReactNode }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/sobre" element={<About />} />
-          <Route path="/equipe" element={<TeamPage />} />
-          <Route path="/tratamentos" element={<ServicesPage />} />
-          <Route path="/depoimentos" element={<TestimonialsPage />} />
-          <Route path="/videos" element={<VideosPage />} />
-          <Route path="/eventos" element={<EventsPage />} />
-          <Route path="/contato" element={<ContactPage />} />
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/sobre" element={<About />} />
+            <Route path="/equipe" element={<TeamPage />} />
+            <Route path="/tratamentos" element={<ServicesPage />} />
+            <Route path="/depoimentos" element={<TestimonialsPage />} />
+            <Route path="/videos" element={<VideosPage />} />
+            <Route path="/eventos" element={<EventsPage />} />
+            <Route path="/contato" element={<ContactPage />} />
 
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
-          <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
-          <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
-          <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
-          <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
-          <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
-          <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
-          <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
-          <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
-          <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
+            <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
+            <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
+            <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
+            <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
+            <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
+            <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
+            <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
+            <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
+            <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
+            <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
+            <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

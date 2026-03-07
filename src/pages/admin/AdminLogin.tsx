@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,37 +11,29 @@ import logoSmall from "@/assets/logo-small.png";
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loginAttempted, setLoginAttempted] = useState(false);
-  const { signIn, isAdmin, user, loading: authLoading } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { signIn, role, user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Navigate when auth state resolves after login
+  // Navigate when role resolves after login
   useEffect(() => {
-    if (!loginAttempted || authLoading) return;
-
-    if (user && isAdmin) {
-      navigate("/admin");
-    } else if (user && !isAdmin) {
-      toast.error("Você não tem permissão para acessar o painel administrativo.");
-      setLoginAttempted(false);
-      setLoading(false);
+    if (loading) return;
+    if (user && role) {
+      navigate("/admin", { replace: true });
     }
-  }, [user, isAdmin, authLoading, loginAttempted, navigate]);
+  }, [user, role, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setLoginAttempted(false);
+    setSubmitting(true);
 
     const { error } = await signIn(email, password);
 
     if (error) {
       toast.error("Credenciais inválidas");
-      setLoading(false);
-    } else {
-      setLoginAttempted(true);
+      setSubmitting(false);
     }
+    // If no error, the useEffect above will handle navigation once role loads
   };
 
   return (
@@ -61,8 +53,8 @@ export default function AdminLogin() {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+            <Button type="submit" className="w-full" disabled={submitting || loading}>
+              {submitting ? "Entrando..." : "Entrar"}
             </Button>
           </form>
         </CardContent>
