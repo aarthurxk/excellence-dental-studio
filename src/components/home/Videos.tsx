@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Videos = () => {
   const { data: videos, isLoading } = useQuery({
@@ -20,7 +23,7 @@ const Videos = () => {
   });
 
   return (
-    <section className="py-20 bg-clinic-gray">
+    <section className="py-20 bg-background">
       <div className="container">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
@@ -33,7 +36,7 @@ const Videos = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {isLoading
             ? Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="rounded-2xl overflow-hidden border border-border bg-card">
+                <div key={i} className="rounded-2xl overflow-hidden border border-border bg-card shadow-card">
                   <Skeleton className="aspect-video" />
                   <div className="p-5">
                     <Skeleton className="h-5 w-3/4" />
@@ -47,7 +50,7 @@ const Videos = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="rounded-2xl overflow-hidden border border-border bg-card"
+                  className="rounded-2xl overflow-hidden border border-border bg-card shadow-card hover:shadow-hover transition-shadow duration-300"
                 >
                   <div className="aspect-video">
                     <iframe
@@ -67,6 +70,13 @@ const Videos = () => {
                   </div>
                 </motion.div>
               ))}
+        </div>
+        <div className="text-center mt-10">
+          <Button asChild variant="outline" size="lg" className="font-semibold">
+            <Link to="/videos">
+              Ver todos os vídeos <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>
