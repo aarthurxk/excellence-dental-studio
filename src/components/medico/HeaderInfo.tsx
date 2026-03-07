@@ -12,7 +12,7 @@ const HeaderInfo = () => {
     },
     {
       icon: Mail,
-      lines: [settings?.email || "contato@odontoexcellence.com"],
+      lines: [settings?.email || "adm@odontoexcellencerecife.com.br"],
     },
     {
       icon: MapPin,
