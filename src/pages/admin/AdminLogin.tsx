@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,35 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [loginAttempted, setLoginAttempted] = useState(false);
+  const { signIn, isAdmin, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Navigate when auth state resolves after login
+  useEffect(() => {
+    if (!loginAttempted || authLoading) return;
+
+    if (user && isAdmin) {
+      navigate("/admin");
+    } else if (user && !isAdmin) {
+      toast.error("Você não tem permissão para acessar o painel administrativo.");
+      setLoginAttempted(false);
+      setLoading(false);
+    }
+  }, [user, isAdmin, authLoading, loginAttempted, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoginAttempted(false);
+
     const { error } = await signIn(email, password);
-    setLoading(false);
+
     if (error) {
       toast.error("Credenciais inválidas");
+      setLoading(false);
     } else {
-      navigate("/admin");
+      setLoginAttempted(true);
     }
   };
 
