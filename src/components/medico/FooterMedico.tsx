@@ -96,7 +96,7 @@ const FooterMedico = () => {
 
       <div className="border-t border-primary-foreground/10 py-5">
         <div className="container flex items-center justify-between text-sm text-primary-foreground/50">
-          <span>© {new Date().getFullYear()} Odonto Excellence. Todos os direitos reservados.</span>
+          <span>© 2024 Odonto Excellence Recife. Todos os direitos reservados.</span>
           <Link to="/admin/login" className="text-primary-foreground/30 hover:text-primary-foreground/50 transition-colors">
             <Lock className="h-3.5 w-3.5" />
           </Link>
