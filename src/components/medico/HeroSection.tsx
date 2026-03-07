@@ -7,7 +7,7 @@ const HeroSection = () => {
   const { data: settings } = useSiteSettings();
 
   return (
-    <section className="relative min-h-[600px] bg-secondary overflow-hidden">
+    <section className="relative min-h-[600px] bg-secondary">
       {/* Background image */}
       <div className="absolute inset-0">
         <img
