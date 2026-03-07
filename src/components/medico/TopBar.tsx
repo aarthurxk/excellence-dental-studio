@@ -1,10 +1,12 @@
-import { Clock, Facebook, Linkedin, Instagram } from "lucide-react";
+import { Calendar, Facebook, Linkedin, Instagram } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 function isClinicOpen(): boolean {
   const now = new Date();
-  const day = now.getDay(); // 0=Sun, 6=Sat
+  const day = now.getDay();
   const hour = now.getHours();
 
   if (day >= 1 && day <= 5) return hour >= 9 && hour < 19;
@@ -15,13 +17,17 @@ function isClinicOpen(): boolean {
 const TopBar = () => {
   const { data: settings } = useSiteSettings();
   const open = isClinicOpen();
+  const now = new Date();
+  const dateStr = format(now, "dd/MM/yy");
+  const dayName = format(now, "EEEE", { locale: ptBR });
+  const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
 
   return (
     <div className="bg-secondary text-primary-foreground py-2.5 text-sm hidden md:block">
       <div className="container flex justify-between items-center">
         <div className="flex items-center gap-3 text-primary-foreground/80">
-          <Clock className="h-4 w-4 text-primary" />
-          <span>{settings?.hours_weekday || "Seg a Sex: 9h – 19h"}</span>
+          <Calendar className="h-4 w-4 text-primary" />
+          <span>{dateStr} - {capitalizedDay}</span>
           <Badge
             className={
               open
