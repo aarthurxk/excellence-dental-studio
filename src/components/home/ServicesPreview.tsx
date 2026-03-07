@@ -1,18 +1,27 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Smile, Sparkles, Stethoscope, Syringe, ScanFace, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const services = [
-  { icon: Smile, title: "Implantes Dentários", description: "Recupere seu sorriso com implantes de alta qualidade e durabilidade." },
-  { icon: Sparkles, title: "Clareamento Dental", description: "Dentes mais brancos com técnicas seguras e resultados imediatos." },
-  { icon: Stethoscope, title: "Ortodontia", description: "Aparelhos convencionais e alinhadores invisíveis para todos os casos." },
-  { icon: ScanFace, title: "Harmonização Facial", description: "Procedimentos estéticos para valorizar seu sorriso e rosto." },
-  { icon: Syringe, title: "Endodontia", description: "Tratamento de canal com tecnologia avançada e sem dor." },
-  { icon: ShieldCheck, title: "Prevenção", description: "Limpeza, check-up e acompanhamento para manter a saúde bucal." },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { getIconComponent } from "@/lib/icon-map";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ServicesPreview = () => {
+  const { data: services, isLoading } = useQuery({
+    queryKey: ["services_preview"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("active", true)
+        .order("display_order")
+        .limit(6);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <section id="tratamentos" className="py-20 bg-clinic-gray">
       <div className="container">
@@ -25,22 +34,33 @@ const ServicesPreview = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service, i) => (
-            <motion.div
-              key={service.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="bg-card p-8 rounded-2xl border border-border hover:shadow-lg hover:border-primary/20 transition-all duration-300 group"
-            >
-              <div className="h-12 w-12 rounded-lg bg-clinic-red-light flex items-center justify-center mb-5 group-hover:bg-primary transition-colors">
-                <service.icon className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
-              </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">{service.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
-            </motion.div>
-          ))}
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-card p-8 rounded-2xl border border-border">
+                  <Skeleton className="h-12 w-12 rounded-lg mb-5" />
+                  <Skeleton className="h-5 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))
+            : services?.map((service, i) => {
+                const Icon = getIconComponent(service.icon);
+                return (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.08 }}
+                    className="bg-card p-8 rounded-2xl border border-border hover:shadow-lg hover:border-primary/20 transition-all duration-300 group"
+                  >
+                    <div className="h-12 w-12 rounded-lg bg-clinic-red-light flex items-center justify-center mb-5 group-hover:bg-primary transition-colors">
+                      <Icon className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
+                    </div>
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">{service.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+                  </motion.div>
+                );
+              })}
         </div>
         <div className="text-center mt-10">
           <Button asChild variant="outline" size="lg" className="font-semibold">

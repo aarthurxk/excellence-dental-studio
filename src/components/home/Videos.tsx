@@ -1,11 +1,24 @@
 import { motion } from "framer-motion";
-
-const videos = [
-  { title: "Conheça a Odonto Excellence", youtubeId: "dQw4w9WgXcQ" },
-  { title: "Nossos Tratamentos", youtubeId: "dQw4w9WgXcQ" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Videos = () => {
+  const { data: videos, isLoading } = useQuery({
+    queryKey: ["videos_preview"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("videos")
+        .select("*")
+        .eq("active", true)
+        .order("featured", { ascending: false })
+        .order("display_order")
+        .limit(2);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <section className="py-20 bg-clinic-gray">
       <div className="container">
@@ -18,23 +31,42 @@ const Videos = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {videos.map((video, i) => (
-            <motion.div
-              key={video.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="rounded-2xl overflow-hidden border border-border bg-card"
-            >
-              <div className="aspect-video bg-clinic-dark flex items-center justify-center">
-                <p className="text-sm text-clinic-gray/50">Vídeo YouTube</p>
-              </div>
-              <div className="p-5">
-                <h3 className="font-display font-semibold text-foreground">{video.title}</h3>
-              </div>
-            </motion.div>
-          ))}
+          {isLoading
+            ? Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="rounded-2xl overflow-hidden border border-border bg-card">
+                  <Skeleton className="aspect-video" />
+                  <div className="p-5">
+                    <Skeleton className="h-5 w-3/4" />
+                  </div>
+                </div>
+              ))
+            : videos?.map((video, i) => (
+                <motion.div
+                  key={video.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="rounded-2xl overflow-hidden border border-border bg-card"
+                >
+                  <div className="aspect-video">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.youtube_id}`}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-display font-semibold text-foreground">{video.title}</h3>
+                    {video.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{video.description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
         </div>
       </div>
     </section>

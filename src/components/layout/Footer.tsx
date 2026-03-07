@@ -1,29 +1,44 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
 import logoQuadrado from "@/assets/logo-quadrado.png";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Footer = () => {
+  const { data: settings } = useSiteSettings();
+
   return (
     <footer className="bg-clinic-dark text-clinic-gray">
       <div className="container py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Logo & about */}
           <div className="space-y-4">
             <img src={logoQuadrado} alt="Odonto Excellence" className="h-16 w-auto brightness-0 invert" />
             <p className="text-sm text-clinic-gray/70 leading-relaxed">
               Clínica odontológica especializada em transformar sorrisos com excelência e tecnologia de ponta.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Instagram">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Facebook">
-                <Facebook className="h-5 w-5" />
-              </a>
+              {settings?.instagram_url && (
+                <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {settings?.facebook_url && (
+                <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {!settings?.instagram_url && !settings?.facebook_url && (
+                <>
+                  <a href="#" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Instagram">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                  <a href="#" className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" aria-label="Facebook">
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Links */}
           <div>
             <h4 className="font-display text-lg font-semibold text-primary-foreground mb-4">Links Rápidos</h4>
             <ul className="space-y-2">
@@ -44,37 +59,35 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contato */}
           <div>
             <h4 className="font-display text-lg font-semibold text-primary-foreground mb-4">Contato</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-clinic-gray/70">
                 <Phone className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                 <div>
-                  <p>(81) 99136-0132</p>
-                  <p>(81) 3299-3019</p>
+                  <p>{settings?.phone}</p>
+                  {settings?.phone_secondary && <p>{settings.phone_secondary}</p>}
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm text-clinic-gray/70">
                 <Mail className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                contato@odontoexcellence.com.br
+                {settings?.email}
               </li>
               <li className="flex items-start gap-3 text-sm text-clinic-gray/70">
                 <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                Rua Exemplo, 123 – Ipsep, Recife – PE
+                {settings?.address}
               </li>
             </ul>
           </div>
 
-          {/* Horários */}
           <div>
             <h4 className="font-display text-lg font-semibold text-primary-foreground mb-4">Horários</h4>
             <ul className="space-y-2">
               <li className="flex items-start gap-3 text-sm text-clinic-gray/70">
                 <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                 <div>
-                  <p>Seg a Sex: 8h – 18h</p>
-                  <p>Sáb: 8h – 12h</p>
+                  <p>{settings?.hours_weekday}</p>
+                  {settings?.hours_saturday && <p>{settings.hours_saturday}</p>}
                 </div>
               </li>
             </ul>
