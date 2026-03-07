@@ -1,28 +1,24 @@
 import Layout from "@/components/layout/Layout";
-import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
-import ServicesPreview from "@/components/home/ServicesPreview";
-import About from "@/components/home/About";
-import Team from "@/components/home/Team";
-import Testimonials from "@/components/home/Testimonials";
-import Videos from "@/components/home/Videos";
-import Events from "@/components/home/Events";
+import HeroSection from "@/components/medico/HeroSection";
+import InfoStrip from "@/components/medico/InfoStrip";
+import AboutSection from "@/components/medico/AboutSection";
+import DepartmentsSection from "@/components/medico/DepartmentsSection";
+import DoctorsSection from "@/components/medico/DoctorsSection";
+import TestimonialsSection from "@/components/medico/TestimonialsSection";
+import BlogSection from "@/components/medico/BlogSection";
 import Location from "@/components/home/Location";
-import CTABanner from "@/components/home/CTABanner";
 
 const Index = () => {
   return (
     <Layout>
-      <Hero />
-      <Features />
-      <ServicesPreview />
-      <About />
-      <Team />
-      <Testimonials />
-      <Videos />
-      <Events />
+      <HeroSection />
+      <InfoStrip />
+      <AboutSection />
+      <DepartmentsSection />
+      <DoctorsSection />
+      <TestimonialsSection />
+      <BlogSection />
       <Location />
-      <CTABanner />
     </Layout>
   );
 };
