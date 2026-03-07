@@ -42,6 +42,7 @@ function AdminSidebar() {
   const collapsed = state === "collapsed";
   const { signOut, role } = useAuth();
   const allPerms = usePermissions() as Record<string, { can_view: boolean }>;
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   const visibleItems = navItems.filter((item) => {
     if (!item.module) return true; // Dashboard always visible
