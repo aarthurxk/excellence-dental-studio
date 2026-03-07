@@ -15,11 +15,11 @@ export function useAuth() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, sess) => {
+      async (_event, sess) => {
         setSession(sess);
         setUser(sess?.user ?? null);
         if (sess?.user) {
-          checkAdmin(sess.user.id);
+          await checkAdmin(sess.user.id);
         } else {
           setIsAdmin(false);
         }
@@ -27,11 +27,11 @@ export function useAuth() {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        checkAdmin(sess.user.id);
+        await checkAdmin(sess.user.id);
       }
       setLoading(false);
     });
