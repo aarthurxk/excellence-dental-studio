@@ -36,7 +36,7 @@ const AboutSection = () => {
             transition={{ duration: 0.6 }}
           >
             <img
-              src="https://placehold.co/600x450/e2e8f0/94a3b8?text=Clínica"
+              src={settings?.about_image || "https://placehold.co/600x450/e2e8f0/94a3b8?text=Clínica"}
               alt="Clínica"
               className="w-full rounded shadow-lg"
             />

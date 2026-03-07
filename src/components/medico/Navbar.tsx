@@ -86,7 +86,7 @@ const Navbar = () => {
                     to={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`block px-4 py-3 rounded text-sm font-medium ${
-                      location.pathname === item.href ? "text-primary bg-teal-light" : "text-foreground hover:bg-muted"
+                      location.pathname === item.href ? "text-primary bg-clinic-red-light" : "text-foreground hover:bg-muted"
                     }`}
                   >
                     {item.label}

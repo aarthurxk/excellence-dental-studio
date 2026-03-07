@@ -11,7 +11,7 @@ const HeroSection = () => {
       {/* Background image */}
       <div className="absolute inset-0">
         <img
-          src="https://placehold.co/1920x700/2d3748/2d3748"
+          src={settings?.hero_bg_image || "https://placehold.co/1920x700/1a1a1a/1a1a1a"}
           alt=""
           className="w-full h-full object-cover opacity-40"
         />
@@ -55,7 +55,7 @@ const HeroSection = () => {
             className="hidden lg:flex justify-end items-end"
           >
             <img
-              src="https://placehold.co/500x600/2d3748/cccccc?text=Dentista"
+              src={settings?.hero_doctor_image || "https://placehold.co/500x600/1a1a1a/cccccc?text=Dentista"}
               alt="Profissional"
               className="h-[500px] object-contain"
             />

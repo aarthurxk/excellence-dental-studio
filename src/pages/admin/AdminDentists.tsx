@@ -11,6 +11,7 @@ import DataTable, { Column } from "@/components/admin/DataTable";
 import FormDialog from "@/components/admin/FormDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { Plus } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Dentist = Tables<"dentists">;
 const empty = { id: "", name: "", specialty: "", cro: "", bio: "", photo_url: "", display_order: 0, active: true };
@@ -69,7 +70,7 @@ export default function AdminDentists() {
             <div className="space-y-2"><Label>Especialidade</Label><Input value={editing.specialty} onChange={(e) => setEditing({ ...editing, specialty: e.target.value })} /></div>
             <div className="space-y-2"><Label>CRO</Label><Input value={editing.cro} onChange={(e) => setEditing({ ...editing, cro: e.target.value })} /></div>
             <div className="space-y-2"><Label>Bio</Label><Textarea value={editing.bio} onChange={(e) => setEditing({ ...editing, bio: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL da Foto</Label><Input value={editing.photo_url} onChange={(e) => setEditing({ ...editing, photo_url: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Foto</Label><ImageUpload bucket="clinic-images" folder="dentists" value={editing.photo_url} onChange={(url) => setEditing({ ...editing, photo_url: url })} /></div>
             <div className="space-y-2"><Label>Ordem</Label><Input type="number" value={editing.display_order} onChange={(e) => setEditing({ ...editing, display_order: Number(e.target.value) })} /></div>
             <div className="flex items-center gap-2"><Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} /><Label>Ativo</Label></div>
             <Button type="submit" className="w-full" disabled={save.isPending}>{save.isPending ? "Salvando..." : "Salvar"}</Button>

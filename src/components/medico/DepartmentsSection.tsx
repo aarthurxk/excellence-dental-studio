@@ -50,7 +50,7 @@ const DepartmentsSection = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.08 }}
-                    whileHover={{ y: -5, boxShadow: "0 10px 40px -10px hsl(168 100% 37% / 0.3)" }}
+                    whileHover={{ y: -5, boxShadow: "0 10px 40px -10px hsl(0 83% 51% / 0.3)" }}
                     className="bg-card p-8 border-l-4 border-primary hover:border-l-4 transition-all duration-300 group cursor-pointer"
                   >
                     <div className="mb-5">
