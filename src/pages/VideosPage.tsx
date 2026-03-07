@@ -20,6 +20,7 @@ const VideosPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Vídeos" description="Assista vídeos sobre tratamentos e novidades da Odonto Excellence Ipsep." path="/videos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

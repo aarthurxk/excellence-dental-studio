@@ -20,6 +20,7 @@ const TeamPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Equipe" description="Conheça nossos dentistas especializados na Odonto Excellence Ipsep em Recife." path="/equipe" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

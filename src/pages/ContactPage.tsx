@@ -51,6 +51,7 @@ const ContactPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Contato" description="Entre em contato com a Odonto Excellence Ipsep. Agende sua consulta pelo WhatsApp ou formulário." path="/contato" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

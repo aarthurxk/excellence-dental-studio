@@ -23,6 +23,7 @@ const EventsPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Eventos" description="Confira os eventos e ações sociais da Odonto Excellence Ipsep em Recife." path="/eventos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">

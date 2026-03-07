@@ -25,6 +25,7 @@ const ServicesPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Tratamentos" description="Conheça os tratamentos odontológicos oferecidos pela Odonto Excellence Ipsep: implantes, clareamento, ortodontia e mais." path="/tratamentos" />
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-14">
