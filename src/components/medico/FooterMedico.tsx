@@ -23,7 +23,7 @@ const FooterMedico = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Logo & Description */}
           <div className="space-y-4">
-            <img src={logo} alt="Logo" className="h-20" />
+            <div className="bg-white rounded-lg p-3 inline-block"><img src={logo} alt="Logo" className="h-20" /></div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Cuidando do seu sorriso com excelência, tecnologia e atendimento humanizado.
             </p>
