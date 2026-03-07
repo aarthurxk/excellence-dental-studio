@@ -23,8 +23,8 @@ const AboutSection = () => {
     "Equipe multidisciplinar altamente qualificada.",
     "Atendimento humanizado e personalizado para cada paciente.",
     "Ambiente acolhedor e confortável para toda a família.",
+    "Sem fila de espera – Agendamento direto pelo WhatsApp.",
   ];
-
   return (
     <section className="py-20 bg-background">
       <div className="container">
@@ -35,11 +35,18 @@ const AboutSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <img
-              src={settings?.about_image || "https://placehold.co/600x450/e2e8f0/94a3b8?text=Clínica"}
-              alt="Clínica"
-              className="w-full rounded shadow-lg"
-            />
+            <div className="relative">
+              <img
+                src={settings?.about_image || "https://placehold.co/600x450/fef2f2/dc2626?text=Odonto+Excellence"}
+                alt="Clínica Odonto Excellence"
+                className="w-full rounded-lg shadow-card object-cover aspect-[4/3]"
+                onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/600x450/fef2f2/dc2626?text=Odonto+Excellence"; }}
+              />
+              <div className="absolute -bottom-5 -right-5 bg-primary text-primary-foreground rounded-lg p-5 shadow-hover text-center">
+                <p className="text-3xl font-bold font-display">{data?.stat_years || "10+"}</p>
+                <p className="text-xs font-medium">anos de experiência</p>
+              </div>
+            </div>
           </motion.div>
 
           <motion.div
@@ -69,6 +76,25 @@ const AboutSection = () => {
               ))}
             </ul>
 
+            <div className="grid grid-cols-3 gap-4 py-6 border-y border-border mt-4">
+              {[
+                { value: data?.stat_patients || "500+", label: "Pacientes" },
+                { value: data?.stat_treatments || "15+", label: "Especialidades" },
+                { value: data?.stat_years || "10+", label: "Anos" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-center"
+                >
+                  <p className="text-2xl font-bold text-primary font-display">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button size="lg" className="rounded font-semibold px-8" asChild>
                 <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
