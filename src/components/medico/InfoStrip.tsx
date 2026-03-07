@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Ambulance, CalendarDays, PhoneCall } from "lucide-react";
+import { Smile, CalendarDays, PhoneCall } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const InfoStrip = () => {
@@ -7,23 +7,28 @@ const InfoStrip = () => {
 
   const items = [
     {
-      icon: Ambulance,
-      title: "Emergência 24/7",
-      lines: ["Casos de emergência:", `Ambulância: ${settings?.phone || "(81) 3299-3019"}`, `Consultório: ${settings?.phone_secondary || "(81) 99136-0132"}`],
+      icon: Smile,
+      title: "Odonto Excellence",
+      lines: [
+        `Agendamento: ${settings?.phone || "(81) 3299-3019"}`,
+        `Contato: ${settings?.phone_secondary || "(81) 99136-0132"}`,
+      ],
     },
     {
       icon: CalendarDays,
       title: "Horário",
       lines: [
-        `Segunda – Sexta: ${settings?.hours_weekday || "08:00 – 20:00"}`,
-        `Sábado: ${settings?.hours_saturday || "08:00 – 17:00"}`,
-        "Domingos e Feriados: 09:00 – 15:00",
+        `Segunda – Sexta: ${settings?.hours_weekday?.replace("Seg a Sex: ", "") || "9h – 19h"}`,
+        `Sábado: ${settings?.hours_saturday?.replace("Sáb: ", "") || "9h – 17h"}`,
       ],
     },
     {
       icon: PhoneCall,
       title: "Central de Atendimento",
-      lines: [`Agendamento: ${settings?.phone || "(81) 3299-3019"}`, `Laboratório: ${settings?.phone_secondary || "(81) 99136-0132"}`, `Comercial: ${settings?.phone || "(81) 3299-3019"}`],
+      lines: [
+        `Agendamento: ${settings?.phone || "(81) 3299-3019"}`,
+        `Contato: ${settings?.phone_secondary || "(81) 99136-0132"}`,
+      ],
     },
   ];
 
