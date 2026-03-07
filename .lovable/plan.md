@@ -1,31 +1,82 @@
 
 
-## Plano: Atualizar endereço em todo o site + Google Maps
+# Conectar Frontend ao Banco de Dados
 
-### Onde existem endereços hardcoded (fallbacks)
+## Resumo
+Substituir todos os dados hardcoded em 15 componentes/páginas por queries dinâmicas ao banco usando React Query + Supabase client. Criar um hook centralizado `useSiteSettings` para dados compartilhados (telefone, WhatsApp, endereço, etc.).
 
-| Arquivo | Endereço atual (fallback) |
+## Componentes a alterar
+
+### 1. Hook compartilhado: `useSiteSettings`
+- Novo hook que busca `site_settings` (1 row) e cacheia globalmente
+- Usado por: Header, Footer, Hero, Location, CTABanner, WhatsAppButton, ContactPage
+
+### 2. Home sections (7 componentes)
+| Componente | Tabela | Query |
+|---|---|---|
+| `Hero.tsx` | `site_settings` | hero_title, hero_subtitle, whatsapp_number, whatsapp_message |
+| `Features.tsx` | `features` | all, ordered by display_order |
+| `ServicesPreview.tsx` | `services` | active=true, ordered by display_order, limit 6 |
+| `About.tsx` | `about_content` | single row (maybeSingle) |
+| `Team.tsx` | `dentists` | active=true, ordered by display_order, limit 4 |
+| `Testimonials.tsx` | `testimonials` | active=true, featured first, limit 3 |
+| `Videos.tsx` | `videos` | active=true, featured first, limit 2 |
+| `Events.tsx` | `events` | active=true, ordered by event_date, limit 3 |
+
+### 3. Sub-páginas (6 páginas)
+| Página | Tabela |
 |---|---|
-| `src/hooks/useSiteSettings.ts` | `"Rua Exemplo, 123 – Ipsep, Recife – PE"` |
-| `src/components/medico/HeaderInfo.tsx` | `"Rua Example, 220"` / `"Ipsep – Recife"` |
-| `src/components/medico/FooterMedico.tsx` | `"Rua Example, 220 – Ipsep, Recife"` |
+| `ServicesPage.tsx` | `services` (active) |
+| `TeamPage.tsx` | `dentists` (active) |
+| `TestimonialsPage.tsx` | `testimonials` (active) |
+| `VideosPage.tsx` | `videos` (active) |
+| `EventsPage.tsx` | `events` (active) |
+| `About.tsx` | `about_content` |
 
-### Ações
-
-1. **Atualizar banco `site_settings`** — UPDATE `address` para `Rua Jean Emile Favre, 1712 – Ipsep, Recife – PE, 51190-450` e `google_maps_embed_url` para o embed do Google Maps desse endereço
-
-2. **Atualizar fallbacks nos 3 arquivos** — substituir os endereços hardcoded pelo endereço correto:
-   - `useSiteSettings.ts` → fallback address
-   - `HeaderInfo.tsx` → fallback nos splits
-   - `FooterMedico.tsx` → fallback no span
-
-### Google Maps Embed URL
-Será usada a URL: `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3950.5!2d-34.923!3d-8.109!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOCswNicwMC4wIlMgMzTCsDU1JzAwLjAiVw!5e0!3m2!1spt-BR!2sbr!4v1` — buscaremos o embed real via busca pelo endereço exato.
-
-| Arquivo | Alteração |
+### 4. Layout components (4 componentes)
+| Componente | Dados do `site_settings` |
 |---|---|
-| BD `site_settings` | UPDATE address + google_maps_embed_url |
-| `src/hooks/useSiteSettings.ts` | Fallback address |
-| `src/components/medico/HeaderInfo.tsx` | Fallback address |
-| `src/components/medico/FooterMedico.tsx` | Fallback address |
+| `Header.tsx` | phone, whatsapp_number, whatsapp_message |
+| `Footer.tsx` | phone, phone_secondary, email, address, hours_weekday, hours_saturday, instagram_url, facebook_url |
+| `Location.tsx` | address, phone, phone_secondary, email, hours_weekday, hours_saturday, google_maps_embed_url |
+| `CTABanner.tsx` | whatsapp_number, whatsapp_message, phone_secondary |
+| `WhatsAppButton.tsx` | whatsapp_number, whatsapp_message |
+
+### 5. ContactPage
+- Usar `site_settings` para dados de contato
+- Formulário funcional: submit insere na tabela `contact_messages` com validação zod
+- Toast de sucesso/erro
+
+## Padrão de implementação
+
+- Cada componente terá loading skeleton e fallback para dados hardcoded caso a query falhe
+- `useSiteSettings` com `staleTime: 5min` para evitar re-fetches desnecessários
+- Icon mapping: criar helper `getIconComponent(iconName)` para mapear string do banco para componente Lucide (usado em Features e Services)
+- Videos: embed real do YouTube usando `youtube_id`
+
+## Arquivos novos
+- `src/hooks/useSiteSettings.ts`
+- `src/lib/icon-map.ts`
+
+## Arquivos editados (15)
+- `src/components/home/Hero.tsx`
+- `src/components/home/Features.tsx`
+- `src/components/home/ServicesPreview.tsx`
+- `src/components/home/About.tsx`
+- `src/components/home/Team.tsx`
+- `src/components/home/Testimonials.tsx`
+- `src/components/home/Videos.tsx`
+- `src/components/home/Events.tsx`
+- `src/components/home/Location.tsx`
+- `src/components/home/CTABanner.tsx`
+- `src/components/layout/Header.tsx`
+- `src/components/layout/Footer.tsx`
+- `src/components/layout/WhatsAppButton.tsx`
+- `src/pages/ContactPage.tsx` (+ formulário funcional)
+- `src/pages/ServicesPage.tsx`
+- `src/pages/TeamPage.tsx`
+- `src/pages/TestimonialsPage.tsx`
+- `src/pages/VideosPage.tsx`
+- `src/pages/EventsPage.tsx`
+- `src/pages/About.tsx`
 

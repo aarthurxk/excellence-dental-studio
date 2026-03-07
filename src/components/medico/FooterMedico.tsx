@@ -68,7 +68,7 @@ const FooterMedico = () => {
             <ul className="space-y-3 text-sm text-primary-foreground/70">
               <li className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>{settings?.address || "Rua Example, 220 – Ipsep, Recife"}</span>
+                <span>{settings?.address || "Rua Jean Emile Favre, 1712 – Ipsep, Recife – PE, 51190-450"}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-primary flex-shrink-0" />

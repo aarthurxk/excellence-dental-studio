@@ -11,7 +11,7 @@ const fallback: SiteSettings = {
   phone: "(81) 99136-0132",
   phone_secondary: "(81) 3299-3019",
   email: "contato@odontoexcellence.com.br",
-  address: "Rua Exemplo, 123 – Ipsep, Recife – PE",
+  address: "Rua Jean Emile Favre, 1712 – Ipsep, Recife – PE, 51190-450",
   hours_weekday: "Seg a Sex: 8h – 18h",
   hours_saturday: "Sáb: 8h – 12h",
   whatsapp_number: "5581991360132",
