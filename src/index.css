@@ -36,11 +36,11 @@
 
     --radius: 0.25rem;
 
-    --navy: 210 40% 20%;
-    --navy-dark: 210 45% 15%;
-    --teal: 168 100% 37%;
-    --teal-light: 168 50% 95%;
-    --mint-bg: 160 40% 95%;
+    --navy: 0 0% 10%;
+    --navy-dark: 0 0% 7%;
+    --teal: 0 83% 51%;
+    --teal-light: 0 40% 96%;
+    --mint-bg: 0 40% 97%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 210 29% 18%;
