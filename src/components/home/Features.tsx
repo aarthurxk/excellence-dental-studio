@@ -1,30 +1,22 @@
 import { motion } from "framer-motion";
-import { Shield, Heart, Cpu, Users } from "lucide-react";
-
-const features = [
-  {
-    icon: Cpu,
-    title: "Tecnologia de Ponta",
-    description: "Equipamentos modernos e técnicas avançadas para os melhores resultados.",
-  },
-  {
-    icon: Heart,
-    title: "Atendimento Humanizado",
-    description: "Cuidado personalizado para que você se sinta acolhido em cada consulta.",
-  },
-  {
-    icon: Users,
-    title: "Equipe Especializada",
-    description: "Profissionais com formação e experiência em diversas especialidades.",
-  },
-  {
-    icon: Shield,
-    title: "Conforto e Segurança",
-    description: "Ambiente confortável com todos os protocolos de biossegurança.",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { getIconComponent } from "@/lib/icon-map";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Features = () => {
+  const { data: features, isLoading } = useQuery({
+    queryKey: ["features"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("features")
+        .select("*")
+        .order("display_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <section className="py-20 bg-background">
       <div className="container">
@@ -37,22 +29,34 @@ const Features = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-            >
-              <div className="h-14 w-14 rounded-xl bg-clinic-red-light flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                <feature.icon className="h-7 w-7 text-primary group-hover:text-primary-foreground transition-colors duration-300" />
-              </div>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-3">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-            </motion.div>
-          ))}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-8 rounded-2xl bg-card border border-border">
+                  <Skeleton className="h-14 w-14 rounded-xl mb-6" />
+                  <Skeleton className="h-5 w-3/4 mb-3" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3 mt-1" />
+                </div>
+              ))
+            : features?.map((feature, i) => {
+                const Icon = getIconComponent(feature.icon);
+                return (
+                  <motion.div
+                    key={feature.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="h-14 w-14 rounded-xl bg-clinic-red-light flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                      <Icon className="h-7 w-7 text-primary group-hover:text-primary-foreground transition-colors duration-300" />
+                    </div>
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-3">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                  </motion.div>
+                );
+              })}
         </div>
       </div>
     </section>

@@ -1,22 +1,25 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
-
-const testimonials = [
-  {
-    name: "Maria Fernanda",
-    text: "Excelente atendimento! A equipe é muito profissional e cuidadosa. Meu tratamento de implante foi impecável.",
-  },
-  {
-    name: "Roberto Almeida",
-    text: "Fiz o clareamento dental e o resultado superou minhas expectativas. Recomendo a todos!",
-  },
-  {
-    name: "Juliana Pereira",
-    text: "Ambiente acolhedor e moderno. Me senti muito segura durante todo o tratamento ortodôntico.",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Testimonials = () => {
+  const { data: testimonials, isLoading } = useQuery({
+    queryKey: ["testimonials_preview"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("*")
+        .eq("active", true)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <section className="py-20 bg-background">
       <div className="container">
@@ -29,30 +32,38 @@ const Testimonials = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="bg-card p-8 rounded-2xl border border-border relative"
-            >
-              <Quote className="h-10 w-10 text-primary/15 absolute top-6 right-6" />
-              <div className="flex gap-1 mb-4">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-primary text-primary" />
-                ))}
-              </div>
-              <p className="text-muted-foreground leading-relaxed mb-6 italic">"{t.text}"</p>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-clinic-red-light flex items-center justify-center text-primary font-semibold text-sm">
-                  {t.name.charAt(0)}
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-card p-8 rounded-2xl border border-border">
+                  <Skeleton className="h-4 w-24 mb-4" />
+                  <Skeleton className="h-20 w-full mb-6" />
+                  <Skeleton className="h-10 w-32" />
                 </div>
-                <p className="font-medium text-foreground">{t.name}</p>
-              </div>
-            </motion.div>
-          ))}
+              ))
+            : testimonials?.map((t, i) => (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="bg-card p-8 rounded-2xl border border-border relative"
+                >
+                  <Quote className="h-10 w-10 text-primary/15 absolute top-6 right-6" />
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(t.rating)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed mb-6 italic">"{t.text}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-clinic-red-light flex items-center justify-center text-primary font-semibold text-sm">
+                      {t.patient_name.charAt(0)}
+                    </div>
+                    <p className="font-medium text-foreground">{t.patient_name}</p>
+                  </div>
+                </motion.div>
+              ))}
         </div>
       </div>
     </section>

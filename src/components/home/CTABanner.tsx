@@ -1,7 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Phone } from "lucide-react";
+import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
 
 const CTABanner = () => {
+  const { data: settings } = useSiteSettings();
+
+  const whatsappUrl = getWhatsAppUrl(
+    settings?.whatsapp_number || "5581991360132",
+    settings?.whatsapp_message
+  );
+  const phoneSecondary = settings?.phone_secondary || "(81) 3299-3019";
+  const phoneDigits = phoneSecondary.replace(/\D/g, "");
+
   return (
     <section className="py-20 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
       <div className="container text-center space-y-8">
@@ -13,19 +23,15 @@ const CTABanner = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" asChild className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-8 py-6 text-base">
-            <a
-              href="https://wa.me/5581991360132?text=Olá! Gostaria de agendar uma consulta."
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="h-5 w-5 mr-2" />
               WhatsApp
             </a>
           </Button>
           <Button size="lg" variant="outline" asChild className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold px-8 py-6 text-base">
-            <a href="tel:8132993019">
+            <a href={`tel:${phoneDigits}`}>
               <Phone className="h-5 w-5 mr-2" />
-              (81) 3299-3019
+              {phoneSecondary}
             </a>
           </Button>
         </div>
