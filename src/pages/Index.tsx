@@ -31,6 +31,7 @@ const Index = () => {
       <Videos />
       <Events />
       <CTABanner />
+      <FAQ />
       <Location />
     </Layout>
   );
