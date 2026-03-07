@@ -21,10 +21,10 @@ const HeaderInfo = () => {
   ];
 
   return (
-    <div className="bg-background py-4 hidden lg:block border-b border-border">
+    <div className="bg-background py-5 hidden lg:block border-b border-border">
       <div className="container flex justify-between items-center">
         <a href="/" className="flex items-center gap-2">
-          <img src={logo} alt="Logo" className="h-14" />
+          <img src={logo} alt="Logo" className="h-20" />
         </a>
         <div className="flex items-center gap-10">
           {infoBlocks.map((block, i) => (

@@ -29,10 +29,10 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 bg-background ${scrolled ? "shadow-lg" : "shadow-sm"}`}>
-      <div className="container flex items-center justify-between h-16">
+      <div className="container flex items-center justify-between h-20">
         {/* Mobile logo */}
         <a href="/" className="lg:hidden flex items-center">
-          <img src={logo} alt="Logo" className="h-10" />
+          <img src={logo} alt="Logo" className="h-14" />
         </a>
 
         {/* Desktop nav */}
