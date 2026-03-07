@@ -23,8 +23,8 @@ const AboutSection = () => {
     "Equipe multidisciplinar altamente qualificada.",
     "Atendimento humanizado e personalizado para cada paciente.",
     "Ambiente acolhedor e confortável para toda a família.",
+    "Sem fila de espera – Agendamento direto pelo WhatsApp.",
   ];
-
   return (
     <section className="py-20 bg-background">
       <div className="container">
