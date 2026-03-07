@@ -23,8 +23,8 @@ const HeaderInfo = () => {
   return (
     <div className="bg-background py-1 hidden lg:block border-b border-border">
       <div className="container flex justify-between items-center">
-        <a href="/" className="flex items-center gap-2">
-          <img src={logo} alt="Logo" className="h-16" />
+        <a href="/" className="flex items-center shrink-0">
+          <img src={logo} alt="Odonto Excellence Recife" className="h-12 md:h-16 w-auto object-contain" />
         </a>
         <div className="flex items-center gap-10">
           {infoBlocks.map((block, i) => (
