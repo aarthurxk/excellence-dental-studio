@@ -1,15 +1,36 @@
 import { Clock, Facebook, Linkedin, Instagram } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { Badge } from "@/components/ui/badge";
+
+function isClinicOpen(): boolean {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 6=Sat
+  const hour = now.getHours();
+
+  if (day >= 1 && day <= 5) return hour >= 9 && hour < 19;
+  if (day === 6) return hour >= 9 && hour < 17;
+  return false;
+}
 
 const TopBar = () => {
   const { data: settings } = useSiteSettings();
+  const open = isClinicOpen();
 
   return (
     <div className="bg-secondary text-primary-foreground py-2.5 text-sm hidden md:block">
       <div className="container flex justify-between items-center">
-        <div className="flex items-center gap-2 text-primary-foreground/80">
+        <div className="flex items-center gap-3 text-primary-foreground/80">
           <Clock className="h-4 w-4 text-primary" />
-          <span>{settings?.hours_weekday || "SEG – SEX 08:00 – 19:00"} | EMERGÊNCIA: 24/7</span>
+          <span>{settings?.hours_weekday || "Seg a Sex: 9h – 19h"}</span>
+          <Badge
+            className={
+              open
+                ? "bg-green-600 text-white border-green-600 hover:bg-green-600"
+                : "bg-destructive text-white border-destructive hover:bg-destructive"
+            }
+          >
+            {open ? "ABERTO" : "FECHADO"}
+          </Badge>
         </div>
         <div className="flex items-center gap-3">
           <a href={settings?.facebook_url || "#"} className="text-primary-foreground/70 hover:text-primary transition-colors"><Facebook className="h-4 w-4" /></a>
