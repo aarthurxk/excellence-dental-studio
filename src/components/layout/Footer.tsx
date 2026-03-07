@@ -11,7 +11,7 @@ const Footer = () => {
       <div className="container py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="space-y-4">
-            <img src={logoQuadrado} alt="Odonto Excellence" className="h-16 w-auto brightness-0 invert" />
+            <img src={logoQuadrado} alt="Odonto Excellence" className="h-16 w-auto" />
             <p className="text-sm text-clinic-gray/70 leading-relaxed">
               Clínica odontológica especializada em transformar sorrisos com excelência e tecnologia de ponta.
             </p>
