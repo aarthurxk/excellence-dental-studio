@@ -53,6 +53,15 @@ const Events = () => {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="bg-card p-8 rounded-2xl border border-border hover:shadow-lg hover:border-primary/20 transition-all group"
                 >
+                  {event.image_url && (
+                    <div className="mb-4 -mx-8 -mt-8 overflow-hidden rounded-t-2xl">
+                      <img
+                        src={event.image_url}
+                        alt={event.title}
+                        className="w-full h-48 object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-primary text-sm font-medium mb-4">
                     <Calendar className="h-4 w-4" />
                     {format(parseISO(event.event_date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
