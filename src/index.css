@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Lato:wght@300;400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -34,7 +34,11 @@
     --input: 210 15% 90%;
     --ring: 0 83% 51%;
 
-    --radius: 0.25rem;
+    --radius: 0.6rem;
+
+    --shadow-soft: 0 2px 16px -4px rgba(0,0,0,0.08);
+    --shadow-card: 0 4px 24px -6px rgba(0,0,0,0.10);
+    --shadow-hover: 0 8px 40px -8px rgba(0,0,0,0.18);
 
     --navy: 0 0% 10%;
     --navy-dark: 0 0% 7%;
@@ -97,14 +101,28 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Raleway', sans-serif;
+  }
+
+  body {
+    font-family: 'Lato', sans-serif;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Raleway', sans-serif;
   }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @keyframes float {

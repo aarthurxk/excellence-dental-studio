@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Roboto', 'Inter', 'sans-serif'],
-        display: ['Roboto', 'sans-serif'],
+        sans: ['Lato', 'sans-serif'],
+        display: ['Raleway', 'sans-serif'],
       },
       colors: {
         "clinic-dark": "hsl(var(--clinic-dark))",
@@ -88,6 +88,11 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      boxShadow: {
+        soft: 'var(--shadow-soft)',
+        card: 'var(--shadow-card)',
+        hover: 'var(--shadow-hover)',
       },
     },
   },
