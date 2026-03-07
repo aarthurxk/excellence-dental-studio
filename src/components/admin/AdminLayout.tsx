@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
@@ -101,6 +102,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <header className="h-14 flex items-center border-b px-4 bg-background">
             <SidebarTrigger className="mr-4" />
             <h1 className="text-lg font-semibold font-display">Painel Administrativo</h1>
+            <Link to="/" className="ml-auto text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+              <ExternalLink className="h-3.5 w-3.5" />
+              Voltar ao site
+            </Link>
           </header>
           <main className="flex-1 p-6 overflow-auto bg-muted/20">
             {children}
