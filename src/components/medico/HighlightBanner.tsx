@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { Clock, ShieldCheck } from "lucide-react";
 
 const items = [
-  { icon: Clock, text: "Não fechamos para o almoço — Atendemos até 18h", iconClass: "text-primary" },
-  { icon: ShieldCheck, text: "Avaliação Gratuita para Novos Pacientes", iconClass: "text-green-400" },
+  { icon: Clock, text: "Não fechamos para o almoço — Atendemos até 19h", iconClass: "text-primary" },
+  { icon: ShieldCheck, text: "Agende sua Avaliação — Novos pacientes são bem-vindos", iconClass: "text-green-400" },
 ];
 
 const HighlightBanner = () => (
