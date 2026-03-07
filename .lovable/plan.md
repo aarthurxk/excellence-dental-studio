@@ -1,82 +1,58 @@
 
 
-# Conectar Frontend ao Banco de Dados
+# Etapas Pendentes para Finalizar o Site
 
-## Resumo
-Substituir todos os dados hardcoded em 15 componentes/páginas por queries dinâmicas ao banco usando React Query + Supabase client. Criar um hook centralizado `useSiteSettings` para dados compartilhados (telefone, WhatsApp, endereço, etc.).
+Após análise completa do código, **a integração frontend-banco nunca foi efetivada** — todos os componentes continuam com dados hardcoded. Além disso, falta o painel admin.
 
-## Componentes a alterar
+---
 
-### 1. Hook compartilhado: `useSiteSettings`
-- Novo hook que busca `site_settings` (1 row) e cacheia globalmente
-- Usado por: Header, Footer, Hero, Location, CTABanner, WhatsAppButton, ContactPage
+## Status Atual vs Esperado
 
-### 2. Home sections (7 componentes)
-| Componente | Tabela | Query |
-|---|---|---|
-| `Hero.tsx` | `site_settings` | hero_title, hero_subtitle, whatsapp_number, whatsapp_message |
-| `Features.tsx` | `features` | all, ordered by display_order |
-| `ServicesPreview.tsx` | `services` | active=true, ordered by display_order, limit 6 |
-| `About.tsx` | `about_content` | single row (maybeSingle) |
-| `Team.tsx` | `dentists` | active=true, ordered by display_order, limit 4 |
-| `Testimonials.tsx` | `testimonials` | active=true, featured first, limit 3 |
-| `Videos.tsx` | `videos` | active=true, featured first, limit 2 |
-| `Events.tsx` | `events` | active=true, ordered by event_date, limit 3 |
-
-### 3. Sub-páginas (6 páginas)
-| Página | Tabela |
+| Item | Status |
 |---|---|
-| `ServicesPage.tsx` | `services` (active) |
-| `TeamPage.tsx` | `dentists` (active) |
-| `TestimonialsPage.tsx` | `testimonials` (active) |
-| `VideosPage.tsx` | `videos` (active) |
-| `EventsPage.tsx` | `events` (active) |
-| `About.tsx` | `about_content` |
+| Banco de dados (tabelas, RLS, dados) | ✅ Pronto |
+| Frontend hardcoded (visual ok) | ✅ Pronto |
+| Conexão frontend → banco | ❌ Não feito |
+| Painel admin | ❌ Não existe |
+| Link admin no Footer | ❌ Não feito |
 
-### 4. Layout components (4 componentes)
-| Componente | Dados do `site_settings` |
-|---|---|
-| `Header.tsx` | phone, whatsapp_number, whatsapp_message |
-| `Footer.tsx` | phone, phone_secondary, email, address, hours_weekday, hours_saturday, instagram_url, facebook_url |
-| `Location.tsx` | address, phone, phone_secondary, email, hours_weekday, hours_saturday, google_maps_embed_url |
-| `CTABanner.tsx` | whatsapp_number, whatsapp_message, phone_secondary |
-| `WhatsAppButton.tsx` | whatsapp_number, whatsapp_message |
+---
 
-### 5. ContactPage
-- Usar `site_settings` para dados de contato
-- Formulário funcional: submit insere na tabela `contact_messages` com validação zod
-- Toast de sucesso/erro
+## Etapas Restantes (em ordem de prioridade)
 
-## Padrão de implementação
+### Etapa 1 — Conectar frontend ao banco de dados
+Substituir dados hardcoded por queries dinâmicas em **20 arquivos**:
 
-- Cada componente terá loading skeleton e fallback para dados hardcoded caso a query falhe
-- `useSiteSettings` com `staleTime: 5min` para evitar re-fetches desnecessários
-- Icon mapping: criar helper `getIconComponent(iconName)` para mapear string do banco para componente Lucide (usado em Features e Services)
-- Videos: embed real do YouTube usando `youtube_id`
+- **Criar** `src/hooks/useSiteSettings.ts` e `src/lib/icon-map.ts`
+- **Atualizar** 10 componentes home: Hero, Features, ServicesPreview, About, Team, Testimonials, Videos, Events, Location, CTABanner
+- **Atualizar** 4 layout: Header, Footer, WhatsAppButton + Layout (sem mudança)
+- **Atualizar** 6 páginas: ServicesPage, TeamPage, TestimonialsPage, VideosPage, EventsPage, About, ContactPage (com formulário funcional + Zod)
+- Padrão: React Query + loading skeletons + fallback hardcoded
 
-## Arquivos novos
-- `src/hooks/useSiteSettings.ts`
-- `src/lib/icon-map.ts`
+### Etapa 2 — Painel Administrativo
+Criar sistema admin completo em `/admin`:
 
-## Arquivos editados (15)
-- `src/components/home/Hero.tsx`
-- `src/components/home/Features.tsx`
-- `src/components/home/ServicesPreview.tsx`
-- `src/components/home/About.tsx`
-- `src/components/home/Team.tsx`
-- `src/components/home/Testimonials.tsx`
-- `src/components/home/Videos.tsx`
-- `src/components/home/Events.tsx`
-- `src/components/home/Location.tsx`
-- `src/components/home/CTABanner.tsx`
-- `src/components/layout/Header.tsx`
-- `src/components/layout/Footer.tsx`
-- `src/components/layout/WhatsAppButton.tsx`
-- `src/pages/ContactPage.tsx` (+ formulário funcional)
-- `src/pages/ServicesPage.tsx`
-- `src/pages/TeamPage.tsx`
-- `src/pages/TestimonialsPage.tsx`
-- `src/pages/VideosPage.tsx`
-- `src/pages/EventsPage.tsx`
-- `src/pages/About.tsx`
+- **Login** (`/admin/login`) com autenticação via banco
+- **Dashboard** com visão geral e menu lateral
+- **CRUD** para cada tabela: Tratamentos, Dentistas, Depoimentos, Vídeos, Eventos, Diferenciais, Sobre, Mensagens de Contato, Configurações do site
+- **Proteção de rotas** com verificação de role (admin/sócio)
+- Componentes: formulários com validação, tabelas com paginação, confirmação de exclusão
+
+### Etapa 3 — Link discreto no Footer
+Adicionar link pequeno e discreto no rodapé apontando para `/admin/login`.
+
+### Etapa 4 — Dados reais
+Substituir os dados de exemplo no banco pelos dados reais da clínica (endereço, telefones, horários, URLs de redes sociais, Google Maps embed, fotos dos dentistas, vídeos do YouTube reais).
+
+### Etapa 5 — Refinamentos finais
+- SEO: meta tags dinâmicas por página (title, description, og:image)
+- Responsividade: revisão final em mobile
+- Performance: lazy loading de imagens, otimização de queries
+- Publicação do site
+
+---
+
+## Recomendação
+
+Sugiro começar pela **Etapa 1** (conectar frontend ao banco), pois é pré-requisito para que o admin funcione de ponta a ponta. Deseja que eu implemente?
 
