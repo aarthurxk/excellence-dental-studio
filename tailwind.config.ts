@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Roboto', 'Inter', 'sans-serif'],
-        display: ['Roboto', 'sans-serif'],
+        sans: ['Lato', 'sans-serif'],
+        display: ['Raleway', 'sans-serif'],
       },
       colors: {
         "clinic-dark": "hsl(var(--clinic-dark))",
