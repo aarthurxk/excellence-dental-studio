@@ -1,82 +1,19 @@
 
 
-# Conectar Frontend ao Banco de Dados
+## Plano: Banner vermelho por cima da imagem
 
-## Resumo
-Substituir todos os dados hardcoded em 15 componentes/páginas por queries dinâmicas ao banco usando React Query + Supabase client. Criar um hook centralizado `useSiteSettings` para dados compartilhados (telefone, WhatsApp, endereço, etc.).
+Inverter a abordagem: em vez da imagem sobrepor o banner, o **InfoStrip fica por cima** da imagem. Assim, qualquer foto que for colocada fica com a parte inferior "cortada" pelo banner vermelho, sem risco de desalinhamento.
 
-## Componentes a alterar
+### Mudancas
 
-### 1. Hook compartilhado: `useSiteSettings`
-- Novo hook que busca `site_settings` (1 row) e cacheia globalmente
-- Usado por: Header, Footer, Hero, Location, CTABanner, WhatsAppButton, ContactPage
+1. **`HeroSection.tsx`**:
+   - Remover `translate-y-[30%]` da imagem (ela nao precisa mais "vazar")
+   - Manter a imagem posicionada `absolute bottom-0 right-0` dentro do hero, alinhada ao fundo da section
+   - Reduzir o z-index da imagem para `z-10`
 
-### 2. Home sections (7 componentes)
-| Componente | Tabela | Query |
-|---|---|---|
-| `Hero.tsx` | `site_settings` | hero_title, hero_subtitle, whatsapp_number, whatsapp_message |
-| `Features.tsx` | `features` | all, ordered by display_order |
-| `ServicesPreview.tsx` | `services` | active=true, ordered by display_order, limit 6 |
-| `About.tsx` | `about_content` | single row (maybeSingle) |
-| `Team.tsx` | `dentists` | active=true, ordered by display_order, limit 4 |
-| `Testimonials.tsx` | `testimonials` | active=true, featured first, limit 3 |
-| `Videos.tsx` | `videos` | active=true, featured first, limit 2 |
-| `Events.tsx` | `events` | active=true, ordered by event_date, limit 3 |
+2. **`InfoStrip.tsx`**:
+   - Adicionar `relative z-20` e um `mt-negative` (e.g. `-mt-16` ou `-mt-20`) para que o banner suba e sobreponha a parte inferior do hero/imagem
+   - O banner vermelho fica sempre por cima, independente da foto
 
-### 3. Sub-páginas (6 páginas)
-| Página | Tabela |
-|---|---|
-| `ServicesPage.tsx` | `services` (active) |
-| `TeamPage.tsx` | `dentists` (active) |
-| `TestimonialsPage.tsx` | `testimonials` (active) |
-| `VideosPage.tsx` | `videos` (active) |
-| `EventsPage.tsx` | `events` (active) |
-| `About.tsx` | `about_content` |
-
-### 4. Layout components (4 componentes)
-| Componente | Dados do `site_settings` |
-|---|---|
-| `Header.tsx` | phone, whatsapp_number, whatsapp_message |
-| `Footer.tsx` | phone, phone_secondary, email, address, hours_weekday, hours_saturday, instagram_url, facebook_url |
-| `Location.tsx` | address, phone, phone_secondary, email, hours_weekday, hours_saturday, google_maps_embed_url |
-| `CTABanner.tsx` | whatsapp_number, whatsapp_message, phone_secondary |
-| `WhatsAppButton.tsx` | whatsapp_number, whatsapp_message |
-
-### 5. ContactPage
-- Usar `site_settings` para dados de contato
-- Formulário funcional: submit insere na tabela `contact_messages` com validação zod
-- Toast de sucesso/erro
-
-## Padrão de implementação
-
-- Cada componente terá loading skeleton e fallback para dados hardcoded caso a query falhe
-- `useSiteSettings` com `staleTime: 5min` para evitar re-fetches desnecessários
-- Icon mapping: criar helper `getIconComponent(iconName)` para mapear string do banco para componente Lucide (usado em Features e Services)
-- Videos: embed real do YouTube usando `youtube_id`
-
-## Arquivos novos
-- `src/hooks/useSiteSettings.ts`
-- `src/lib/icon-map.ts`
-
-## Arquivos editados (15)
-- `src/components/home/Hero.tsx`
-- `src/components/home/Features.tsx`
-- `src/components/home/ServicesPreview.tsx`
-- `src/components/home/About.tsx`
-- `src/components/home/Team.tsx`
-- `src/components/home/Testimonials.tsx`
-- `src/components/home/Videos.tsx`
-- `src/components/home/Events.tsx`
-- `src/components/home/Location.tsx`
-- `src/components/home/CTABanner.tsx`
-- `src/components/layout/Header.tsx`
-- `src/components/layout/Footer.tsx`
-- `src/components/layout/WhatsAppButton.tsx`
-- `src/pages/ContactPage.tsx` (+ formulário funcional)
-- `src/pages/ServicesPage.tsx`
-- `src/pages/TeamPage.tsx`
-- `src/pages/TestimonialsPage.tsx`
-- `src/pages/VideosPage.tsx`
-- `src/pages/EventsPage.tsx`
-- `src/pages/About.tsx`
+Resultado: a imagem fica rente ao fundo do hero, e o banner vermelho sobe e cobre a parte de baixo. Trocar a foto nao quebra o alinhamento.
 
