@@ -15,6 +15,7 @@ const Index = () => {
     <Layout>
       <HeroSection />
       <InfoStrip />
+      <HighlightBanner />
       <AboutSection />
       <DepartmentsSection />
       <DoctorsSection />
