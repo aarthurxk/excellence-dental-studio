@@ -59,10 +59,15 @@ const HeroSection = () => {
 
             {/* Social proof badges */}
             <div className="flex flex-wrap gap-4 pt-2">
-              <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2">
+              <a
+                href={settings?.google_reviews_url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2 cursor-pointer hover:bg-primary-foreground/15 transition-colors"
+              >
                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                 <span className="text-primary-foreground text-sm font-medium">4.9 no Google</span>
-              </div>
+              </a>
               <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2">
                 <Users className="h-4 w-4 text-primary" />
                 <span className="text-primary-foreground text-sm font-medium">+500 pacientes</span>
