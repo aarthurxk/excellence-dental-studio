@@ -44,7 +44,7 @@ const FooterMedico = () => {
           </div>
 
           {/* Links */}
-          <div>
+          <div className="hidden md:block">
             <h4 className="font-bold text-lg mb-4">Links Rápidos</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
               {[
@@ -62,7 +62,7 @@ const FooterMedico = () => {
           </div>
 
           {/* Services */}
-          <div>
+          <div className="hidden lg:block">
             <h4 className="font-bold text-lg mb-4">Tratamentos</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
               {(services && services.length > 0 ? services.map(s => s.title) : ["Implantes", "Ortodontia", "Clareamento", "Próteses", "Endodontia"]).map((s) => (

@@ -13,7 +13,7 @@ const CTABanner = () => {
   const phoneDigits = phoneSecondary.replace(/\D/g, "");
 
   return (
-    <section className="relative py-20 bg-primary text-primary-foreground overflow-hidden">
+    <section className="relative py-12 md:py-20 bg-primary text-primary-foreground overflow-hidden">
       {/* Decorative circles */}
       <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-white/5 pointer-events-none" />
       <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-white/5 pointer-events-none" />

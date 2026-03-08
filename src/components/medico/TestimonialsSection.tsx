@@ -22,7 +22,7 @@ const TestimonialsSection = () => {
   const visible = items.slice(current, current + 3).length >= 1 ? items.slice(current, current + 3) : items.slice(0, 3);
 
   return (
-    <section className="py-20 bg-mint-bg">
+    <section className="py-12 md:py-20 bg-mint-bg">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

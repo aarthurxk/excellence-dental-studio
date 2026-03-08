@@ -21,8 +21,8 @@ const HighlightBanner = () => (
               transition={{ duration: 0.4, delay: i * 0.15 }}
               className="flex items-center justify-center gap-3 py-5 px-6"
             >
-              <item.icon className={`h-7 w-7 flex-shrink-0 ${item.iconClass}`} strokeWidth={2} />
-              <span className="text-lg md:text-xl text-secondary-foreground tracking-wide">
+              <item.icon className={`h-5 w-5 md:h-7 md:w-7 flex-shrink-0 ${item.iconClass}`} strokeWidth={2} />
+              <span className="text-sm md:text-xl text-secondary-foreground tracking-wide">
                 <strong className="font-bold">{parts[0].trim()}</strong>
                 {parts[1] && (
                   <span className="font-normal text-secondary-foreground/70 text-base"> — {parts[1].trim()}</span>

@@ -7,7 +7,7 @@ const HeroSection = () => {
   const { data: settings } = useSiteSettings();
 
   return (
-    <section className="relative min-h-[600px] bg-secondary">
+    <section className="relative min-h-[450px] md:min-h-[600px] bg-secondary">
       {/* Background image */}
       <div className="absolute inset-0">
         <img
@@ -17,20 +17,20 @@ const HeroSection = () => {
         />
       </div>
 
-      <div className="container relative z-10 flex items-center min-h-[600px]">
+      <div className="container relative z-10 flex items-center min-h-[450px] md:min-h-[600px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full">
           {/* Left text */}
           <motion.div
             initial={{ opacity: 0, x: -60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-6 py-20"
+            className="space-y-5 md:space-y-6 py-12 md:py-20"
           >
-            <h1 className="text-4xl md:text-5xl lg:text-[52px] font-bold leading-tight text-primary-foreground">
+            <h1 className="text-3xl md:text-5xl lg:text-[52px] font-bold leading-tight text-primary-foreground">
               {settings?.hero_title || "Seu Sorriso Merece Excelência"}
             </h1>
 
-            <p className="text-primary-foreground/70 text-base md:text-lg leading-relaxed max-w-lg">
+            <p className="text-primary-foreground/70 text-sm md:text-lg leading-relaxed max-w-lg">
               {settings?.hero_subtitle || "Tecnologia de ponta, equipe especializada e atendimento humanizado para transformar o seu sorriso."}
             </p>
 
@@ -38,9 +38,9 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="flex flex-wrap gap-4"
+              className="flex flex-wrap gap-3"
             >
-              <Button size="lg" className="rounded font-semibold text-sm px-8 py-6" asChild>
+              <Button size="lg" className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6" asChild>
                 <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   AGENDAR AGORA
@@ -50,7 +50,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded font-semibold text-sm px-8 py-6 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+                className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
                 asChild
               >
                 <a href="#tratamentos">TRATAMENTOS</a>
@@ -58,7 +58,7 @@ const HeroSection = () => {
             </motion.div>
 
             {/* Social proof badges */}
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <a
                 href={settings?.google_reviews_url || "#"}
                 target="_blank"
