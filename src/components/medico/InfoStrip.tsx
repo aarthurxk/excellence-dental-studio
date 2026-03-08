@@ -36,7 +36,7 @@ const InfoStrip = () => {
   ];
 
   return (
-    <section className="relative z-20 bg-primary -mt-16">
+    <section className="relative z-20 bg-primary mt-0 md:-mt-16">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3">
           {items.map((item, i) => {
