@@ -19,7 +19,7 @@ const DepartmentsSection = () => {
   });
 
   return (
-    <section id="tratamentos" className="py-20 bg-gradient-to-b from-muted/30 to-background">
+    <section id="tratamentos" className="py-12 md:py-20 bg-gradient-to-b from-muted/30 to-background">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

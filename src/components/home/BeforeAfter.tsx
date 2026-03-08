@@ -74,7 +74,7 @@ const BeforeAfter = () => {
   const whatsappUrl = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message);
 
   return (
-    <section className="py-20 bg-muted/20">
+    <section className="py-12 md:py-20 bg-muted/20">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

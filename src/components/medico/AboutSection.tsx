@@ -26,7 +26,7 @@ const AboutSection = () => {
     "Sem fila de espera – Agendamento direto pelo WhatsApp.",
   ];
   return (
-    <section className="py-20 bg-background">
+    <section className="py-12 md:py-20 bg-background">
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div

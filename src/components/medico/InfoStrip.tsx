@@ -36,7 +36,7 @@ const InfoStrip = () => {
   ];
 
   return (
-    <section className="relative z-20 bg-primary -mt-16">
+    <section className="relative z-20 bg-primary mt-0 md:-mt-16">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3">
           {items.map((item, i) => {
@@ -64,7 +64,7 @@ const InfoStrip = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.15 }}
-                className={`py-10 px-8 text-center text-primary-foreground ${i < 2 ? "md:border-r md:border-primary-foreground/20" : ""}`}
+                className={`py-6 px-5 md:py-10 md:px-8 text-center text-primary-foreground ${i < 2 ? "md:border-r md:border-primary-foreground/20" : ""}`}
               >
                 {item.href ? (
                   <a

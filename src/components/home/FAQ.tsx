@@ -17,7 +17,7 @@ const FAQ = () => {
   const whatsappUrl = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message);
 
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-12 md:py-20 bg-muted/30">
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <motion.div
