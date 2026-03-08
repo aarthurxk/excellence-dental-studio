@@ -10,7 +10,7 @@ const InfoStrip = () => {
       icon: CalendarDays,
       title: "Horário de Atendimento",
       lines: [
-        `Seg – Sex: ${settings?.hours_weekday?.replace("Seg a Sex: ", "") || "9h – 19h"}`,
+        `Seg – Sex: ${settings?.hours_weekday?.replace("Seg a Sex: ", "") || "8h – 18h"}`,
         `Sábado: ${settings?.hours_saturday?.replace("Sáb: ", "") || "8h – 12h"}`,
       ],
       href: null as string | null,

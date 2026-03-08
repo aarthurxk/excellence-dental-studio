@@ -49,7 +49,7 @@ const CTABanner = () => {
         </div>
 
         <p className="text-primary-foreground/60 text-sm mt-4">
-          ✓ Sem compromisso &nbsp;·&nbsp; ✓ Avaliação gratuita &nbsp;·&nbsp; ✓ Atendimento humanizado
+          ✓ Sem compromisso &nbsp;·&nbsp; ✓ Resposta rápida &nbsp;·&nbsp; ✓ Atendimento humanizado
         </p>
       </div>
     </section>

@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
 
 const faqs = [
-  { q: "A avaliação inicial tem custo?", a: "Não! Nossa avaliação inicial é totalmente gratuita e sem compromisso. Agende pelo WhatsApp e venha conhecer nossa clínica." },
-  { q: "Vocês atendem planos odontológicos?", a: "Sim, trabalhamos com os principais planos odontológicos. Entre em contato para confirmar se o seu plano é aceito." },
+  { q: "Como faço para agendar uma avaliação?", a: "Agende sua avaliação entrando em contato pelo WhatsApp ou telefone. Nossa equipe responde rapidamente!" },
+  { q: "Vocês atendem por plano odontológico?", a: "Nosso atendimento é particular. Entre em contato para conhecer nossas condições de pagamento e facilidades." },
   { q: "Quanto tempo leva um tratamento de clareamento?", a: "O clareamento a laser é feito em uma única sessão de aproximadamente 1 hora. O clareamento com moldeiras caseiras pode levar de 2 a 4 semanas." },
   { q: "Os procedimentos causam dor?", a: "Trabalhamos com anestesia e técnicas modernas para garantir seu conforto. A maioria dos procedimentos é praticamente indolor." },
-  { q: "Qual o horário de funcionamento?", a: "Atendemos de segunda a sexta das 8h às 19h e aos sábados das 8h às 12h. Não fechamos para o almoço!" },
   { q: "Como faço para agendar uma consulta?", a: "Você pode agendar diretamente pelo nosso WhatsApp, por telefone, ou preenchendo o formulário de contato no site. Respondemos rapidamente!" },
 ];
 
