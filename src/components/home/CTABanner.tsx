@@ -40,7 +40,7 @@ const CTABanner = () => {
               WhatsApp
             </a>
           </Button>
-          <Button size="lg" variant="outline" asChild className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold px-8 py-6 text-base">
+          <Button size="lg" asChild className="bg-white text-primary border-white hover:bg-white/90 font-semibold px-8 py-6 text-base">
             <a href={`tel:${phoneDigits}`}>
               <Phone className="h-5 w-5 mr-2" />
               {phoneSecondary}
