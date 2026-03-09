@@ -50,7 +50,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+                className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 border-white text-white bg-white/10 hover:bg-white/20"
                 asChild
               >
                 <a href="#tratamentos">TRATAMENTOS</a>
