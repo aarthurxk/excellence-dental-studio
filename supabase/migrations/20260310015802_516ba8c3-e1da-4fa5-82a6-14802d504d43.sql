@@ -1,0 +1,1 @@
+UPDATE site_settings SET hero_subtitle = 'Tratamentos odontológicos com tecnologia de ponta e condições de pagamento facilitadas' WHERE id = '03684baa-7f82-4906-ae80-bec6b4d4792b';
