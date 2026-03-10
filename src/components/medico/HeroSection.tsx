@@ -70,7 +70,7 @@ const HeroSection = () => {
               </a>
               <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2">
                 <Users className="h-4 w-4 text-primary" />
-                <span className="text-primary-foreground text-sm font-medium">+500 pacientes</span>
+                <span className="text-primary-foreground text-sm font-medium">+1500 pacientes</span>
               </div>
             </div>
           </motion.div>
