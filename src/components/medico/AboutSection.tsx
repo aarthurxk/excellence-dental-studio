@@ -78,7 +78,7 @@ const AboutSection = () => {
 
             <div className="grid grid-cols-3 gap-4 py-6 border-y border-border mt-4">
               {[
-                { value: data?.stat_patients || "500+", label: "Pacientes" },
+                { value: data?.stat_patients || "1500+", label: "Pacientes" },
                 { value: data?.stat_treatments || "15+", label: "Especialidades" },
                 { value: data?.stat_years || "10+", label: "Anos" },
               ].map((stat, i) => (
