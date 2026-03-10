@@ -1,0 +1,1 @@
+UPDATE about_content SET stat_patients = '1500+' WHERE id = '0bd14816-c0c9-4d47-a85b-2c6a059f8fc8';
