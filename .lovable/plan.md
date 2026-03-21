@@ -1,21 +1,24 @@
 
 
-## Alterar senha do usuário
+## Criar gerenciamento de "Antes e Depois" no Admin
 
-Vou criar uma Edge Function temporária que usa a Admin API para alterar a senha do usuário `arthur@odontoexcellencerecife.com.br` para `102030`.
+### O que será feito
 
-### Passos
+1. **Nova tabela `before_after_cases`** no banco de dados com colunas:
+   - `id`, `title`, `detail`, `before_image`, `after_image`, `display_order`, `active`, `created_at`, `updated_at`
+   - RLS: leitura pública, gerenciamento por admins
 
-1. **Criar edge function `update-password`** que:
-   - Usa o `SUPABASE_SERVICE_ROLE_KEY` para acessar a Admin API
-   - Busca o usuário pelo email
-   - Atualiza a senha com `supabase.auth.admin.updateUserById()`
+2. **Nova página admin `/admin/antes-depois`**
+   - Tabela listando os casos cadastrados
+   - Formulário para adicionar/editar com:
+     - Título e detalhe (texto)
+     - Upload de foto "Antes" e foto "Depois" (usando o componente ImageUpload existente com o bucket `clinic-images`)
+     - Ordem de exibição e ativo/inativo
 
-2. **Executar a função** para aplicar a alteração
+3. **Adicionar link no menu lateral do admin** para a nova página
 
-3. **Remover a edge function** após o uso (não precisa ficar no projeto)
+4. **Atualizar o componente `BeforeAfter.tsx`** para buscar os dados do banco em vez dos placeholders hardcoded
 
-### Detalhes técnicos
-- A função usará o Supabase Admin Client com service role key
-- Não requer secrets adicionais — `SUPABASE_SERVICE_ROLE_KEY` já está configurado
+### Resultado
+Você poderá adicionar, editar e trocar as fotos de antes e depois diretamente pelo painel admin, da mesma forma que já faz com dentistas, eventos, etc.
 
