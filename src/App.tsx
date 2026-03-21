@@ -75,6 +75,7 @@ function AppRoutes() {
         <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
         <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
         <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
+        <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
