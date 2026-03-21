@@ -31,6 +31,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminRoadmap from "./pages/admin/AdminRoadmap";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
+import AdminBeforeAfter from "./pages/admin/AdminBeforeAfter";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import WhatsAppButton from "./components/layout/WhatsAppButton";
