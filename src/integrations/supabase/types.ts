@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      before_after_cases: {
+        Row: {
+          active: boolean
+          after_image: string
+          before_image: string
+          created_at: string
+          detail: string
+          display_order: number
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          after_image?: string
+          before_image?: string
+          created_at?: string
+          detail?: string
+          display_order?: number
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          after_image?: string
+          before_image?: string
+          created_at?: string
+          detail?: string
+          display_order?: number
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
