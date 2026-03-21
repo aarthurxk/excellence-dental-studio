@@ -3,29 +3,12 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const cases = [
-  {
-    title: "Clareamento a Laser",
-    before: "https://placehold.co/600x400/d1d5db/6b7280?text=Antes",
-    after: "https://placehold.co/600x400/fef2f2/dc2626?text=Depois",
-    detail: "Resultado em 1 sessão",
-  },
-  {
-    title: "Facetas de Porcelana",
-    before: "https://placehold.co/600x400/d1d5db/6b7280?text=Antes",
-    after: "https://placehold.co/600x400/fef2f2/dc2626?text=Depois",
-    detail: "Transformação completa",
-  },
-  {
-    title: "Implante Dentário",
-    before: "https://placehold.co/600x400/d1d5db/6b7280?text=Antes",
-    after: "https://placehold.co/600x400/fef2f2/dc2626?text=Depois",
-    detail: "Sorriso restaurado",
-  },
-];
+type Case = { id: string; title: string; detail: string; before_image: string; after_image: string };
 
-const SliderCard = ({ c }: { c: typeof cases[0] }) => {
+const SliderCard = ({ c }: { c: Case }) => {
   const [pos, setPos] = useState(50);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -44,20 +27,16 @@ const SliderCard = ({ c }: { c: typeof cases[0] }) => {
         onMouseMove={(e) => e.buttons === 1 && handleMove(e.clientX)}
         onTouchMove={(e) => handleMove(e.touches[0].clientX)}
       >
-        {/* After image (base) */}
-        <img src={c.after} alt={`${c.title} — Depois`} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-        {/* Before image (clipped) */}
+        <img src={c.after_image} alt={`${c.title} — Depois`} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
         <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-          <img src={c.before} alt={`${c.title} — Antes`} className="absolute inset-0 w-full h-full object-cover" style={{ minWidth: `${(100 / pos) * 100}%`, maxWidth: `${(100 / pos) * 100}%` }} draggable={false} />
+          <img src={c.before_image} alt={`${c.title} — Antes`} className="absolute inset-0 w-full h-full object-cover" style={{ minWidth: `${(100 / pos) * 100}%`, maxWidth: `${(100 / pos) * 100}%` }} draggable={false} />
         </div>
-        {/* Divider */}
         <div className="absolute top-0 bottom-0 z-10" style={{ left: `${pos}%`, transform: "translateX(-50%)" }}>
           <div className="w-0.5 h-full bg-white/90" />
           <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-white shadow-lg flex items-center justify-center text-foreground text-xs font-bold">
             ⟺
           </div>
         </div>
-        {/* Labels */}
         <span className="absolute top-3 left-3 bg-foreground/70 text-background text-xs font-bold px-2.5 py-1 rounded-full z-10">ANTES</span>
         <span className="absolute top-3 right-3 bg-primary/90 text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full z-10">DEPOIS</span>
       </div>
@@ -72,6 +51,21 @@ const SliderCard = ({ c }: { c: typeof cases[0] }) => {
 const BeforeAfter = () => {
   const { data: settings } = useSiteSettings();
   const whatsappUrl = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message);
+
+  const { data: cases = [] } = useQuery({
+    queryKey: ["before-after-cases"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("before_after_cases")
+        .select("id, title, detail, before_image, after_image")
+        .eq("active", true)
+        .order("display_order");
+      if (error) throw error;
+      return data as Case[];
+    },
+  });
+
+  if (!cases.length) return null;
 
   return (
     <section className="py-12 md:py-20 bg-muted/20">
@@ -95,7 +89,7 @@ const BeforeAfter = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cases.map((c, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+            <motion.div key={c.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
               <SliderCard c={c} />
             </motion.div>
           ))}
