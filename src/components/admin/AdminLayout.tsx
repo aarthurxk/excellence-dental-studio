@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ const navItems = [
   { title: "Vídeos", url: "/admin/videos", icon: Video, module: "videos" },
   { title: "Eventos", url: "/admin/eventos", icon: CalendarDays, module: "events" },
   { title: "Diferenciais", url: "/admin/diferenciais", icon: Sparkles, module: "features" },
+  { title: "Antes e Depois", url: "/admin/antes-depois", icon: SlidersHorizontal, module: "before_after" },
   { title: "Sobre", url: "/admin/sobre", icon: Info, module: "about" },
   { title: "Mensagens", url: "/admin/mensagens", icon: MessageSquare, module: "messages" },
   { title: "Roadmap", url: "/admin/roadmap", icon: Map, module: "roadmap" },

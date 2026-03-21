@@ -31,6 +31,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminRoadmap from "./pages/admin/AdminRoadmap";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminResetPassword from "./pages/admin/AdminResetPassword";
+import AdminBeforeAfter from "./pages/admin/AdminBeforeAfter";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import WhatsAppButton from "./components/layout/WhatsAppButton";
@@ -74,6 +75,7 @@ function AppRoutes() {
         <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
         <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
         <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
+        <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
