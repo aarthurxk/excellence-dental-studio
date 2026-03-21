@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
