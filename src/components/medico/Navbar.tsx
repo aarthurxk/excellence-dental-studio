@@ -31,10 +31,10 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 bg-background ${scrolled ? "shadow-lg" : "shadow-sm"}`}>
-      <div className="container flex items-center justify-between h-16">
+      <div className="container flex items-center justify-between h-14 md:h-16">
         {/* Mobile logo */}
         <a href="/" className="lg:hidden flex items-center">
-          <img src={logo} alt="Logo" className="h-14" />
+          <img src={logo} alt="Logo" className="h-10 md:h-14" />
         </a>
 
         {/* Desktop nav */}
@@ -57,13 +57,17 @@ const Navbar = () => {
           })}
         </ul>
 
-        <div className="flex items-center gap-3">
-          <Button asChild className="rounded font-medium text-sm px-6">
+        <div className="flex items-center gap-2">
+          <Button asChild className="rounded font-medium text-xs md:text-sm px-4 md:px-6 h-9 md:h-10">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               AGENDAR
             </a>
           </Button>
-          <button className="lg:hidden" onClick={() => setMobileOpen(true)}>
+          <button
+            className="lg:hidden flex items-center justify-center h-11 w-11 rounded-md hover:bg-muted transition-colors"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Menu"
+          >
             <Menu className="h-6 w-6" />
           </button>
         </div>
@@ -88,7 +92,7 @@ const Navbar = () => {
                     <Link
                       to={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
                         isActive
                           ? "text-primary bg-primary/10"
                           : "text-foreground hover:bg-muted"
@@ -117,7 +121,7 @@ const Navbar = () => {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-[#25D366] text-white font-semibold text-sm hover:bg-[#22c55e] transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-[#25D366] text-white font-semibold text-sm hover:bg-[#22c55e] transition-colors min-h-[44px]"
             >
               <MessageCircle className="h-4 w-4" />
               Fale pelo WhatsApp

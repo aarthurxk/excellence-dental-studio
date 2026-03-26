@@ -19,13 +19,16 @@ const HighlightBanner = () => (
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.15 }}
-              className="flex items-center justify-center gap-3 py-5 px-6"
+              className="flex items-center justify-center gap-3 py-4 md:py-5 px-4 md:px-6"
             >
               <item.icon className={`h-5 w-5 md:h-7 md:w-7 flex-shrink-0 ${item.iconClass}`} strokeWidth={2} />
-              <span className="text-sm md:text-xl text-secondary-foreground tracking-wide">
-                <strong className="font-bold">{parts[0].trim()}</strong>
+              <span className="text-secondary-foreground tracking-wide">
+                <strong className="font-bold text-sm md:text-xl block md:inline">{parts[0].trim()}</strong>
                 {parts[1] && (
-                  <span className="font-normal text-secondary-foreground/70 text-base"> — {parts[1].trim()}</span>
+                  <span className="font-normal text-secondary-foreground/70 text-xs md:text-base block md:inline">
+                    <span className="hidden md:inline"> — </span>
+                    {parts[1].trim()}
+                  </span>
                 )}
               </span>
             </motion.div>

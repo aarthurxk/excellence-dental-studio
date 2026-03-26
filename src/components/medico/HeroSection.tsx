@@ -7,7 +7,7 @@ const HeroSection = () => {
   const { data: settings } = useSiteSettings();
 
   return (
-    <section className="relative min-h-[450px] md:min-h-[600px] bg-secondary">
+    <section className="relative min-h-[400px] md:min-h-[600px] bg-secondary">
       {/* Background image */}
       <div className="absolute inset-0">
         <img
@@ -17,16 +17,16 @@ const HeroSection = () => {
         />
       </div>
 
-      <div className="container relative z-10 flex items-center min-h-[450px] md:min-h-[600px]">
+      <div className="container relative z-10 flex items-center min-h-[400px] md:min-h-[600px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full">
           {/* Left text */}
           <motion.div
             initial={{ opacity: 0, x: -60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-5 md:space-y-6 py-12 md:py-20"
+            className="space-y-4 md:space-y-6 py-10 md:py-20"
           >
-            <h1 className="text-3xl md:text-5xl lg:text-[52px] font-bold leading-tight text-primary-foreground">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-[52px] font-bold leading-tight text-primary-foreground">
               {settings?.hero_title || "Seu Sorriso Merece Excelência"}
             </h1>
 
@@ -38,9 +38,9 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="flex flex-wrap gap-3"
+              className="flex flex-col sm:flex-row gap-3"
             >
-              <Button size="lg" className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6" asChild>
+              <Button size="lg" className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 w-full sm:w-auto" asChild>
                 <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   AGENDAR AGORA
@@ -50,7 +50,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 border-white text-white bg-white/10 hover:bg-white/20"
+                className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 border-white text-white bg-white/10 hover:bg-white/20 w-full sm:w-auto"
                 asChild
               >
                 <a href="#tratamentos">TRATAMENTOS</a>
@@ -58,19 +58,19 @@ const HeroSection = () => {
             </motion.div>
 
             {/* Social proof badges */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-row gap-3 pt-2 flex-wrap">
               <a
                 href={settings?.google_reviews_url || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2 cursor-pointer hover:bg-primary-foreground/15 transition-colors"
+                className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-3 md:px-4 py-2 cursor-pointer hover:bg-primary-foreground/15 transition-colors"
               >
                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                <span className="text-primary-foreground text-sm font-medium">4.9 no Google</span>
+                <span className="text-primary-foreground text-xs md:text-sm font-medium">4.9 no Google</span>
               </a>
-              <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2">
+              <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-3 md:px-4 py-2">
                 <Users className="h-4 w-4 text-primary" />
-                <span className="text-primary-foreground text-sm font-medium">+1500 pacientes</span>
+                <span className="text-primary-foreground text-xs md:text-sm font-medium">+1500 pacientes</span>
               </div>
             </div>
           </motion.div>
