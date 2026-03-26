@@ -42,18 +42,31 @@ const InfoStrip = () => {
           {items.map((item, i) => {
             const content = (
               <>
-                <div className="flex justify-center mb-4">
-                  <motion.div
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
-                  >
-                    <item.icon className="h-12 w-12 text-primary-foreground" strokeWidth={1.5} />
-                  </motion.div>
+                {/* Desktop: centered vertical layout */}
+                <div className="hidden md:block">
+                  <div className="flex justify-center mb-4">
+                    <motion.div
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                    >
+                      <item.icon className="h-12 w-12 text-primary-foreground" strokeWidth={1.5} />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                  {item.lines.map((line, j) => (
+                    <p key={j} className="text-primary-foreground/80 text-sm">{line}</p>
+                  ))}
                 </div>
-                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                {item.lines.map((line, j) => (
-                  <p key={j} className="text-primary-foreground/80 text-sm">{line}</p>
-                ))}
+                {/* Mobile: compact horizontal layout */}
+                <div className="flex md:hidden items-center gap-4">
+                  <item.icon className="h-8 w-8 text-primary-foreground flex-shrink-0" strokeWidth={1.5} />
+                  <div>
+                    <h3 className="text-sm font-bold">{item.title}</h3>
+                    {item.lines.map((line, j) => (
+                      <p key={j} className="text-primary-foreground/80 text-xs">{line}</p>
+                    ))}
+                  </div>
+                </div>
               </>
             );
 
@@ -64,14 +77,14 @@ const InfoStrip = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.15 }}
-                className={`py-6 px-5 md:py-10 md:px-8 text-center text-primary-foreground ${i < 2 ? "md:border-r md:border-primary-foreground/20" : ""}`}
+                className={`py-4 px-4 md:py-10 md:px-8 md:text-center text-primary-foreground ${i < 2 ? "border-b md:border-b-0 md:border-r border-primary-foreground/20" : ""}`}
               >
                 {item.href ? (
                   <a
                     href={item.href}
                     target={item.href.startsWith("http") ? "_blank" : undefined}
                     rel="noopener noreferrer"
-                    className="block hover:opacity-80 transition-opacity"
+                    className="block hover:opacity-80 transition-opacity min-h-[44px] flex items-center md:block"
                   >
                     {content}
                   </a>

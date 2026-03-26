@@ -19,25 +19,25 @@ const FooterMedico = () => {
 
   return (
     <footer className="bg-secondary text-primary-foreground">
-      <div className="container py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="container py-10 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
           {/* Logo & Description */}
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-3 inline-block"><img src={logo} alt="Logo" className="h-20" /></div>
+            <div className="bg-white rounded-lg p-3 inline-block"><img src={logo} alt="Logo" className="h-16 md:h-20" /></div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Cuidando do seu sorriso com excelência, tecnologia e atendimento humanizado.
             </p>
             <div className="flex gap-3">
-              <a href={settings?.facebook_url || "#"} className="h-9 w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href={settings?.facebook_url || "#"} className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href="#" className="h-9 w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href="#" className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </a>
-              <a href="#" className="h-9 w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href="#" className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a href={settings?.instagram_url || "#"} className="h-9 w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href={settings?.instagram_url || "#"} className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Instagram className="h-4 w-4" />
               </a>
             </div>
@@ -87,16 +87,16 @@ const FooterMedico = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{settings?.email || "adm@odontoexcellencerecife.com.br"}</span>
+                <span className="break-all">{settings?.email || "adm@odontoexcellencerecife.com.br"}</span>
               </li>
             </ul>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-primary-foreground/10 py-5">
-        <div className="container flex items-center justify-between text-sm text-primary-foreground/50">
-          <span>© 2024 Odonto Excellence Recife. Todos os direitos reservados.</span>
+      <div className="border-t border-primary-foreground/10 py-4 md:py-5">
+        <div className="container flex flex-col md:flex-row items-center justify-between gap-2 text-xs md:text-sm text-primary-foreground/50">
+          <span className="text-center">© 2024 Odonto Excellence Recife. Todos os direitos reservados.</span>
           <Link to="/admin/login" className="text-primary-foreground/30 hover:text-primary-foreground/50 transition-colors">
             <Lock className="h-3.5 w-3.5" />
           </Link>

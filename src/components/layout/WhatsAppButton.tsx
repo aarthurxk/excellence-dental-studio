@@ -23,7 +23,7 @@ const WhatsAppButton = () => {
         className="relative flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-full bg-[#25D366] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
         aria-label="WhatsApp"
       >
-        <span className="absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-60 animate-ping" />
+        <span className="absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-40 animate-pulse" />
         <MessageCircle className="h-6 w-6 md:h-7 md:w-7 relative z-10" />
       </a>
     </div>,
