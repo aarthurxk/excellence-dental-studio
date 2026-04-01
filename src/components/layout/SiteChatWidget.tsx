@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const CHAT_STORAGE_KEY = "odonto-excellence-site-chat";
 const SESSION_STORAGE_KEY = "odonto-excellence-site-chat-session";
-const WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL;
+const WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL || "https://bot.odontoexcellencerecife.com.br/webhook/site-chat-v3";
 
 const WELCOME_MESSAGE =
   "Oi, tudo bem? Sou Vera, trabalho aqui na Clinica Odonto Excellence Recife. Como posso te ajudar?";
