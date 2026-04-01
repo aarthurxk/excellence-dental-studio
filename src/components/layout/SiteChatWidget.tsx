@@ -12,7 +12,9 @@ import { cn } from "@/lib/utils";
 
 const CHAT_STORAGE_KEY = "odonto-excellence-site-chat";
 const SESSION_STORAGE_KEY = "odonto-excellence-site-chat-session";
-const WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL || "https://bot.odontoexcellencerecife.com.br/webhook/site-chat-v3";
+const WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL || "https://bot.odontoexcellencerecife.com.br/webhook/site-chat-v4";
+const MIN_ASSISTANT_DELAY_MS = 1200;
+const MAX_ASSISTANT_DELAY_MS = 2400;
 
 const WELCOME_MESSAGE =
   "Oi, tudo bem? Sou Vera, trabalho aqui na Clinica Odonto Excellence Recife. Como posso te ajudar?";
@@ -136,6 +138,14 @@ function getOriginDetails() {
   };
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function getAssistantDelay() {
+  return Math.floor(Math.random() * (MAX_ASSISTANT_DELAY_MS - MIN_ASSISTANT_DELAY_MS + 1)) + MIN_ASSISTANT_DELAY_MS;
+}
+
 const SiteChatWidget = () => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
@@ -170,8 +180,10 @@ const SiteChatWidget = () => {
     setMessages((current) => [...current, outgoing]);
     setInput("");
     setIsLoading(true);
+    const startedAt = Date.now();
 
     if (!WEBHOOK_URL) {
+      await wait(getAssistantDelay());
       setMessages((current) => [...current, createMessage("assistant", fallbackReply)]);
       setIsLoading(false);
       return;
@@ -200,9 +212,22 @@ const SiteChatWidget = () => {
 
       const payload = (await response.json()) as ChatApiResponse;
       const reply = extractReply(payload) ?? fallbackReply;
+      const elapsed = Date.now() - startedAt;
+      const targetDelay = getAssistantDelay();
+
+      if (elapsed < targetDelay) {
+        await wait(targetDelay - elapsed);
+      }
 
       setMessages((current) => [...current, createMessage("assistant", reply)]);
     } catch {
+      const elapsed = Date.now() - startedAt;
+      const targetDelay = getAssistantDelay();
+
+      if (elapsed < targetDelay) {
+        await wait(targetDelay - elapsed);
+      }
+
       setMessages((current) => [...current, createMessage("assistant", fallbackReply)]);
     } finally {
       setIsLoading(false);
@@ -269,7 +294,7 @@ const SiteChatWidget = () => {
 
           <Card className="mx-4 mt-4 border-[#f1dfda] bg-white shadow-[0_20px_60px_-30px_rgba(0,0,0,0.25)]">
             <CardContent className="px-4 py-3 text-sm text-[#4b4b4b]">
-              Pode me chamar por aqui pra saber sobre implante, prótese, aparelho, clínica geral e outros tratamentos.
+              Se quiser, posso te orientar sobre implante, protese, aparelho, clinica geral e outros tratamentos.
             </CardContent>
           </Card>
 
@@ -306,7 +331,7 @@ const SiteChatWidget = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Pensando com carinho na melhor resposta...
+                      Vera esta escrevendo...
                     </div>
                   </div>
                 </div>
@@ -323,16 +348,16 @@ const SiteChatWidget = () => {
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Escreva sua mensagem por aqui"
-                className="h-12 rounded-2xl border-[#ead7d1] bg-[#fffaf7] px-4"
+                className="h-11 rounded-2xl border-[#ead7d1] bg-[#fffaf7] px-4 text-[15px] md:h-12"
               />
 
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs leading-5 text-muted-foreground">
+              <div className="flex items-end justify-between gap-3">
+                <p className="max-w-[220px] text-xs leading-5 text-muted-foreground">
                   Se preferir, a Vera pode te encaminhar pra equipe em seguida.
                 </p>
                 <Button
                   type="submit"
-                  className="h-11 rounded-2xl bg-[#111111] px-5 text-white hover:bg-[#222222]"
+                  className="h-11 min-w-[112px] rounded-2xl bg-[#d72638] px-5 text-white shadow-[0_12px_30px_-18px_rgba(215,38,56,0.9)] hover:bg-[#bf2030]"
                   disabled={isLoading || !input.trim()}
                 >
                   Enviar
