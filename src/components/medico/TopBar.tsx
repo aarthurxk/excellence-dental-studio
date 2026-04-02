@@ -1,4 +1,4 @@
-import { Calendar, Facebook, Linkedin, Instagram } from "lucide-react";
+import { Calendar, Facebook, Instagram } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
