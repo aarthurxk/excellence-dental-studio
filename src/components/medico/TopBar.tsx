@@ -54,8 +54,8 @@ const TopBar = () => {
           </Badge>
         </div>
         <div className="flex items-center gap-3">
-          <a href={settings?.facebook_url || "#"} className="text-primary-foreground/70 hover:text-primary transition-colors"><Facebook className="h-4 w-4" /></a>
-          <a href={settings?.instagram_url || "#"} className="text-primary-foreground/70 hover:text-primary transition-colors"><Instagram className="h-4 w-4" /></a>
+          <a href={settings?.facebook_url || "https://www.facebook.com/profile.php?id=61587090797815"} target="_blank" rel="noopener noreferrer" className="text-primary-foreground/70 hover:text-primary transition-colors"><Facebook className="h-4 w-4" /></a>
+          <a href={settings?.instagram_url || "https://www.instagram.com/odontoexcellencerecife/"} target="_blank" rel="noopener noreferrer" className="text-primary-foreground/70 hover:text-primary transition-colors"><Instagram className="h-4 w-4" /></a>
         </div>
       </div>
     </div>

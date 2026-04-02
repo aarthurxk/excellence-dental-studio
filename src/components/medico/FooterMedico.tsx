@@ -28,10 +28,10 @@ const FooterMedico = () => {
               Cuidando do seu sorriso com excelência, tecnologia e atendimento humanizado.
             </p>
             <div className="flex gap-3">
-              <a href={settings?.facebook_url || "#"} className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href={settings?.facebook_url || "https://www.facebook.com/profile.php?id=61587090797815"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href={settings?.instagram_url || "#"} className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a href={settings?.instagram_url || "https://www.instagram.com/odontoexcellencerecife/"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 md:h-9 md:w-9 rounded bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Instagram className="h-4 w-4" />
               </a>
             </div>
