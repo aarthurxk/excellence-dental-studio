@@ -422,6 +422,72 @@ export type Database = {
         }
         Relationships: []
       }
+      traffic_sessions: {
+        Row: {
+          browser: string | null
+          browser_in_app: boolean | null
+          created_at: string
+          device_os: string | null
+          fbclid: string | null
+          gclid: string | null
+          id: string
+          network_type: string | null
+          referrer: string | null
+          screen_resolution: string | null
+          session_id: string
+          ttclid: string | null
+          user_language: string | null
+          user_timezone: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          browser?: string | null
+          browser_in_app?: boolean | null
+          created_at?: string
+          device_os?: string | null
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          network_type?: string | null
+          referrer?: string | null
+          screen_resolution?: string | null
+          session_id: string
+          ttclid?: string | null
+          user_language?: string | null
+          user_timezone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          browser?: string | null
+          browser_in_app?: boolean | null
+          created_at?: string
+          device_os?: string | null
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          network_type?: string | null
+          referrer?: string | null
+          screen_resolution?: string | null
+          session_id?: string
+          ttclid?: string | null
+          user_language?: string | null
+          user_timezone?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -479,11 +545,115 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_leads: {
+        Row: {
+          button_id: string
+          click_timestamp: string
+          created_at: string
+          geo_city: string | null
+          geo_state: string | null
+          id: string
+          ip_address: string | null
+          ip_isp: string | null
+          max_scroll_depth: number | null
+          session_id: string
+          time_on_site_seconds: number | null
+          user_language: string | null
+          user_timezone: string | null
+        }
+        Insert: {
+          button_id: string
+          click_timestamp?: string
+          created_at?: string
+          geo_city?: string | null
+          geo_state?: string | null
+          id?: string
+          ip_address?: string | null
+          ip_isp?: string | null
+          max_scroll_depth?: number | null
+          session_id: string
+          time_on_site_seconds?: number | null
+          user_language?: string | null
+          user_timezone?: string | null
+        }
+        Update: {
+          button_id?: string
+          click_timestamp?: string
+          created_at?: string
+          geo_city?: string | null
+          geo_state?: string | null
+          id?: string
+          ip_address?: string | null
+          ip_isp?: string | null
+          max_scroll_depth?: number | null
+          session_id?: string
+          time_on_site_seconds?: number | null
+          user_language?: string | null
+          user_timezone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      analytics_daily_comparison: {
+        Args: { _type?: string }
+        Returns: {
+          current_count: number
+          growth_percentage: number
+          previous_count: number
+        }[]
+      }
+      analytics_device_breakdown: {
+        Args: never
+        Returns: {
+          browser_in_app: boolean
+          device_os: string
+          network_type: string
+          session_count: number
+        }[]
+      }
+      analytics_leads_by_button: {
+        Args: never
+        Returns: {
+          button_id: string
+          lead_count: number
+        }[]
+      }
+      analytics_leads_by_source: {
+        Args: never
+        Returns: {
+          campaign: string
+          lead_count: number
+          source: string
+        }[]
+      }
+      analytics_monthly_comparison: {
+        Args: { _type?: string }
+        Returns: {
+          current_count: number
+          growth_percentage: number
+          previous_count: number
+        }[]
+      }
+      analytics_scroll_quality: {
+        Args: never
+        Returns: {
+          high_scroll_leads: number
+          high_scroll_pct: number
+          total_leads: number
+        }[]
+      }
+      analytics_weekly_comparison: {
+        Args: { _type?: string }
+        Returns: {
+          current_count: number
+          growth_percentage: number
+          previous_count: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
