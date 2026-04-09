@@ -1,0 +1,1 @@
+ALTER TABLE public.traffic_sessions ADD CONSTRAINT traffic_sessions_session_id_unique UNIQUE (session_id);
