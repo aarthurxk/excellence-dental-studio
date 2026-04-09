@@ -6,6 +6,7 @@ import ButtonConversion from "@/components/analytics/ButtonConversion";
 import LeadsDataGrid from "@/components/analytics/LeadsDataGrid";
 import GeoAccessChart from "@/components/analytics/GeoAccessChart";
 import SectionEngagement from "@/components/analytics/SectionEngagement";
+import DailyTrendChart from "@/components/analytics/DailyTrendChart";
 import { BarChart3 } from "lucide-react";
 
 export default function AdminAnalytics() {
@@ -24,6 +25,9 @@ export default function AdminAnalytics() {
 
       {/* KPIs */}
       <KPICards />
+
+      {/* Daily Trend */}
+      <DailyTrendChart />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
