@@ -1,9 +1,25 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingUp } from "lucide-react";
 
+const LINES = [
+  { dataKey: "Cliques WhatsApp", color: "#f59e0b" },
+  { dataKey: "Sessões", color: "#6366f1" },
+];
+
 export default function DailyTrendChart() {
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+
+  const toggle = (dataKey: string) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.has(dataKey) ? next.delete(dataKey) : next.add(dataKey);
+      return next;
+    });
+  };
+
   const { data = [] } = useQuery({
     queryKey: ["analytics_daily_trend"],
     queryFn: async () => {
@@ -23,7 +39,7 @@ export default function DailyTrendChart() {
       const bucket: Record<string, { leads: number; sessions: number }> = {};
       for (let i = 29; i >= 0; i--) {
         const d = new Date(Date.now() - i * 86400000);
-        const key = d.toISOString().slice(5, 10); // MM-DD
+        const key = d.toISOString().slice(5, 10);
         bucket[key] = { leads: 0, sessions: 0 };
       }
 
@@ -45,6 +61,29 @@ export default function DailyTrendChart() {
     },
     refetchInterval: 60_000,
   });
+
+  const renderLegend = (props: any) => {
+    const { payload } = props;
+    return (
+      <div className="flex justify-center gap-6 mt-2">
+        {payload.map((entry: any) => {
+          const isHidden = hidden.has(entry.dataKey);
+          return (
+            <button
+              key={entry.dataKey}
+              type="button"
+              onClick={() => toggle(entry.dataKey)}
+              className="flex items-center gap-1.5 text-xs cursor-pointer select-none transition-opacity"
+              style={{ opacity: isHidden ? 0.4 : 1, textDecoration: isHidden ? "line-through" : "none" }}
+            >
+              <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+              {entry.dataKey}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5">
@@ -72,9 +111,18 @@ export default function DailyTrendChart() {
                   boxShadow: "4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff",
                 }}
               />
-              <Legend />
-              <Line type="monotone" dataKey="Cliques WhatsApp" stroke="#f59e0b" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Sessões" stroke="#6366f1" strokeWidth={2} dot={false} />
+              <Legend content={renderLegend} />
+              {LINES.map((l) => (
+                <Line
+                  key={l.dataKey}
+                  type="monotone"
+                  dataKey={l.dataKey}
+                  stroke={l.color}
+                  strokeWidth={2}
+                  dot={false}
+                  hide={hidden.has(l.dataKey)}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         )}
