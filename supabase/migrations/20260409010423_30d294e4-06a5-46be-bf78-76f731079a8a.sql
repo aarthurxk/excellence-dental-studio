@@ -1,0 +1,1 @@
+ALTER TABLE public.site_settings ADD COLUMN chat_enabled boolean NOT NULL DEFAULT true;

@@ -348,6 +348,7 @@ export type Database = {
         Row: {
           about_image: string | null
           address: string
+          chat_enabled: boolean
           created_at: string
           email: string
           facebook_url: string | null
@@ -370,6 +371,7 @@ export type Database = {
         Insert: {
           about_image?: string | null
           address?: string
+          chat_enabled?: boolean
           created_at?: string
           email?: string
           facebook_url?: string | null
@@ -392,6 +394,7 @@ export type Database = {
         Update: {
           about_image?: string | null
           address?: string
+          chat_enabled?: boolean
           created_at?: string
           email?: string
           facebook_url?: string | null

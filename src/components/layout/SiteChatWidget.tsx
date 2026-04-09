@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const CHAT_STORAGE_KEY = "odonto-excellence-site-chat";
 const SESSION_STORAGE_KEY = "odonto-excellence-site-chat-session";
@@ -147,6 +148,7 @@ function getAssistantDelay() {
 }
 
 const SiteChatWidget = () => {
+  const { data: settings } = useSiteSettings();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -247,6 +249,8 @@ const SiteChatWidget = () => {
     event.preventDefault();
     await sendMessage(input);
   };
+
+  if (settings?.chat_enabled === false) return null;
 
   return (
     <>

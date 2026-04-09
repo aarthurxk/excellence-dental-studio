@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { Switch } from "@/components/ui/switch";
 
 type Settings = Tables<"site_settings">;
 
@@ -27,6 +28,7 @@ export default function AdminSettings() {
     address: "", hours_weekday: "", hours_saturday: "", whatsapp_number: "",
     whatsapp_message: "", instagram_url: "", facebook_url: "", google_maps_embed_url: "",
     hero_bg_image: "", hero_doctor_image: "", about_image: "",
+    chat_enabled: true,
   });
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function AdminSettings() {
       google_maps_embed_url: data.google_maps_embed_url ?? "",
       hero_bg_image: data.hero_bg_image ?? "", hero_doctor_image: data.hero_doctor_image ?? "",
       about_image: data.about_image ?? "",
+      chat_enabled: data.chat_enabled ?? true,
     });
   }, [data]);
 
@@ -107,6 +110,17 @@ export default function AdminSettings() {
         <fieldset className="space-y-4 border rounded-lg p-4">
           <legend className="text-sm font-semibold px-2">Mapa</legend>
           <div className="space-y-2"><Label>Google Maps Embed URL</Label><Input value={form.google_maps_embed_url} onChange={(e) => setForm({ ...form, google_maps_embed_url: e.target.value })} /></div>
+        </fieldset>
+
+        <fieldset className="space-y-4 border rounded-lg p-4">
+          <legend className="text-sm font-semibold px-2">Assistente Virtual</legend>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Vera (Chat)</Label>
+              <p className="text-xs text-muted-foreground">Ativar o botão vermelho de chat no site</p>
+            </div>
+            <Switch checked={form.chat_enabled} onCheckedChange={(checked) => setForm({ ...form, chat_enabled: checked })} />
+          </div>
         </fieldset>
 
         <Button type="submit" disabled={save.isPending}>{save.isPending ? "Salvando..." : "Salvar"}</Button>
