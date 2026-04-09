@@ -20,6 +20,7 @@ const fallback: SiteSettings = {
   facebook_url: "",
   google_maps_embed_url: "",
   google_reviews_url: "",
+  chat_enabled: true,
   hero_bg_image: "",
   hero_doctor_image: "",
   about_image: "",

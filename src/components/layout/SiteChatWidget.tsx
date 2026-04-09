@@ -147,6 +147,7 @@ function getAssistantDelay() {
 }
 
 const SiteChatWidget = () => {
+  const { data: settings } = useSiteSettings();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -247,6 +248,8 @@ const SiteChatWidget = () => {
     event.preventDefault();
     await sendMessage(input);
   };
+
+  if (settings?.chat_enabled === false) return null;
 
   return (
     <>
