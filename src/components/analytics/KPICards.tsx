@@ -24,22 +24,22 @@ function useComparison(period: Period, type: "leads" | "sessions") {
 }
 
 function GrowthBadge({ pct }: { pct: number }) {
-  if (pct === 0) return <span className="flex items-center gap-1 text-xs text-slate-400"><Minus className="h-3 w-3" /> 0%</span>;
-  if (pct > 0) return <span className="flex items-center gap-1 text-xs text-emerald-400"><TrendingUp className="h-3 w-3" /> +{pct}%</span>;
-  return <span className="flex items-center gap-1 text-xs text-red-400"><TrendingDown className="h-3 w-3" /> {pct}%</span>;
+  if (pct === 0) return <span className="flex items-center gap-1 text-xs text-gray-400"><Minus className="h-3 w-3" /> 0%</span>;
+  if (pct > 0) return <span className="flex items-center gap-1 text-xs text-emerald-600"><TrendingUp className="h-3 w-3" /> +{pct}%</span>;
+  return <span className="flex items-center gap-1 text-xs text-red-500"><TrendingDown className="h-3 w-3" /> {pct}%</span>;
 }
 
 function KPICard({ title, icon: Icon, period, type }: { title: string; icon: any; period: Period; type: "leads" | "sessions" }) {
   const { data } = useComparison(period, type);
   return (
-    <div className="rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 p-5 space-y-3">
+    <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-400 uppercase tracking-wider">{title}</span>
-        <Icon className="h-4 w-4 text-slate-500" />
+        <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">{title}</span>
+        <Icon className="h-4 w-4 text-gray-400" />
       </div>
-      <p className="text-3xl font-bold text-white">{data?.current_count ?? "—"}</p>
+      <p className="text-3xl font-bold text-gray-800">{data?.current_count ?? "—"}</p>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500">vs {data?.previous_count ?? "—"} ({PERIOD_LABELS[period]})</span>
+        <span className="text-xs text-gray-400">vs {data?.previous_count ?? "—"} ({PERIOD_LABELS[period]})</span>
         {data && <GrowthBadge pct={data.growth_percentage} />}
       </div>
     </div>

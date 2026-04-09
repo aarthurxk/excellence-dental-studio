@@ -25,19 +25,19 @@ export default function ButtonConversion() {
   });
 
   return (
-    <div className="rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 p-5">
-      <h3 className="text-sm text-slate-400 uppercase tracking-wider mb-4">Conversão por Botão (30d)</h3>
+    <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5">
+      <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">Conversão por Botão (30d)</h3>
       <div className="h-64">
         {data.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-slate-500 text-sm">Sem dados ainda</div>
+          <div className="h-full flex items-center justify-center text-gray-400 text-sm">Sem dados ainda</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8, color: "#e2e8f0" }} />
-              <Bar dataKey="leads" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} />
+              <YAxis stroke="#9ca3af" fontSize={12} />
+              <Tooltip contentStyle={{ backgroundColor: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 12, color: "#374151", boxShadow: "4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff" }} />
+              <Bar dataKey="leads" fill="#7c3aed" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
