@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -97,7 +98,7 @@ const BeforeAfter = () => {
 
         <div className="text-center mt-10">
           <Button size="lg" className="font-bold px-8" style={{ backgroundColor: "#25D366" }} asChild>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-antes-depois" onClick={(e) => { e.preventDefault(); trackWhatsAppClick("btn-antes-depois").finally(() => window.open(whatsappUrl, "_blank", "noopener,noreferrer")); }}>
               <MessageCircle className="h-5 w-5 mr-2" /> Quero esse resultado!
             </a>
           </Button>

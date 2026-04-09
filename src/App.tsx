@@ -36,6 +36,8 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import SiteChatWidget from "./components/layout/SiteChatWidget";
 import WhatsAppButton from "./components/layout/WhatsAppButton";
+import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,7 @@ function AppRoutes() {
         <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
         <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
         <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
+        <Route path="/admin/analytics" element={<AdminPage><AdminAnalytics /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -93,6 +96,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AppRoutes />
+          <AnalyticsProvider />
           <SiteChatWidget />
           <WhatsAppButton />
         </BrowserRouter>

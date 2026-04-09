@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Star, Users } from "lucide-react";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
 
 const HeroSection = () => {
   const { data: settings } = useSiteSettings();
@@ -41,7 +42,7 @@ const HeroSection = () => {
               className="flex flex-col sm:flex-row gap-3"
             >
               <Button size="lg" className="rounded font-semibold text-sm px-6 md:px-8 py-5 md:py-6 w-full sm:w-auto" asChild>
-                <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
+                <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer" data-track-id="btn-hero" onClick={(e) => { e.preventDefault(); const u = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message); trackWhatsAppClick("btn-hero").finally(() => window.open(u, "_blank", "noopener,noreferrer")); }}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   AGENDAR AGORA
                 </a>
