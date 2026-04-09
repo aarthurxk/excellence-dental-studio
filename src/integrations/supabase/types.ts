@@ -693,6 +693,7 @@ export type Database = {
           previous_count: number
         }[]
       }
+      can_view_analytics: { Args: { _user_id: string }; Returns: boolean }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -714,6 +715,7 @@ export type Database = {
         | "gerente"
         | "dentista"
         | "recepcionista"
+        | "agencia"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -848,6 +850,7 @@ export const Constants = {
         "gerente",
         "dentista",
         "recepcionista",
+        "agencia",
       ],
     },
   },
