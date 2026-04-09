@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Missing authorization");
 
     const supabaseUser = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -20,10 +20,12 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user: caller } } = await supabaseUser.auth.getUser();
-    if (!caller) throw new Error("Not authenticated");
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
 
-    const { data: isAdmin } = await supabaseUser.rpc("is_admin", { _user_id: caller.id });
+    const userId = claimsData.claims.sub;
+    const { data: isAdmin } = await supabaseUser.rpc("is_admin", { _user_id: userId });
     if (!isAdmin) throw new Error("Not authorized");
 
     const { user_id, password } = await req.json();
