@@ -622,6 +622,13 @@ export type Database = {
           lead_count: number
         }[]
       }
+      analytics_leads_by_geo: {
+        Args: { _group_by?: string }
+        Returns: {
+          lead_count: number
+          location_name: string
+        }[]
+      }
       analytics_leads_by_source: {
         Args: never
         Returns: {
