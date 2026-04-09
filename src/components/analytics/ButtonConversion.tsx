@@ -18,7 +18,7 @@ export default function ButtonConversion() {
       if (error) throw error;
       return (data as any[]).map((d: any) => ({
         name: BUTTON_LABELS[d.button_id] || d.button_id,
-        leads: Number(d.lead_count),
+        cliques: Number(d.lead_count),
       }));
     },
     refetchInterval: 30_000,
@@ -26,7 +26,7 @@ export default function ButtonConversion() {
 
   return (
     <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5">
-      <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">Conversão por Botão (30d)</h3>
+      <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">Cliques por Botão (30d)</h3>
       <div className="h-64">
         {data.length === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-400 text-sm">Sem dados ainda</div>
@@ -37,7 +37,7 @@ export default function ButtonConversion() {
               <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} />
               <YAxis stroke="#9ca3af" fontSize={12} />
               <Tooltip contentStyle={{ backgroundColor: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 12, color: "#374151", boxShadow: "4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff" }} />
-              <Bar dataKey="leads" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="cliques" fill="#7c3aed" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

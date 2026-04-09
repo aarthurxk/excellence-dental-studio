@@ -49,10 +49,10 @@ function KPICard({ title, icon: Icon, period, type }: { title: string; icon: any
 export default function KPICards() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <KPICard title="Leads Hoje" icon={MousePointerClick} period="daily" type="leads" />
+      <KPICard title="Cliques WhatsApp Hoje" icon={MousePointerClick} period="daily" type="leads" />
       <KPICard title="Sessões Hoje" icon={Users} period="daily" type="sessions" />
-      <KPICard title="Leads Semana" icon={MousePointerClick} period="weekly" type="leads" />
-      <KPICard title="Leads Mês" icon={MousePointerClick} period="monthly" type="leads" />
+      <KPICard title="Cliques WhatsApp Semana" icon={MousePointerClick} period="weekly" type="leads" />
+      <KPICard title="Cliques WhatsApp Mês" icon={MousePointerClick} period="monthly" type="leads" />
     </div>
   );
 }
