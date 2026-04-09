@@ -284,6 +284,30 @@ export type Database = {
         }
         Relationships: []
       }
+      section_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          section_name: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          section_name: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          section_name?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           active: boolean
@@ -651,6 +675,14 @@ export type Database = {
           high_scroll_leads: number
           high_scroll_pct: number
           total_leads: number
+        }[]
+      }
+      analytics_section_engagement: {
+        Args: never
+        Returns: {
+          clicks: number
+          section_name: string
+          views: number
         }[]
       }
       analytics_weekly_comparison: {
