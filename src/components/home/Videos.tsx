@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { trackSectionClick } from "@/hooks/useSectionTracking";
 
 const Videos = () => {
   const { data: videos, isLoading } = useQuery({
