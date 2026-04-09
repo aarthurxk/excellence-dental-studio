@@ -1,77 +1,101 @@
 
 
-## Redesign do Dashboard Analytics — Neumorfismo Clean + Geo Chart + Paginação
+## Tracking de Engajamento por Seção + Dashboard
 
-### Visão Geral
+### O que será feito
 
-Trocar o visual escuro com glassmorphism para um estilo **neumórfico clean** (fundo claro acinzentado, sombras internas/externas suaves) alinhado com o resto do admin. Adicionar um **gráfico de acessos por localização** com filtro por granularidade geográfica, e implementar **paginação** na tabela de leads (últimos 30, 10 por página).
-
----
-
-### Alterações por Arquivo
-
-**1. `src/pages/admin/AdminAnalytics.tsx`** — Página principal
-- Remover fundo `bg-slate-950` e `-m-6`
-- Usar fundo claro (`bg-gray-100`) com tipografia escura
-- Adicionar o novo componente `<GeoAccessChart />` entre os gráficos existentes
-- Layout mais completo: seção de resumo textual no topo, grid de KPIs, gráficos em 2 colunas, geo chart em largura total, tabela paginada
-
-**2. `src/components/analytics/KPICards.tsx`** — Cards KPI
-- Estilo neumórfico: `bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] rounded-2xl`
-- Texto escuro (`text-gray-800`, `text-gray-500`)
-- Badges de crescimento mantêm cores (verde/vermelho) mas com fundo neumórfico
-
-**3. `src/components/analytics/ChannelAttribution.tsx`** — Gráfico de barras
-- Mesmo estilo neumórfico nos cards
-- Tooltip com fundo claro
-- Cores de barras ajustadas para harmonizar com tema claro
-
-**4. `src/components/analytics/ButtonConversion.tsx`** — Gráfico de botões
-- Mesma refatoração de estilo neumórfico
-
-**5. `src/components/analytics/LeadQuality.tsx`** — Pie chart qualidade
-- Estilo neumórfico, cores mais vibrantes para contraste em fundo claro
-
-**6. `src/components/analytics/DeviceBreakdown.tsx`** — Pie chart dispositivos
-- Estilo neumórfico
-
-**7. `src/components/analytics/LeadsDataGrid.tsx`** — Tabela de leads
-- Estilo neumórfico
-- Limitar query a `30` registros (em vez de 200)
-- Adicionar state de paginação (`page`, 10 por página)
-- Renderizar controles de paginação (Anterior/Próximo) usando componentes de `pagination.tsx`
-- Exportar CSV dos 30 leads carregados
-
-**8. `src/components/analytics/GeoAccessChart.tsx`** — **NOVO**
-- Componente com um `<Select>` para escolher granularidade: Cidade, Estado, País (futuramente Bairro quando disponível)
-- Query que agrupa `whatsapp_leads` por `geo_city`, `geo_state` conforme filtro selecionado
-- Exibe um `BarChart` horizontal (Recharts) mostrando os top 10 locais por volume de leads
-- Estilo neumórfico consistente
-
-**9. Migration SQL** — Nova RPC `analytics_leads_by_geo`
-- Função que recebe parâmetro `_group_by` (`city`, `state`) e retorna `location_name` + `lead_count`
-- Agrupa pela coluna correspondente em `whatsapp_leads` nos últimos 30 dias
-- `SECURITY DEFINER` com acesso restrito
+Adicionar rastreamento invisível de **visualizações por seção** (Intersection Observer) e **cliques em links/botões de navegação** (Tratamentos, Vídeos, Eventos, etc.), armazenando tudo no banco. Exibir esses dados no dashboard de Analytics com um novo gráfico.
 
 ---
 
-### Detalhes Técnicos
+### 1. Nova tabela: `section_events`
 
-**Estilo Neumórfico (padrão aplicado a todos os cards):**
-```
-bg-gray-100 rounded-2xl p-5
-shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff]
-```
+Migration SQL para registrar eventos de seção:
 
-**Paginação da tabela:**
-- `useState` para `currentPage`
-- Slice do array: `leads.slice((page-1)*10, page*10)`
-- Total de páginas: `Math.ceil(leads.length / 10)` (máximo 3 páginas para 30 leads)
-
-**RPC `analytics_leads_by_geo`:**
 ```sql
-CREATE FUNCTION analytics_leads_by_geo(_group_by text DEFAULT 'city')
-RETURNS TABLE(location_name text, lead_count bigint)
--- agrupa por geo_city ou geo_state dos últimos 30 dias
+CREATE TABLE public.section_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id text NOT NULL,
+  event_type text NOT NULL,        -- 'view' ou 'click'
+  section_name text NOT NULL,      -- 'tratamentos', 'videos', 'eventos', etc.
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.section_events ENABLE ROW LEVEL SECURITY;
+
+-- Anon pode inserir (tracking público)
+CREATE POLICY "Anon can insert section events"
+  ON public.section_events FOR INSERT TO anon
+  WITH CHECK (true);
+
+-- Admins podem ler
+CREATE POLICY "Admins can read section events"
+  ON public.section_events FOR SELECT TO authenticated
+  USING (is_admin(auth.uid()));
+
+-- Índice para queries do dashboard
+CREATE INDEX idx_section_events_created ON public.section_events(created_at DESC);
+CREATE INDEX idx_section_events_section ON public.section_events(section_name, event_type);
 ```
+
+### 2. Nova RPC: `analytics_section_engagement`
+
+Função SQL que retorna contagem de views e clicks por seção nos últimos 30 dias:
+
+```sql
+CREATE FUNCTION analytics_section_engagement()
+RETURNS TABLE(section_name text, views bigint, clicks bigint)
+-- Agrupa section_events por section_name, pivotando event_type
+```
+
+### 3. Novo hook: `src/hooks/useSectionTracking.ts`
+
+- Usa **Intersection Observer** para detectar quando cada seção entra no viewport (threshold 50%)
+- Ao entrar pela primeira vez na sessão, faz INSERT direto na tabela `section_events` com `event_type = 'view'`
+- Exporta função `trackSectionClick(sectionName)` para registrar cliques
+- Debounce por sessão — cada seção só registra 1 view por sessão
+
+### 4. Instrumentação das seções da Home
+
+Adicionar `data-section="nome"` e o observer nas seções do `Index.tsx`:
+
+| Seção | section_name |
+|-------|-------------|
+| HeroSection | `hero` |
+| AboutSection | `sobre` |
+| DepartmentsSection | `tratamentos` |
+| DoctorsSection | `equipe` |
+| TestimonialsSection | `depoimentos` |
+| BeforeAfter | `antes-depois` |
+| Videos | `videos` |
+| Events | `eventos` |
+| FAQ | `faq` |
+| Location | `localizacao` |
+
+Para **cliques**, interceptar os botões "Ver todos os tratamentos", "Ver todos os vídeos", "Ver eventos" chamando `trackSectionClick()` antes da navegação.
+
+### 5. Novo componente: `src/components/analytics/SectionEngagement.tsx`
+
+- Gráfico de barras (Recharts) mostrando views e clicks por seção lado a lado
+- Estilo neumórfico consistente com o dashboard atual
+- Dados vindos da RPC `analytics_section_engagement`
+
+### 6. Atualizar `AdminAnalytics.tsx`
+
+- Adicionar `<SectionEngagement />` no layout do dashboard, abaixo do GeoAccessChart
+
+---
+
+### Arquivos criados
+- `src/hooks/useSectionTracking.ts`
+- `src/components/analytics/SectionEngagement.tsx`
+- Migration SQL (tabela + RPC)
+
+### Arquivos modificados
+- `src/components/analytics/AnalyticsProvider.tsx` — ativar o hook de seção
+- `src/pages/Index.tsx` — wrapper com refs para observer
+- `src/components/home/ServicesPreview.tsx` — track click no "Ver todos"
+- `src/components/home/Videos.tsx` — track click
+- `src/components/home/Events.tsx` — track click
+- `src/pages/admin/AdminAnalytics.tsx` — adicionar SectionEngagement
 
