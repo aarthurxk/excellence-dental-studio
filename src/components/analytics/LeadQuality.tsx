@@ -25,7 +25,7 @@ export default function LeadQuality() {
 
   return (
     <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5">
-      <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">Qualidade de Lead (30d)</h3>
+      <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">Engajamento dos Cliques (30d)</h3>
       <div className="h-56">
         {!data || data.total_leads === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-400 text-sm">Sem dados ainda</div>
@@ -42,7 +42,7 @@ export default function LeadQuality() {
         )}
       </div>
       {data && data.total_leads > 0 && (
-        <p className="text-center text-xs text-gray-500 mt-2">{data.high_scroll_pct}% dos leads exploraram a página a fundo</p>
+        <p className="text-center text-xs text-gray-500 mt-2">{data.high_scroll_pct}% dos cliques vieram de visitantes que exploraram a página a fundo</p>
       )}
     </div>
   );

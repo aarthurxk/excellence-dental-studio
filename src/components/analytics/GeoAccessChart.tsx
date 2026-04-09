@@ -17,7 +17,7 @@ export default function GeoAccessChart() {
       if (error) throw error;
       return (data as any[]).map((d: any) => ({
         name: d.location_name,
-        leads: Number(d.lead_count),
+        cliques: Number(d.lead_count),
       }));
     },
     refetchInterval: 30_000,
@@ -50,7 +50,7 @@ export default function GeoAccessChart() {
               <XAxis type="number" stroke="#9ca3af" fontSize={12} />
               <YAxis type="category" dataKey="name" stroke="#9ca3af" fontSize={11} width={120} />
               <Tooltip contentStyle={{ backgroundColor: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 12, color: "#374151", boxShadow: "4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff" }} />
-              <Bar dataKey="leads" fill="#0d9488" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="cliques" fill="#0d9488" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

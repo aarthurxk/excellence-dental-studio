@@ -84,7 +84,7 @@ export default function LeadsDataGrid() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `leads_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `cliques_whatsapp_${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -92,7 +92,7 @@ export default function LeadsDataGrid() {
   return (
     <div className="rounded-2xl bg-gray-100 shadow-[6px_6px_12px_#d1d1d1,-6px_-6px_12px_#ffffff] p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium">Últimos 30 Leads</h3>
+        <h3 className="text-sm text-gray-500 uppercase tracking-wider font-medium">Últimos 30 Cliques WhatsApp</h3>
         <Button size="sm" variant="outline" onClick={exportCSV} className="text-xs border-gray-300 text-gray-600 hover:bg-gray-200 shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] bg-gray-100">
           <Download className="h-3 w-3 mr-1" /> CSV
         </Button>
@@ -113,7 +113,7 @@ export default function LeadsDataGrid() {
           </TableHeader>
           <TableBody>
             {paginatedLeads.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-gray-400 py-8">Nenhum lead registrado ainda</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-gray-400 py-8">Nenhum clique registrado ainda</TableCell></TableRow>
             ) : (
               paginatedLeads.map((l) => (
                 <TableRow key={l.id} className="border-gray-200 hover:bg-gray-200/50">

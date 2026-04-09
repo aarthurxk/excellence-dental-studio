@@ -39,7 +39,7 @@ export default function DailyTrendChart() {
 
       return Object.entries(bucket).map(([date, v]) => ({
         date,
-        Leads: v.leads,
+        "Cliques WhatsApp": v.leads,
         Sessões: v.sessions,
       }));
     },
@@ -73,7 +73,7 @@ export default function DailyTrendChart() {
                 }}
               />
               <Legend />
-              <Line type="monotone" dataKey="Leads" stroke="#f59e0b" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="Cliques WhatsApp" stroke="#f59e0b" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="Sessões" stroke="#6366f1" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
