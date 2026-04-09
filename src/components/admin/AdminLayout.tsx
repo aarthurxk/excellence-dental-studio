@@ -20,6 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
   gerente: "Gerente",
   dentista: "Dentista",
   recepcionista: "Recepcionista",
+  agencia: "Agência",
   user: "Usuário",
 };
 
@@ -48,9 +49,13 @@ function AdminSidebar() {
   const { data: unreadCount = 0 } = useUnreadMessages();
 
   const visibleItems = navItems.filter((item) => {
-    if (!item.module) return true; // Dashboard always visible
+    // Agencia can only see Analytics
+    if (role === "agencia") {
+      return item.url === "/admin/analytics" || item.url === "/admin";
+    }
+    if (!item.module) return true;
     const perm = allPerms[item.module];
-    return perm?.can_view !== false; // Show if can_view is true or undefined (loading)
+    return perm?.can_view !== false;
   });
 
   return (

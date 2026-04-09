@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plus, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import FormDialog from "@/components/admin/FormDialog";
 import { useModulePermission } from "@/hooks/usePermissions";
 import { Constants } from "@/integrations/supabase/types";
@@ -22,6 +22,7 @@ const ROLE_LABELS: Record<string, string> = {
   gerente: "Gerente",
   dentista: "Dentista",
   recepcionista: "Recepcionista",
+  agencia: "Agência",
   user: "Usuário",
 };
 
@@ -42,9 +43,18 @@ export default function AdminUsers() {
     },
   });
 
+  // Fetch email map from edge function
+  const { data: emailMap = {} } = useQuery({
+    queryKey: ["admin_user_emails"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("list-user-emails");
+      if (error) throw error;
+      return (data?.emails ?? {}) as Record<string, string>;
+    },
+  });
+
   const createUser = useMutation({
     mutationFn: async () => {
-      // Use edge function to create user + assign role
       const { data, error } = await supabase.functions.invoke("create-user", {
         body: { email: newEmail, password: newPassword, role: newRole },
       });
@@ -53,6 +63,7 @@ export default function AdminUsers() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin_user_roles"] });
+      qc.invalidateQueries({ queryKey: ["admin_user_emails"] });
       toast.success("Usuário criado!");
       setDialogOpen(false);
       setNewEmail("");
@@ -102,7 +113,7 @@ export default function AdminUsers() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User ID</TableHead>
+            <TableHead>E-mail</TableHead>
             <TableHead>Papel</TableHead>
             <TableHead>Criado em</TableHead>
             {perm.can_delete && <TableHead className="w-20">Ações</TableHead>}
@@ -111,7 +122,7 @@ export default function AdminUsers() {
         <TableBody>
           {roles.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}...</TableCell>
+              <TableCell className="text-sm">{emailMap[r.user_id] ?? r.user_id.slice(0, 8) + "..."}</TableCell>
               <TableCell>
                 {perm.can_edit ? (
                   <Select value={r.role} onValueChange={(v) => updateRole.mutate({ id: r.id, role: v as AppRole })}>
