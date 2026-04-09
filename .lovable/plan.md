@@ -1,22 +1,22 @@
 
 
-## Plano: Toggle para ativar/desativar o chatbot Vera no painel admin
+## Plano: Legenda clicável para mostrar/ocultar linhas no gráfico de tendência
 
 ### O que será feito
-Adicionar um campo `chat_enabled` na tabela `site_settings` e um switch no painel de Configurações (`AdminSettings`) para ligar/desligar o botão vermelho da assistente Vera. Quando desativado, o widget não será renderizado no site.
+Ao clicar em "Cliques WhatsApp" ou "Sessões" na legenda, a respectiva linha some do gráfico. Clicando de novo, ela reaparece.
 
 ### Etapas
 
-1. **Migração SQL** — Adicionar coluna `chat_enabled boolean default true` à tabela `site_settings`.
+1. **Adicionar estado local** — Um `useState` com um `Set` de dataKeys ocultos (ex: `hiddenLines`).
 
-2. **Atualizar `useSiteSettings.ts`** — Incluir `chat_enabled: true` no fallback.
+2. **Handler de clique na legenda** — Usar `onClick` do `<Legend>` para alternar a key clicada no set.
 
-3. **Atualizar `AdminSettings.tsx`** — Adicionar um Switch com label "Assistente Vera (Chat)" dentro de um novo fieldset, ligado ao campo `chat_enabled` do formulário.
+3. **Ocultar linhas** — Passar `hide={true}` nas `<Line>` cujo `dataKey` estiver no set.
 
-4. **Atualizar `SiteChatWidget.tsx`** — Consumir `useSiteSettings()` e retornar `null` quando `chat_enabled` for `false`.
+4. **Estilo visual na legenda** — Renderizar legenda customizada: item oculto fica com opacidade reduzida e texto riscado (`line-through`), dando feedback visual.
 
 ### Detalhes técnicos
-- A coluna terá `DEFAULT true` para não quebrar registros existentes.
-- O componente `Switch` de `@/components/ui/switch` já existe no projeto.
-- O `SiteChatWidget` já é renderizado no `App.tsx` de forma global; basta condicionar internamente.
+- Recharts `<Legend>` aceita `onClick` com payload contendo `dataKey`.
+- `<Line hide={true}>` remove a linha do gráfico sem afetar os dados.
+- Legenda customizada via `content` prop do `<Legend>`.
 
