@@ -72,7 +72,7 @@ const Videos = () => {
               ))}
         </div>
         <div className="text-center mt-10">
-          <Button asChild variant="outline" size="lg" className="font-semibold">
+          <Button asChild variant="outline" size="lg" className="font-semibold" onClick={() => trackSectionClick("videos")}>
             <Link to="/videos">
               Ver todos os vídeos <ArrowRight className="h-4 w-4 ml-2" />
             </Link>

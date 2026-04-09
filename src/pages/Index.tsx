@@ -22,19 +22,19 @@ const Index = () => {
         description="Clínica odontológica no Ipsep, Recife. Implantes, clareamento, ortodontia e mais. Agende sua avaliação!"
         path="/"
       />
-      <HeroSection />
+      <div data-section="hero"><HeroSection /></div>
       <InfoStrip />
       <HighlightBanner />
-      <AboutSection />
-      <DepartmentsSection />
-      <DoctorsSection />
-      <TestimonialsSection />
-      <BeforeAfter />
-      <Videos />
-      <Events />
+      <div data-section="sobre"><AboutSection /></div>
+      <div data-section="tratamentos"><DepartmentsSection /></div>
+      <div data-section="equipe"><DoctorsSection /></div>
+      <div data-section="depoimentos"><TestimonialsSection /></div>
+      <div data-section="antes-depois"><BeforeAfter /></div>
+      <div data-section="videos"><Videos /></div>
+      <div data-section="eventos"><Events /></div>
       <CTABanner />
-      <FAQ />
-      <Location />
+      <div data-section="faq"><FAQ /></div>
+      <div data-section="localizacao"><Location /></div>
     </Layout>
   );
 };
