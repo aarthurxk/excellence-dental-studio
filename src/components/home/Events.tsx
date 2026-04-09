@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { trackSectionClick } from "@/hooks/useSectionTracking";
 
 const Events = () => {
   const { data: events, isLoading } = useQuery({
@@ -76,7 +77,7 @@ const Events = () => {
               ))}
         </div>
         <div className="text-center mt-10">
-          <Button asChild variant="outline" size="lg" className="font-semibold">
+          <Button asChild variant="outline" size="lg" className="font-semibold" onClick={() => trackSectionClick("eventos")}>
             <Link to="/eventos">Ver todos os eventos</Link>
           </Button>
         </div>

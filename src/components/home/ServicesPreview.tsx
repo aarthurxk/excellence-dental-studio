@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getIconComponent } from "@/lib/icon-map";
 import { Skeleton } from "@/components/ui/skeleton";
+import { trackSectionClick } from "@/hooks/useSectionTracking";
 
 const ServicesPreview = () => {
   const { data: services, isLoading } = useQuery({
@@ -63,7 +64,7 @@ const ServicesPreview = () => {
               })}
         </div>
         <div className="text-center mt-10">
-          <Button asChild variant="outline" size="lg" className="font-semibold">
+          <Button asChild variant="outline" size="lg" className="font-semibold" onClick={() => trackSectionClick("tratamentos")}>
             <Link to="/tratamentos">
               Ver todos os tratamentos
               <ArrowRight className="h-4 w-4 ml-2" />
