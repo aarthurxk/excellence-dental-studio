@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
-import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Hero = () => {
@@ -58,8 +58,7 @@ const Hero = () => {
                 data-track-id="btn-hero"
                 onClick={(e) => {
                   e.preventDefault();
-                  const u = getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message);
-                  trackWhatsAppClick("btn-hero").finally(() => window.open(u, "_blank", "noopener,noreferrer"));
+                  openTrackedWhatsApp("btn-hero", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message));
                 }}
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
