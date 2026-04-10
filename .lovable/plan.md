@@ -1,22 +1,31 @@
 
 
-## Plano: Legenda clicável para mostrar/ocultar linhas no gráfico de tendência
+## Plano de Correção: Analytics de Rastreamento
 
-### O que será feito
-Ao clicar em "Cliques WhatsApp" ou "Sessões" na legenda, a respectiva linha some do gráfico. Clicando de novo, ela reaparece.
+### Problema
+Três bugs fazem o analytics subestimar drasticamente o tráfego e perder atribuição do Google Ads.
 
-### Etapas
+### Correções
 
-1. **Adicionar estado local** — Um `useState` com um `Set` de dataKeys ocultos (ex: `hiddenLines`).
+**1. Rastrear o botão Hero do WhatsApp**
+- Editar `src/components/home/Hero.tsx` para usar `trackWhatsAppClick("btn-hero")` com o mesmo padrão dos outros botões (preventDefault + finally → window.open).
 
-2. **Handler de clique na legenda** — Usar `onClick` do `<Legend>` para alternar a key clicada no set.
+**2. Corrigir persistência de UTMs — sempre atualizar com novos parâmetros**
+- Editar `src/hooks/useAnalytics.ts`: quando a URL contém UTMs ou click IDs (`gclid`, `fbclid`, etc.), sobrescrever os dados armazenados com os novos valores, gerando um novo `session_id`. Isso garante que cada visita paga é atribuída corretamente.
 
-3. **Ocultar linhas** — Passar `hide={true}` nas `<Line>` cujo `dataKey` estiver no set.
-
-4. **Estilo visual na legenda** — Renderizar legenda customizada: item oculto fica com opacidade reduzida e texto riscado (`line-through`), dando feedback visual.
+**3. Rastrear sessões no carregamento da página (não só no clique do WhatsApp)**
+- Criar um novo edge function `track-session` que recebe apenas os dados de sessão e faz upsert na tabela `traffic_sessions`.
+- Chamar esse edge function no `useAnalytics` (no `useEffect` de inicialização), com `keepalive: true` e timeout de 500ms para não impactar performance.
+- Isso separa "Sessões" (visitas ao site) de "Cliques WhatsApp" (conversões), dando uma visão real do funil.
 
 ### Detalhes técnicos
-- Recharts `<Legend>` aceita `onClick` com payload contendo `dataKey`.
-- `<Line hide={true}>` remove a linha do gráfico sem afetar os dados.
-- Legenda customizada via `content` prop do `<Legend>`.
+- O edge function `track-session` será uma versão simplificada do `track-lead`, sem a parte de inserção em `whatsapp_leads`.
+- A lógica de "session nova vs existente" usará um flag em `sessionStorage` (que expira ao fechar a aba) para evitar múltiplos registros na mesma visita.
+- A tabela `traffic_sessions` já tem RLS de insert para `anon` e unique constraint em `session_id` com `ignoreDuplicates`, então não precisa de migração.
+- O `DailyTrendChart` e demais componentes já consomem `traffic_sessions` separadamente — após a correção, os números passarão a divergir corretamente (sessões > cliques).
+
+### Arquivos afetados
+- `src/components/home/Hero.tsx` — adicionar tracking ao botão
+- `src/hooks/useAnalytics.ts` — atualizar UTMs em visitas subsequentes + disparar track-session
+- `supabase/functions/track-session/index.ts` — novo edge function (cópia simplificada do track-lead)
 
