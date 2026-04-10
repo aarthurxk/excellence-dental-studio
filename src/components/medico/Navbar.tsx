@@ -4,6 +4,7 @@ import { ChevronDown, Menu, Home, Info, Stethoscope, Users, Video, Mail, Phone, 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getWhatsAppUrl, useSiteSettings } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 import logo from "@/assets/logo-recife.png";
 
 const navItems = [
@@ -59,7 +60,7 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2">
           <Button asChild className="rounded font-medium text-xs md:text-sm px-4 md:px-6 h-9 md:h-10">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-navbar" onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-navbar", whatsappUrl); }}>
               AGENDAR
             </a>
           </Button>
@@ -121,6 +122,8 @@ const Navbar = () => {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
+              data-track-id="btn-navbar-mobile"
+              onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-navbar-mobile", whatsappUrl); }}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-[#25D366] text-white font-semibold text-sm hover:bg-[#22c55e] transition-colors min-h-[44px]"
             >
               <MessageCircle className="h-4 w-4" />
