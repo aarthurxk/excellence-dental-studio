@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
+import { getDeviceInfo } from "@/hooks/useDeviceInfo";
 
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
 const CLICK_IDS = ["gclid", "fbclid", "ttclid"] as const;
 const STORAGE_KEY = "oe_analytics";
 const COOKIE_NAME = "oe_analytics";
 const SESSION_KEY = "oe_session_id";
+const SESSION_TRACKED_KEY = "oe_session_tracked";
 const COOKIE_DAYS = 90;
 
 function generateSessionId(): string {
@@ -35,18 +37,28 @@ export interface AnalyticsData {
   entry_timestamp: number;
 }
 
+/** Check if the current URL has UTM or click-ID params */
+function urlHasTrackingParams(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return [...UTM_KEYS, ...CLICK_IDS].some((k) => params.has(k));
+}
+
 function getOrCreateSession(): AnalyticsData {
-  // Try localStorage first, then cookie
-  const stored = localStorage.getItem(STORAGE_KEY) || getCookie(COOKIE_NAME);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch { /* rebuild */ }
+  const params = new URLSearchParams(window.location.search);
+  const hasNewParams = urlHasTrackingParams();
+
+  // If new tracking params arrive, always create a fresh session
+  if (!hasNewParams) {
+    const stored = localStorage.getItem(STORAGE_KEY) || getCookie(COOKIE_NAME);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch { /* rebuild */ }
+    }
   }
 
-  const params = new URLSearchParams(window.location.search);
   const data: AnalyticsData = {
-    session_id: sessionStorage.getItem(SESSION_KEY) || generateSessionId(),
+    session_id: hasNewParams ? generateSessionId() : (sessionStorage.getItem(SESSION_KEY) || generateSessionId()),
     referrer: document.referrer || "",
     entry_timestamp: Date.now(),
   };
@@ -67,6 +79,11 @@ function getOrCreateSession(): AnalyticsData {
   setCookie(COOKIE_NAME, json, COOKIE_DAYS);
   sessionStorage.setItem(SESSION_KEY, data.session_id);
 
+  // Reset tracked flag so a new session record is sent
+  if (hasNewParams) {
+    sessionStorage.removeItem(SESSION_TRACKED_KEY);
+  }
+
   return data;
 }
 
@@ -81,9 +98,56 @@ export function getTimeOnSite(): number {
   return Math.round((Date.now() - data.entry_timestamp) / 1000);
 }
 
+/** Fire-and-forget: send session to track-session edge function */
+function trackSessionOnServer(data: AnalyticsData) {
+  // Only track once per browser tab
+  if (sessionStorage.getItem(SESSION_TRACKED_KEY)) return;
+  sessionStorage.setItem(SESSION_TRACKED_KEY, "1");
+
+  try {
+    const device = getDeviceInfo();
+
+    const payload = {
+      session_id: data.session_id,
+      referrer: data.referrer,
+      utm_source: data.utm_source || null,
+      utm_medium: data.utm_medium || null,
+      utm_campaign: data.utm_campaign || null,
+      utm_content: data.utm_content || null,
+      utm_term: data.utm_term || null,
+      gclid: data.gclid || null,
+      fbclid: data.fbclid || null,
+      ttclid: data.ttclid || null,
+      device_os: device.device_os,
+      browser: device.browser,
+      browser_in_app: device.browser_in_app,
+      screen_resolution: device.screen_resolution,
+      network_type: device.network_type,
+      user_timezone: device.user_timezone,
+      user_language: device.user_language,
+    };
+
+    const projectId = (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID;
+    if (!projectId) return;
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 500);
+
+    fetch(`https://${projectId}.supabase.co/functions/v1/track-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // never block
+  }
+}
+
 /**
  * Silent hook — call once at App root.
- * Captures UTMs, referrer, session ID on mount. No re-renders.
+ * Captures UTMs, referrer, session ID on mount and sends session to server.
  */
 export function useAnalytics() {
   const initialized = useRef(false);
@@ -91,6 +155,7 @@ export function useAnalytics() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
-    getOrCreateSession();
+    const data = getOrCreateSession();
+    trackSessionOnServer(data);
   }, []);
 }
