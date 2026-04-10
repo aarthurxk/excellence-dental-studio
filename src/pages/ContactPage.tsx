@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -93,6 +94,8 @@ const ContactPage = () => {
                     href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track-id="btn-contato"
+                    onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-contato", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)); }}
                   >
                     <MessageCircle className="h-5 w-5 mr-2" />
                     WhatsApp

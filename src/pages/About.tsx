@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const AboutPage = () => {
   const { data: settings } = useSiteSettings();
@@ -75,6 +76,8 @@ const AboutPage = () => {
                 href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", "Olá! Gostaria de saber mais sobre a clínica.")}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-track-id="btn-sobre"
+                onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-sobre", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", "Olá! Gostaria de saber mais sobre a clínica.")); }}
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Fale Conosco
