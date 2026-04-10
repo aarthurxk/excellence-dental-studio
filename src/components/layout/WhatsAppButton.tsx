@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { MessageCircle } from "lucide-react";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
-import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const WhatsAppButton = () => {
   const { data: settings } = useSiteSettings();
@@ -13,9 +13,7 @@ const WhatsAppButton = () => {
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    trackWhatsAppClick("btn-flutuante").finally(() => {
-      window.open(url, "_blank", "noopener,noreferrer");
-    });
+    openTrackedWhatsApp("btn-flutuante", url);
   };
 
   return createPortal(

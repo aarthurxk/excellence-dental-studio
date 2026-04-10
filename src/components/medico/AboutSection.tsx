@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import SectionDivider from "./SectionDivider";
 import { getWhatsAppUrl, useSiteSettings } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const AboutSection = () => {
   const { data: settings } = useSiteSettings();
@@ -104,7 +105,7 @@ const AboutSection = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button size="lg" className="rounded font-semibold px-8 w-full sm:w-auto" asChild>
-                <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer">
+                <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer" data-track-id="btn-about" onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-about", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)); }}>
                   <Calendar className="h-4 w-4 mr-2" />
                   AGENDAR
                 </a>

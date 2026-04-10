@@ -3,7 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
-import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const faqs = [
   { q: "Como faço para agendar uma avaliação?", a: "Agende sua avaliação entrando em contato pelo WhatsApp ou telefone. Nossa equipe responde rapidamente!" },
@@ -67,7 +67,7 @@ const FAQ = () => {
         >
           <p className="text-muted-foreground mb-4">Ainda tem dúvidas? Fale diretamente com a gente!</p>
           <Button size="lg" className="font-bold px-8" style={{ backgroundColor: "#25D366" }} asChild>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-faq" onClick={(e) => { e.preventDefault(); trackWhatsAppClick("btn-faq").finally(() => window.open(whatsappUrl, "_blank", "noopener,noreferrer")); }}>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-faq" onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-faq", whatsappUrl); }}>
               <MessageCircle className="h-5 w-5 mr-2" /> Tire suas dúvidas no WhatsApp
             </a>
           </Button>

@@ -7,8 +7,11 @@ import { getIconComponent } from "@/lib/icon-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import SectionDivider from "./SectionDivider";
+import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const DepartmentsSection = () => {
+  const { data: settings } = useSiteSettings();
   const { data: services, isLoading } = useQuery({
     queryKey: ["services_preview"],
     queryFn: async () => {
@@ -65,9 +68,11 @@ const DepartmentsSection = () => {
                     <h3 className="font-bold text-base md:text-lg text-foreground mb-2 md:mb-3">{service.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
                     <a
-                      href={`https://wa.me/5581991360132?text=${encodeURIComponent(`Olá! Gostaria de saber mais sobre ${service.title}.`)}`}
+                      href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", `Olá! Gostaria de saber mais sobre ${service.title}.`)}
                       target="_blank"
                       rel="noopener noreferrer"
+                      data-track-id={`btn-tratamento-${service.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={(e) => { e.preventDefault(); openTrackedWhatsApp(`btn-tratamento-card`, getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", `Olá! Gostaria de saber mais sobre ${service.title}.`)); }}
                       className="mt-3 md:mt-4 inline-flex items-center gap-1 text-primary text-sm font-semibold md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300 min-h-[44px] md:min-h-0"
                     >
                       Agendar <ArrowRight className="h-3.5 w-3.5" />
@@ -79,7 +84,7 @@ const DepartmentsSection = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 md:mt-10">
           <Button size="lg" className="rounded font-bold px-8 w-full sm:w-auto" asChild>
-            <a href="https://wa.me/5581991360132?text=Olá!+Quero+agendar+uma+avaliação." target="_blank" rel="noopener noreferrer">
+            <a href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)} target="_blank" rel="noopener noreferrer" data-track-id="btn-agendar-avaliacao" onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-agendar-avaliacao", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", settings?.whatsapp_message)); }}>
               <MessageCircle className="h-4 w-4 mr-2" /> AGENDAR AVALIAÇÃO
             </a>
           </Button>

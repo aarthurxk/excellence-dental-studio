@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getIconComponent } from "@/lib/icon-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const ServicesPage = () => {
   const { data: settings } = useSiteSettings();
@@ -70,6 +71,8 @@ const ServicesPage = () => {
                               href={getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", `Olá! Gostaria de saber mais sobre ${s.title}.`)}
                               target="_blank"
                               rel="noopener noreferrer"
+                              data-track-id="btn-servico-detalhe"
+                              onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-servico-detalhe", getWhatsAppUrl(settings?.whatsapp_number || "5581991360132", `Olá! Gostaria de saber mais sobre ${s.title}.`)); }}
                             >
                               <MessageCircle className="h-4 w-4 mr-1" />
                               Saiba mais

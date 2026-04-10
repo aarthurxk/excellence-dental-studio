@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Phone } from "lucide-react";
 import { useSiteSettings, getWhatsAppUrl } from "@/hooks/useSiteSettings";
-import { trackWhatsAppClick } from "@/lib/trackWhatsAppClick";
+import { openTrackedWhatsApp } from "@/lib/openTrackedWhatsApp";
 
 const CTABanner = () => {
   const { data: settings } = useSiteSettings();
@@ -36,7 +36,7 @@ const CTABanner = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" asChild className="bg-[#25D366] hover:bg-[#22c55e] text-white font-bold px-8 py-6 text-base shadow-hover">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-cta-banner" onClick={(e) => { e.preventDefault(); trackWhatsAppClick("btn-cta-banner").finally(() => window.open(whatsappUrl, "_blank", "noopener,noreferrer")); }}>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-track-id="btn-cta-banner" onClick={(e) => { e.preventDefault(); openTrackedWhatsApp("btn-cta-banner", whatsappUrl); }}>
               <MessageCircle className="h-5 w-5 mr-2" />
               WhatsApp
             </a>
