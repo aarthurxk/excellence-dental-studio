@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { getDeviceInfo } from "@/hooks/useDeviceInfo";
 
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
 const CLICK_IDS = ["gclid", "fbclid", "ttclid"] as const;
@@ -104,7 +105,6 @@ function trackSessionOnServer(data: AnalyticsData) {
   sessionStorage.setItem(SESSION_TRACKED_KEY, "1");
 
   try {
-    const { getDeviceInfo } = require("@/hooks/useDeviceInfo");
     const device = getDeviceInfo();
 
     const payload = {
