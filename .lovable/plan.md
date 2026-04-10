@@ -1,31 +1,76 @@
 
+Diagnóstico
 
-## Plano de Correção: Analytics de Rastreamento
+- O problema não é o Google Ads em si. O problema é que o site atual não rastreia todos os caminhos que levam ao WhatsApp.
+- Hoje o contador só sobe quando o clique passa por `trackWhatsAppClick()`.
+- Só que, no site que está no ar, vários botões/links de WhatsApp ainda abrem o `wa.me` diretamente, sem passar por essa função.
+- Resultado: o usuário pode vir do Google Ads, clicar no WhatsApp, virar atendimento real, e mesmo assim o painel não registrar esse clique.
 
-### Problema
-Três bugs fazem o analytics subestimar drasticamente o tráfego e perder atribuição do Google Ads.
+Evidências encontradas
 
-### Correções
+- O site principal usa `src/components/layout/Layout.tsx` com os componentes da pasta `src/components/medico/*`.
+- Existem pontos com tracking correto, como:
+  - `src/components/medico/HeroSection.tsx`
+  - `src/components/home/CTABanner.tsx`
+  - `src/components/home/FAQ.tsx`
+  - `src/components/home/BeforeAfter.tsx`
+  - `src/components/layout/WhatsAppButton.tsx`
+- Mas há vários pontos ativos sem tracking:
+  - `src/components/medico/Navbar.tsx` — botão AGENDAR e CTA mobile
+  - `src/components/medico/AboutSection.tsx` — botão AGENDAR
+  - `src/components/medico/DepartmentsSection.tsx` — link dos cards e botão AGENDAR AVALIAÇÃO
+  - `src/pages/ServicesPage.tsx` — botão “Saiba mais”
+  - `src/pages/ContactPage.tsx` — botão WhatsApp
+  - `src/pages/About.tsx` — botão “Fale Conosco”
+- Além disso, `DepartmentsSection.tsx` tem links hardcoded de `wa.me`, fora do padrão centralizado do projeto.
+- Há um segundo problema: mesmo nos botões já instrumentados, `trackWhatsAppClick()` usa timeout de 500ms. Em mobile ou tráfego pago isso pode abortar antes do registro concluir, então o WhatsApp abre mas o clique se perde.
 
-**1. Rastrear o botão Hero do WhatsApp**
-- Editar `src/components/home/Hero.tsx` para usar `trackWhatsAppClick("btn-hero")` com o mesmo padrão dos outros botões (preventDefault + finally → window.open).
+Conclusão objetiva
 
-**2. Corrigir persistência de UTMs — sempre atualizar com novos parâmetros**
-- Editar `src/hooks/useAnalytics.ts`: quando a URL contém UTMs ou click IDs (`gclid`, `fbclid`, etc.), sobrescrever os dados armazenados com os novos valores, gerando um novo `session_id`. Isso garante que cada visita paga é atribuída corretamente.
+- Sim, é perfeitamente possível vocês terem recebido um lead real vindo do botão do WhatsApp do site e o contador não ter subido.
+- Isso acontece porque “receber mensagem no WhatsApp” e “gravar clique em `whatsapp_leads`” hoje não são a mesma coisa no sistema.
+- O site está subcontando cliques porque a instrumentação está incompleta e frágil.
 
-**3. Rastrear sessões no carregamento da página (não só no clique do WhatsApp)**
-- Criar um novo edge function `track-session` que recebe apenas os dados de sessão e faz upsert na tabela `traffic_sessions`.
-- Chamar esse edge function no `useAnalytics` (no `useEffect` de inicialização), com `keepalive: true` e timeout de 500ms para não impactar performance.
-- Isso separa "Sessões" (visitas ao site) de "Cliques WhatsApp" (conversões), dando uma visão real do funil.
+Plano de correção
 
-### Detalhes técnicos
-- O edge function `track-session` será uma versão simplificada do `track-lead`, sem a parte de inserção em `whatsapp_leads`.
-- A lógica de "session nova vs existente" usará um flag em `sessionStorage` (que expira ao fechar a aba) para evitar múltiplos registros na mesma visita.
-- A tabela `traffic_sessions` já tem RLS de insert para `anon` e unique constraint em `session_id` com `ignoreDuplicates`, então não precisa de migração.
-- O `DailyTrendChart` e demais componentes já consomem `traffic_sessions` separadamente — após a correção, os números passarão a divergir corretamente (sessões > cliques).
+1. Centralizar o rastreamento
+- Criar uma abstração única para WhatsApp no frontend, por exemplo um `TrackedWhatsAppLink` ou helper `openTrackedWhatsApp`.
+- Todo CTA de WhatsApp passará por essa camada única.
 
-### Arquivos afetados
-- `src/components/home/Hero.tsx` — adicionar tracking ao botão
-- `src/hooks/useAnalytics.ts` — atualizar UTMs em visitas subsequentes + disparar track-session
-- `supabase/functions/track-session/index.ts` — novo edge function (cópia simplificada do track-lead)
+2. Corrigir todos os CTAs ativos
+- Substituir os links diretos/`wa.me` dos componentes e páginas ativas:
+  - `Navbar.tsx`
+  - `AboutSection.tsx`
+  - `DepartmentsSection.tsx`
+  - `ServicesPage.tsx`
+  - `ContactPage.tsx`
+  - `About.tsx`
+- Revisar também componentes antigos para não deixar caminhos paralelos sem tracking.
 
+3. Padronizar URLs e IDs
+- Remover hardcodes de `wa.me`.
+- Usar sempre `getWhatsAppUrl(...)`.
+- Definir `button_id` consistente para cada CTA.
+- Atualizar o gráfico “Cliques por Botão” para exibir corretamente os novos IDs.
+
+4. Melhorar a confiabilidade do envio
+- Tornar `trackWhatsAppClick()` mais robusto:
+  - usar `navigator.sendBeacon` quando disponível
+  - manter `fetch(..., keepalive: true)` como fallback
+  - reduzir a chance de perda por timeout curto
+- Objetivo: o clique continuar não bloqueando a navegação, mas com bem menos perda de registro.
+
+5. Validar ponta a ponta
+- Testar home, páginas internas e menu mobile.
+- Testar com parâmetros de campanha (`utm_source=google`, `utm_medium=cpc`, `gclid`).
+- Confirmar:
+  - nova linha em `whatsapp_leads`
+  - `button_id` correto
+  - sessão com `utm_source/gclid`
+  - atualização no dashboard
+
+Detalhes técnicos
+
+- Não parece necessária migração de banco para essa correção.
+- O problema está principalmente na camada de frontend e no método de envio do tracking.
+- Depois dessa correção, o contador passará a refletir muito melhor os cliques reais no WhatsApp vindos do Google Ads e dos demais pontos do site.
