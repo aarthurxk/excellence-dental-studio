@@ -1,26 +1,24 @@
 
 
-## Plano: Carrossel automático na seção de Dentistas
+## Plano: Corrigir preview do link no WhatsApp (og:image)
 
-### O que será feito
-A seção "Nossa Equipe" na home (`DoctorsSection.tsx`) passará a carregar **todos** os dentistas ativos (sem `limit`) e exibi-los em um carrossel automático usando Embla Carousel (já instalado no projeto via `src/components/ui/carousel.tsx`). A cada ~5 segundos, o carrossel avança automaticamente, mostrando o próximo grupo de 3 cards (desktop) / 2 (tablet) / 1 (mobile). O usuário também pode arrastar/swipe manualmente.
+### Problema
+O logo não aparece quando o link é compartilhado no WhatsApp porque:
+1. **A imagem está em formato `.webp`** — o WhatsApp só aceita **JPEG ou PNG** para `og:image`.
+2. **Tamanho recomendado**: WhatsApp precisa de imagens com no mínimo 300x200px e idealmente 1200x630px.
+3. **`og:url` inconsistente**: `index.html` aponta para `odontoexcellence-ipsep.com.br` mas `SEOHead.tsx` usa `odontoexcellencerecife.com.br`.
 
-### Etapas
+### Correções
 
-1. **Remover o `limit(3)`** da query para buscar todos os dentistas ativos.
+1. **Converter a imagem para PNG/JPEG** e hospedar na pasta `public/` do projeto (ex: `public/og-image.png`), garantindo formato compatível.
 
-2. **Instalar o plugin Autoplay do Embla** (`embla-carousel-autoplay`) para rotação automática.
+2. **Atualizar `og:image` no `index.html`** para apontar para a URL absoluta da imagem PNG (ex: `https://odontoexcellencerecife.lovable.app/og-image.png` ou o domínio definitivo).
 
-3. **Substituir o grid por um Carousel** usando os componentes `Carousel`, `CarouselContent`, `CarouselItem` já existentes, com:
-   - Autoplay a cada 5 segundos (pausa no hover)
-   - Loop infinito (`loop: true`)
-   - Responsivo: `basis-full` no mobile, `basis-1/2` no tablet, `basis-1/3` no desktop
-   - Setas de navegação opcionais e indicadores de paginação (dots)
+3. **Corrigir `og:url`** no `index.html` para usar o mesmo domínio do `SEOHead.tsx` (`odontoexcellencerecife.com.br`).
 
-4. **Manter o design atual dos cards** (foto, overlay com nome/especialidade, bio).
+4. **Após publicar**, limpar o cache do WhatsApp usando a ferramenta de debug do Facebook: `https://developers.facebook.com/tools/debug/` — colar a URL do site e clicar "Scrape Again".
 
-### Detalhes técnicos
-- O projeto já tem `embla-carousel-react` instalado. Será necessário adicionar `embla-carousel-autoplay` como dependência.
-- O componente `Carousel` do projeto aceita `plugins` como prop, onde passaremos o plugin Autoplay.
-- Os cards individuais mantêm exatamente o mesmo visual atual.
+### Arquivos afetados
+- `public/og-image.png` — nova imagem convertida
+- `index.html` — atualizar `og:image`, `twitter:image` e `og:url`
 
