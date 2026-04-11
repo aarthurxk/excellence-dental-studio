@@ -41,6 +41,7 @@ export default function LeadsDataGrid() {
       const { data: leadsData, error: leadsErr } = await supabase
         .from("whatsapp_leads")
         .select("*")
+        .eq("is_bot", false)
         .order("click_timestamp", { ascending: false })
         .limit(30);
       if (leadsErr) throw leadsErr;

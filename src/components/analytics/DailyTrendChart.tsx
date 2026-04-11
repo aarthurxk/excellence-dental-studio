@@ -29,6 +29,7 @@ export default function DailyTrendChart() {
         supabase
           .from("whatsapp_leads")
           .select("created_at")
+          .eq("is_bot", false)
           .gte("created_at", since),
         supabase
           .from("traffic_sessions")
