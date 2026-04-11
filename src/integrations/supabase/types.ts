@@ -582,6 +582,7 @@ export type Database = {
           id: string
           ip_address: string | null
           ip_isp: string | null
+          is_bot: boolean
           max_scroll_depth: number | null
           session_id: string
           time_on_site_seconds: number | null
@@ -597,6 +598,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           ip_isp?: string | null
+          is_bot?: boolean
           max_scroll_depth?: number | null
           session_id: string
           time_on_site_seconds?: number | null
@@ -612,6 +614,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           ip_isp?: string | null
+          is_bot?: boolean
           max_scroll_depth?: number | null
           session_id?: string
           time_on_site_seconds?: number | null
