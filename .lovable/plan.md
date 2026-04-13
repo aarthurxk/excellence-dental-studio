@@ -1,38 +1,25 @@
 
 
-## Plano: Filtro Anti-Bot no Analytics
+## Plano: Corrigir tracking de cliques WhatsApp (sendBeacon → fetch)
 
 ### Problema
-Bots de datacenters (heficed, ColoCrossing) estão gerando cliques falsos que inflam os números e escondem leads reais.
+Os cliques no WhatsApp não estão sendo registrados porque o `openTrackedWhatsApp.ts` usa `navigator.sendBeacon()`, que:
+- Não permite enviar headers customizados (Content-Type vai como text/plain)
+- Pode ser bloqueado por CORS no gateway do Supabase
+- Resultado: as chamadas falham silenciosamente e nenhum clique é gravado
 
-### Correções
+Prova: os logs mostram ZERO chamadas a `track-lead`, enquanto `track-session` (que usa `fetch`) funciona normalmente.
 
-**1. Filtro no backend (Edge Function `track-lead`)**
-- Manter uma lista de ISPs/ASNs conhecidos de datacenter (heficed, ColoCrossing, OVH, Hetzner, DigitalOcean, AWS, Google Cloud, Azure, etc.)
-- Quando o geo-IP retornar um ISP dessa lista, marcar o registro com `is_bot: true` ou simplesmente descartar o registro
-- Alternativa: verificar se o país é diferente de "Brasil" e marcar como suspeito
+### Correção
 
-**2. Adicionar coluna `is_bot` na tabela `whatsapp_leads`**
-- Migração: `ALTER TABLE whatsapp_leads ADD COLUMN is_bot boolean DEFAULT false`
-- Permite manter os dados para auditoria mas filtrá-los nos dashboards
+**Arquivo:** `src/lib/openTrackedWhatsApp.ts`
 
-**3. Filtrar bots no dashboard**
-- Atualizar todas as queries do analytics (KPIs, gráficos, DataGrid) para excluir `WHERE is_bot = false`
-- Adicionar toggle opcional "Mostrar bots" para debug
+Substituir o `sendBeacon` por `fetch` com `keepalive: true`, seguindo o mesmo padrão que já funciona em `track-session`:
+- Usar `fetch()` com `method: POST`, `headers: { "Content-Type": "application/json" }`, `keepalive: true`
+- Manter o `catch(() => {})` para nunca bloquear a navegação ao WhatsApp
+- Abrir o WhatsApp imediatamente após disparar o fetch (sem await)
+- Usar `VITE_SUPABASE_URL` + `/functions/v1/track-lead` em vez de construir a URL manualmente com project ID (mais robusto)
 
-**4. Limpar dados existentes**
-- Migração para marcar como bot os registros existentes de ISPs conhecidos de datacenter
-
-**5. Rate-limit por sessão**
-- No `track-lead`, limitar a no máximo 1 registro por `session_id + button_id` a cada 30 segundos para evitar duplicatas mesmo de usuários reais (debounce)
-
-### Arquivos afetados
-- `supabase/functions/track-lead/index.ts` — filtro de ISP + rate-limit
-- Migração SQL — coluna `is_bot` + limpeza de dados existentes
-- `src/components/analytics/KPICards.tsx`, `LeadsDataGrid.tsx`, `ButtonConversion.tsx`, `DailyTrendChart.tsx` — filtro `is_bot = false`
-
-### Detalhes técnicos
-- A detecção por ISP é simples e eficaz para 90%+ dos bots de datacenter
-- O rate-limit por sessão resolve o problema de cliques duplicados (mesmo humano clicando várias vezes rápido)
-- Nenhuma dessas mudanças afeta a experiência do usuário real no site
+### Resultado esperado
+Todos os cliques reais no WhatsApp passarão a ser registrados corretamente no banco de dados e aparecerão no dashboard de analytics.
 
