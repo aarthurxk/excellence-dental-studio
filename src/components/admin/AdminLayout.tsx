@@ -54,6 +54,10 @@ function AdminSidebar() {
     if (role === "agencia") {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
+    // Conversas Vera only for admin/socio
+    if (item.url === "/admin/conversas-vera") {
+      return role === "admin" || role === "socio";
+    }
     if (!item.module) return true;
     const perm = allPerms[item.module];
     return perm?.can_view !== false;
