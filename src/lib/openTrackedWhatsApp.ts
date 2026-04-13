@@ -43,23 +43,20 @@ export function openTrackedWhatsApp(buttonId: string, url: string): void {
       },
     };
 
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-    const endpoint = `https://${projectId}.supabase.co/functions/v1/track-lead`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const endpoint = `${supabaseUrl}/functions/v1/track-lead`;
     const body = JSON.stringify(payload);
 
-    // Prefer sendBeacon — guaranteed delivery even if page unloads
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon(endpoint, blob);
-    } else {
-      // Fallback: fetch with keepalive
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-      }).catch(() => {});
-    }
+    fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": apiKey,
+      },
+      body,
+      keepalive: true,
+    }).catch(() => {});
   } catch {
     // Never block WhatsApp
   }
