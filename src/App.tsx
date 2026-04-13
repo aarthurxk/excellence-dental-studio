@@ -38,6 +38,7 @@ import SiteChatWidget from "./components/layout/SiteChatWidget";
 import WhatsAppButton from "./components/layout/WhatsAppButton";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminConversasVera from "./pages/admin/AdminConversasVera";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ function AppRoutes() {
         <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
         <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
         <Route path="/admin/analytics" element={<AdminPage><AdminAnalytics /></AdminPage>} />
+        <Route path="/admin/conversas-vera" element={<AdminPage><AdminConversasVera /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
