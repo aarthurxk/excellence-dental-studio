@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3, MessageCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ const navItems = [
   { title: "Usuários", url: "/admin/usuarios", icon: UserCog, module: "users" },
   { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "settings" },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3, module: null },
+  { title: "Conversas Vera", url: "/admin/conversas-vera", icon: MessageCircle, module: null },
 ];
 
 function AdminSidebar() {
