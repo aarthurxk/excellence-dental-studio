@@ -1,25 +1,34 @@
 
 
-## Plano: Corrigir tracking de cliques WhatsApp (sendBeacon → fetch)
+## Plano: Página "Conversas Vera" no Admin
 
-### Problema
-Os cliques no WhatsApp não estão sendo registrados porque o `openTrackedWhatsApp.ts` usa `navigator.sendBeacon()`, que:
-- Não permite enviar headers customizados (Content-Type vai como text/plain)
-- Pode ser bloqueado por CORS no gateway do Supabase
-- Resultado: as chamadas falham silenciosamente e nenhum clique é gravado
+### O que será feito
+Nova página admin `/admin/conversas-vera` com layout estilo WhatsApp Web para visualizar conversas da assistente Vera, protegida por auth guard (admin only).
 
-Prova: os logs mostram ZERO chamadas a `track-lead`, enquanto `track-session` (que usa `fetch`) funciona normalmente.
+### Arquivos a criar/editar
 
-### Correção
+**1. Criar `src/pages/admin/AdminConversasVera.tsx`**
+- Fetch GET para `https://bot.odontoexcellencerecife.com.br/webhook/vera-logs`
+- Layout split: lista de contatos à esquerda, chat à direita
+- Lista de contatos: nome, prévia da última mensagem, timestamp
+- Ao clicar, exibe conversa completa no painel direito
+- Mensagens human → direita (roxo/azul), ai → esquerda (cinza)
+- Parser para mensagens AI: extrai apenas conteúdo de `<resposta>...</resposta>`, remove `<proximo_estagio>` e `[CONTEXTO_SESSAO]`
+- Botão "Atualizar" que re-fetcha os dados
+- Responsivo: em mobile, lista e chat alternam (como WhatsApp mobile)
+- Usa `useQuery` com `queryKey: ["vera-logs"]` e `refetchOnWindowFocus: false`
 
-**Arquivo:** `src/lib/openTrackedWhatsApp.ts`
+**2. Editar `src/App.tsx`**
+- Import `AdminConversasVera`
+- Nova rota: `<Route path="/admin/conversas-vera" element={<AdminPage><AdminConversasVera /></AdminPage>} />`
 
-Substituir o `sendBeacon` por `fetch` com `keepalive: true`, seguindo o mesmo padrão que já funciona em `track-session`:
-- Usar `fetch()` com `method: POST`, `headers: { "Content-Type": "application/json" }`, `keepalive: true`
-- Manter o `catch(() => {})` para nunca bloquear a navegação ao WhatsApp
-- Abrir o WhatsApp imediatamente após disparar o fetch (sem await)
-- Usar `VITE_SUPABASE_URL` + `/functions/v1/track-lead` em vez de construir a URL manualmente com project ID (mais robusto)
+**3. Editar `src/components/admin/AdminLayout.tsx`**
+- Adicionar item no `navItems`: `{ title: "Conversas Vera", url: "/admin/conversas-vera", icon: MessageCircle, module: null }`
+- Visível apenas para admin/socio (já controlado pelo filtro de `role === "agencia"`)
 
-### Resultado esperado
-Todos os cliques reais no WhatsApp passarão a ser registrados corretamente no banco de dados e aparecerão no dashboard de analytics.
+### Detalhes técnicos
+- A proteção auth já existe via `AdminPage` → `ProtectedRoute` (exige user + role)
+- Para restringir a admin/socio especificamente, o item do menu será filtrado por role e a página verificará `role` do `useAuth()`
+- O fetch ao endpoint externo será feito com `fetch()` direto (não é Supabase)
+- O parser de mensagens AI usa regex: `/&lt;resposta&gt;([\s\S]*?)&lt;\/resposta&gt;/` para extrair o texto limpo
 
