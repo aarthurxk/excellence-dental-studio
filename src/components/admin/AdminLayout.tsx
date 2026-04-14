@@ -60,7 +60,7 @@ function AdminSidebar() {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
     // WhatsApp pages only for admin/socio
-    if (["/admin/conversas-vera", "/admin/whatsapp", "/admin/conversas"].includes(item.url)) {
+    if (["/admin/conversas-vera", "/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios"].includes(item.url)) {
       return role === "admin" || role === "socio";
     }
     if (!item.module) return true;
