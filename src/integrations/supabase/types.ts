@@ -53,6 +53,54 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          booked_by: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          google_event_id: string | null
+          id: string
+          lead_name: string | null
+          lead_phone: string
+          notes: string | null
+          procedure_interest: string | null
+          reminder_sent: boolean | null
+          scheduled_at: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booked_by?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          google_event_id?: string | null
+          id?: string
+          lead_name?: string | null
+          lead_phone: string
+          notes?: string | null
+          procedure_interest?: string | null
+          reminder_sent?: boolean | null
+          scheduled_at: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booked_by?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          google_event_id?: string | null
+          id?: string
+          lead_name?: string | null
+          lead_phone?: string
+          notes?: string | null
+          procedure_interest?: string | null
+          reminder_sent?: boolean | null
+          scheduled_at?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       before_after_cases: {
         Row: {
           active: boolean
@@ -89,6 +137,30 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_logs: {
+        Row: {
+          created_at: string | null
+          disconnect_reason: string | null
+          event_data: Json | null
+          id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          disconnect_reason?: string | null
+          event_data?: Json | null
+          id?: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          disconnect_reason?: string | null
+          event_data?: Json | null
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -116,6 +188,45 @@ export type Database = {
           name?: string
           phone?: string
           read?: boolean
+        }
+        Relationships: []
+      }
+      conversations_log: {
+        Row: {
+          created_at: string | null
+          direction: string | null
+          id: string
+          lead_phone: string
+          message_text: string | null
+          message_type: string | null
+          remote_jid: string
+          sent_by: string | null
+          whatsapp_message_id: string | null
+          whatsapp_timestamp: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          direction?: string | null
+          id?: string
+          lead_phone: string
+          message_text?: string | null
+          message_type?: string | null
+          remote_jid: string
+          sent_by?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_timestamp?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          direction?: string | null
+          id?: string
+          lead_phone?: string
+          message_text?: string | null
+          message_type?: string | null
+          remote_jid?: string
+          sent_by?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_timestamp?: number | null
         }
         Relationships: []
       }
@@ -221,6 +332,69 @@ export type Database = {
           id?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          ai_enabled: boolean | null
+          created_at: string | null
+          first_contact_at: string | null
+          id: string
+          last_contact_at: string | null
+          last_message_preview: string | null
+          name: string | null
+          notes: string | null
+          phone: string
+          profile_pic_url: string | null
+          push_name: string | null
+          status: string | null
+          total_messages_in: number | null
+          total_messages_out: number | null
+          updated_at: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          created_at?: string | null
+          first_contact_at?: string | null
+          id?: string
+          last_contact_at?: string | null
+          last_message_preview?: string | null
+          name?: string | null
+          notes?: string | null
+          phone: string
+          profile_pic_url?: string | null
+          push_name?: string | null
+          status?: string | null
+          total_messages_in?: number | null
+          total_messages_out?: number | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          created_at?: string | null
+          first_contact_at?: string | null
+          id?: string
+          last_contact_at?: string | null
+          last_message_preview?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string
+          profile_pic_url?: string | null
+          push_name?: string | null
+          status?: string | null
+          total_messages_in?: number | null
+          total_messages_out?: number | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
@@ -533,6 +707,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vera_config: {
+        Row: {
+          ai_enabled: boolean | null
+          away_message: string | null
+          greeting_message: string | null
+          id: string
+          system_prompt: string | null
+          updated_at: string | null
+          working_days: number[] | null
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          away_message?: string | null
+          greeting_message?: string | null
+          id?: string
+          system_prompt?: string | null
+          updated_at?: string | null
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          away_message?: string | null
+          greeting_message?: string | null
+          id?: string
+          system_prompt?: string | null
+          updated_at?: string | null
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
         }
         Relationships: []
       }
