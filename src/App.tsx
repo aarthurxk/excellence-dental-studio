@@ -39,6 +39,8 @@ import WhatsAppButton from "./components/layout/WhatsAppButton";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminConversasVera from "./pages/admin/AdminConversasVera";
+import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
+import AdminConversas from "./pages/admin/AdminConversas";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,8 @@ function AppRoutes() {
         <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
         <Route path="/admin/analytics" element={<AdminPage><AdminAnalytics /></AdminPage>} />
         <Route path="/admin/conversas-vera" element={<AdminPage><AdminConversasVera /></AdminPage>} />
+        <Route path="/admin/whatsapp" element={<AdminPage><AdminWhatsApp /></AdminPage>} />
+        <Route path="/admin/conversas" element={<AdminPage><AdminConversas /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

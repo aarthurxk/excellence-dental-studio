@@ -8,6 +8,7 @@ import {
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
   Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3, MessageCircle,
+  Smartphone, MessagesSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,8 @@ const navItems = [
   { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "settings" },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3, module: null },
   { title: "Conversas Vera", url: "/admin/conversas-vera", icon: MessageCircle, module: null },
+  { title: "WhatsApp", url: "/admin/whatsapp", icon: Smartphone, module: null },
+  { title: "Conversas WA", url: "/admin/conversas", icon: MessagesSquare, module: null },
 ];
 
 function AdminSidebar() {
