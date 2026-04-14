@@ -57,8 +57,8 @@ function AdminSidebar() {
     if (role === "agencia") {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
-    // Conversas Vera only for admin/socio
-    if (item.url === "/admin/conversas-vera") {
+    // WhatsApp pages only for admin/socio
+    if (["/admin/conversas-vera", "/admin/whatsapp", "/admin/conversas"].includes(item.url)) {
       return role === "admin" || role === "socio";
     }
     if (!item.module) return true;
