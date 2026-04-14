@@ -4,19 +4,33 @@ import { evoProxy } from "@/hooks/useEvoProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wifi, WifiOff, MessageSquare, Users, CalendarDays, RefreshCw,
   AlertTriangle, Clock, PlugZap,
 } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+function KPISkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-5 w-5 rounded" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16" />
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminWhatsApp() {
   const qc = useQueryClient();
 
-  // Connection status
   const { data: connStatus, isLoading: connLoading } = useQuery({
     queryKey: ["evo-connection"],
     queryFn: () =>
@@ -26,11 +40,10 @@ export default function AdminWhatsApp() {
 
   const isConnected = connStatus?.instance?.state === "open";
 
-  // Today's metrics
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const { data: msgCountToday = 0 } = useQuery({
+  const { data: msgCountToday = 0, isLoading: msgLoading } = useQuery({
     queryKey: ["wha-msgs-today"],
     queryFn: async () => {
       const { count } = await supabase
@@ -41,7 +54,7 @@ export default function AdminWhatsApp() {
     },
   });
 
-  const { data: newLeadsToday = 0 } = useQuery({
+  const { data: newLeadsToday = 0, isLoading: leadsLoading } = useQuery({
     queryKey: ["wha-leads-today"],
     queryFn: async () => {
       const { count } = await supabase
@@ -52,7 +65,7 @@ export default function AdminWhatsApp() {
     },
   });
 
-  const { data: appointmentsToday = 0 } = useQuery({
+  const { data: appointmentsToday = 0, isLoading: apptsLoading } = useQuery({
     queryKey: ["wha-appts-today"],
     queryFn: async () => {
       const { count } = await supabase
@@ -65,8 +78,7 @@ export default function AdminWhatsApp() {
     },
   });
 
-  // Recent disconnections
-  const { data: recentDisconnects = [] } = useQuery({
+  const { data: recentDisconnects = [], isLoading: disconnectsLoading } = useQuery({
     queryKey: ["wha-disconnects"],
     queryFn: async () => {
       const { data } = await supabase
@@ -78,7 +90,6 @@ export default function AdminWhatsApp() {
     },
   });
 
-  // Unanswered leads
   const { data: unansweredLeads = 0 } = useQuery({
     queryKey: ["wha-unanswered"],
     queryFn: async () => {
@@ -91,7 +102,6 @@ export default function AdminWhatsApp() {
     },
   });
 
-  // Reconnect
   const [reconnecting, setReconnecting] = useState(false);
   const handleReconnect = async () => {
     setReconnecting(true);
@@ -106,7 +116,6 @@ export default function AdminWhatsApp() {
     }
   };
 
-  // Realtime for connection_logs
   useEffect(() => {
     const channel = supabase
       .channel("connection-logs-rt")
@@ -127,6 +136,8 @@ export default function AdminWhatsApp() {
     qc.invalidateQueries({ queryKey: ["wha-unanswered"] });
   };
 
+  const kpisLoading = msgLoading || leadsLoading || apptsLoading;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -137,86 +148,116 @@ export default function AdminWhatsApp() {
       </div>
 
       {/* Connection Status */}
-      <Card className={isConnected ? "border-green-500/50" : "border-red-500/50"}>
-        <CardContent className="flex items-center justify-between p-6">
-          <div className="flex items-center gap-4">
-            {isConnected ? (
-              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <Wifi className="h-6 w-6 text-green-500" />
-              </div>
-            ) : (
-              <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <WifiOff className="h-6 w-6 text-red-500" />
-              </div>
-            )}
-            <div>
-              <p className="font-semibold text-lg">
-                {connLoading ? "Verificando..." : isConnected ? "Conectado" : "Desconectado"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Instância: {connStatus?.instance?.instanceName || "vera-whatsapp"}
-              </p>
+      {connLoading ? (
+        <Card>
+          <CardContent className="flex items-center gap-4 p-6">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-48" />
             </div>
-          </div>
-          {!isConnected && !connLoading && (
-            <Button onClick={handleReconnect} disabled={reconnecting}>
-              <PlugZap className="h-4 w-4 mr-2" />
-              {reconnecting ? "Reconectando..." : "Reconectar"}
-            </Button>
-          )}
-          {isConnected && (
-            <Badge variant="outline" className="text-green-600 border-green-500">
-              ● Online
-            </Badge>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className={isConnected ? "border-green-500/50" : "border-red-500/50"}>
+          <CardContent className="flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              {isConnected ? (
+                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <Wifi className="h-6 w-6 text-green-500" />
+                </div>
+              ) : (
+                <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <WifiOff className="h-6 w-6 text-red-500" />
+                </div>
+              )}
+              <div>
+                <p className="font-semibold text-lg">
+                  {isConnected ? "Conectado" : "Desconectado"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Instância: {connStatus?.instance?.instanceName || "vera-whatsapp"}
+                </p>
+              </div>
+            </div>
+            {!isConnected && (
+              <Button onClick={handleReconnect} disabled={reconnecting}>
+                <PlugZap className="h-4 w-4 mr-2" />
+                {reconnecting ? "Reconectando..." : "Reconectar"}
+              </Button>
+            )}
+            {isConnected && (
+              <Badge variant="outline" className="text-green-600 border-green-500">
+                ● Online
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Mensagens Hoje</CardTitle>
-            <MessageSquare className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{msgCountToday}</p>
-          </CardContent>
-        </Card>
+        {kpisLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <KPISkeleton key={i} />)
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Mensagens Hoje</CardTitle>
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{msgCountToday}</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Novos Leads Hoje</CardTitle>
-            <Users className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{newLeadsToday}</p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Novos Leads Hoje</CardTitle>
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{newLeadsToday}</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
-            <CalendarDays className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{appointmentsToday}</p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
+                <CalendarDays className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{appointmentsToday}</p>
+              </CardContent>
+            </Card>
 
-        <Card className={unansweredLeads > 0 ? "border-amber-500/50" : ""}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sem Resposta</CardTitle>
-            <AlertTriangle className={`h-5 w-5 ${unansweredLeads > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{unansweredLeads}</p>
-          </CardContent>
-        </Card>
+            <Card className={unansweredLeads > 0 ? "border-amber-500/50" : ""}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Sem Resposta</CardTitle>
+                <AlertTriangle className={`h-5 w-5 ${unansweredLeads > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{unansweredLeads}</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
-      {/* Alerts - Recent disconnections */}
-      {recentDisconnects.length > 0 && (
+      {/* Alerts */}
+      {disconnectsLoading ? (
+        <Card>
+          <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
+          <CardContent className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between border-b pb-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : recentDisconnects.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
