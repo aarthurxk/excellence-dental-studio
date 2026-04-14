@@ -43,6 +43,8 @@ import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
 import AdminConversas from "./pages/admin/AdminConversas";
 import AdminLeads from "./pages/admin/AdminLeads";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import AdminVeraConfig from "./pages/admin/AdminVeraConfig";
+import AdminConexao from "./pages/admin/AdminConexao";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,8 @@ function AppRoutes() {
         <Route path="/admin/conversas" element={<AdminPage><AdminConversas /></AdminPage>} />
         <Route path="/admin/leads" element={<AdminPage><AdminLeads /></AdminPage>} />
         <Route path="/admin/relatorios" element={<AdminPage><AdminRelatorios /></AdminPage>} />
+        <Route path="/admin/ia" element={<AdminPage><AdminVeraConfig /></AdminPage>} />
+        <Route path="/admin/conexao" element={<AdminPage><AdminConexao /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
