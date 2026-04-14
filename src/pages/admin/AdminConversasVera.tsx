@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { RefreshCw, MessageCircle, ArrowLeft } from "lucide-react";
+import { RefreshCw, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -23,12 +25,9 @@ interface Contato {
 }
 
 function parseAiContent(raw: string): string {
-  // Extract content from <resposta>...</resposta> if present
   const respostaMatch = raw.match(/<resposta>([\s\S]*?)<\/resposta>/);
   let text = respostaMatch ? respostaMatch[1] : raw;
-  // Remove <proximo_estagio> tags and content
   text = text.replace(/<proximo_estagio>[\s\S]*?<\/proximo_estagio>/g, "");
-  // Remove [CONTEXTO_SESSAO] blocks
   text = text.replace(/\[CONTEXTO_SESSAO\][\s\S]*?(\[\/CONTEXTO_SESSAO\]|$)/g, "");
   return text.trim();
 }
@@ -48,9 +47,22 @@ async function fetchVeraLogs(): Promise<Contato[]> {
   return data.contatos ?? [];
 }
 
+function ContactSkeleton() {
+  return (
+    <div className="px-4 py-3 border-b space-y-2">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+      <Skeleton className="h-3 w-48" />
+    </div>
+  );
+}
+
 export default function AdminConversasVera() {
   const { role } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: contatos = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ["vera-logs"],
@@ -62,11 +74,17 @@ export default function AdminConversasVera() {
     return <p className="text-muted-foreground p-4">Acesso restrito.</p>;
   }
 
+  const filtered = contatos.filter(
+    (c) =>
+      !searchTerm ||
+      (c.nome || c.session_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.session_id.includes(searchTerm)
+  );
+
   const selected = contatos.find((c) => c.session_id === selectedId) ?? null;
 
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)]">
-      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-xl font-semibold font-display">Conversas Vera</h1>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
@@ -83,15 +101,28 @@ export default function AdminConversasVera() {
             selected ? "hidden md:flex" : "flex"
           )}
         >
-          <div className="p-3 border-b font-medium text-sm text-muted-foreground">
-            {contatos.length} contato{contatos.length !== 1 && "s"}
+          <div className="p-3 border-b space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground font-medium">
+                {filtered.length} contato{filtered.length !== 1 && "s"}
+              </span>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar contato..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
           </div>
           <ScrollArea className="flex-1">
-            {isLoading && <p className="p-4 text-sm text-muted-foreground">Carregando…</p>}
-            {!isLoading && contatos.length === 0 && (
+            {isLoading && Array.from({ length: 6 }).map((_, i) => <ContactSkeleton key={i} />)}
+            {!isLoading && filtered.length === 0 && (
               <p className="p-4 text-sm text-muted-foreground">Nenhuma conversa encontrada.</p>
             )}
-            {contatos.map((c) => (
+            {filtered.map((c) => (
               <button
                 key={c.session_id}
                 onClick={() => setSelectedId(c.session_id)}
@@ -121,7 +152,6 @@ export default function AdminConversasVera() {
             </div>
           ) : (
             <>
-              {/* Chat header */}
               <div className="p-3 border-b flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -134,7 +164,6 @@ export default function AdminConversasVera() {
                 <span className="font-medium text-sm">{selected.nome || selected.session_id}</span>
               </div>
 
-              {/* Messages */}
               <ScrollArea className="flex-1 p-4">
                 <div className="flex flex-col gap-2 max-w-2xl mx-auto">
                   {selected.mensagens.map((m, i) => {

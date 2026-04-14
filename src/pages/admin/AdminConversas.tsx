@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Search, Send, RefreshCw, ArrowLeft, Bot, User, ToggleLeft, ToggleRight,
+  Search, Send, RefreshCw, ArrowLeft, Bot, User,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -44,6 +45,34 @@ interface ChatItem {
   profilePic: string | null;
   unread: number;
   lastMessage?: string;
+  lastTimestamp?: number;
+}
+
+function ContactSkeleton() {
+  return (
+    <div className="p-3 border-b flex items-center gap-3">
+      <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+        <Skeleton className="h-3 w-40" />
+      </div>
+    </div>
+  );
+}
+
+function MessageSkeleton() {
+  return (
+    <div className="space-y-3 py-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className={cn("flex", i % 2 === 0 ? "justify-start" : "justify-end")}>
+          <Skeleton className={cn("h-12 rounded-lg", i % 2 === 0 ? "w-[60%]" : "w-[50%]")} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function AdminConversas() {
@@ -68,18 +97,42 @@ export default function AdminConversas() {
         contactsData.forEach((c) => contactMap.set(c.remoteJid, c));
       }
 
+      // Fetch last message per chat from DB for preview + timestamp
+      const { data: lastMsgs } = await supabase
+        .from("conversations_log")
+        .select("remote_jid, message_text, created_at, direction, sent_by")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      const lastMsgMap = new Map<string, { text: string; timestamp: string; sentBy: string | null }>();
+      if (lastMsgs) {
+        for (const m of lastMsgs) {
+          if (!lastMsgMap.has(m.remote_jid)) {
+            lastMsgMap.set(m.remote_jid, {
+              text: m.message_text || "[mídia]",
+              timestamp: m.created_at || "",
+              sentBy: m.sent_by,
+            });
+          }
+        }
+      }
+
       const chatList: ChatItem[] = (Array.isArray(chatsData) ? chatsData : [])
         .filter((c) => c.remoteJid?.endsWith("@s.whatsapp.net"))
         .map((c) => {
           const contact = contactMap.get(c.remoteJid);
           const phone = c.remoteJid.replace("@s.whatsapp.net", "");
+          const lastMsg = lastMsgMap.get(c.remoteJid);
           return {
             remoteJid: c.remoteJid,
             name: contact?.pushName || c.name || phone,
             profilePic: contact?.profilePicUrl || null,
             unread: c.unreadMessages || 0,
+            lastMessage: lastMsg?.text,
+            lastTimestamp: lastMsg?.timestamp ? new Date(lastMsg.timestamp).getTime() : undefined,
           };
-        });
+        })
+        .sort((a, b) => (b.lastTimestamp ?? 0) - (a.lastTimestamp ?? 0));
 
       return chatList;
     },
@@ -143,7 +196,6 @@ export default function AdminConversas() {
     return () => { supabase.removeChannel(channel); };
   }, [selectedChat, refetchMsgs]);
 
-  // Send message
   const handleSend = async () => {
     if (!msgInput.trim() || !selectedChat) return;
     setSending(true);
@@ -160,7 +212,6 @@ export default function AdminConversas() {
     }
   };
 
-  // Toggle AI
   const toggleAI = async () => {
     if (!leadInfo) return;
     const newVal = !leadInfo.ai_enabled;
@@ -169,7 +220,6 @@ export default function AdminConversas() {
     toast.success(newVal ? "IA reativada" : "IA desativada — você assumiu a conversa");
   };
 
-  // Extract message text
   const getMsgText = (msg: EvoMessageRecord) => {
     if (!msg.message) return "[mídia]";
     return (
@@ -180,7 +230,6 @@ export default function AdminConversas() {
     );
   };
 
-  // Filter chats
   const filteredChats = chats.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -198,7 +247,6 @@ export default function AdminConversas() {
           selectedChat ? "hidden md:flex" : "flex"
         )}
       >
-        {/* Search header */}
         <div className="p-3 border-b space-y-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg">Conversas</h3>
@@ -217,10 +265,9 @@ export default function AdminConversas() {
           </div>
         </div>
 
-        {/* Chat list */}
         <ScrollArea className="flex-1">
           {chatsLoading ? (
-            <div className="p-4 text-center text-muted-foreground">Carregando...</div>
+            Array.from({ length: 8 }).map((_, i) => <ContactSkeleton key={i} />)
           ) : filteredChats.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">Nenhuma conversa</div>
           ) : (
@@ -243,15 +290,22 @@ export default function AdminConversas() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-sm truncate">{chat.name}</p>
+                    <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
+                      {chat.lastTimestamp
+                        ? formatDistanceToNow(new Date(chat.lastTimestamp), { addSuffix: true, locale: ptBR })
+                        : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className="text-xs text-muted-foreground truncate flex-1 mr-2">
+                      {chat.lastMessage || chat.remoteJid.replace("@s.whatsapp.net", "")}
+                    </p>
                     {chat.unread > 0 && (
-                      <Badge variant="default" className="ml-2 text-xs h-5 min-w-5 flex items-center justify-center">
+                      <Badge variant="default" className="text-xs h-5 min-w-5 flex items-center justify-center shrink-0">
                         {chat.unread}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {chat.remoteJid.replace("@s.whatsapp.net", "")}
-                  </p>
                 </div>
               </button>
             ))
@@ -272,12 +326,8 @@ export default function AdminConversas() {
           </div>
         ) : (
           <>
-            {/* Chat header */}
             <div className="h-14 border-b flex items-center px-4 gap-3 shrink-0">
-              <button
-                className="md:hidden"
-                onClick={() => setSelectedChat(null)}
-              >
+              <button className="md:hidden" onClick={() => setSelectedChat(null)}>
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="flex-1 min-w-0">
@@ -300,13 +350,9 @@ export default function AdminConversas() {
                     )}
                   >
                     {leadInfo.ai_enabled ? (
-                      <>
-                        <Bot className="h-3.5 w-3.5" /> IA Ativa
-                      </>
+                      <><Bot className="h-3.5 w-3.5" /> IA Ativa</>
                     ) : (
-                      <>
-                        <User className="h-3.5 w-3.5" /> Humano
-                      </>
+                      <><User className="h-3.5 w-3.5" /> Humano</>
                     )}
                   </Button>
                 )}
@@ -316,10 +362,9 @@ export default function AdminConversas() {
               </div>
             </div>
 
-            {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               {msgsLoading ? (
-                <div className="text-center text-muted-foreground py-8">Carregando mensagens...</div>
+                <MessageSkeleton />
               ) : messages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">Nenhuma mensagem</div>
               ) : (
@@ -331,13 +376,7 @@ export default function AdminConversas() {
                       ? format(new Date(msg.messageTimestamp * 1000), "HH:mm")
                       : "";
                     return (
-                      <div
-                        key={msg.key.id}
-                        className={cn(
-                          "flex",
-                          isFromMe ? "justify-end" : "justify-start"
-                        )}
-                      >
+                      <div key={msg.key.id} className={cn("flex", isFromMe ? "justify-end" : "justify-start")}>
                         <div
                           className={cn(
                             "max-w-[75%] rounded-lg px-3 py-2 text-sm",
@@ -364,7 +403,6 @@ export default function AdminConversas() {
               )}
             </ScrollArea>
 
-            {/* Input */}
             <div className="border-t p-3 flex gap-2 shrink-0">
               <Input
                 placeholder="Digite uma mensagem..."

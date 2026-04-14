@@ -171,6 +171,9 @@ export default function AdminVeraConfig() {
         </CardHeader>
         <CardContent>
           <Textarea value={config.system_prompt ?? ""} onChange={(e) => setConfig({ ...config, system_prompt: e.target.value })} rows={12} className="font-mono text-xs" />
+          <p className="text-xs text-muted-foreground mt-2 text-right">
+            {(config.system_prompt ?? "").length.toLocaleString()} caracteres
+          </p>
         </CardContent>
       </Card>
     </div>
