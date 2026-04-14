@@ -41,6 +41,8 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminConversasVera from "./pages/admin/AdminConversasVera";
 import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
 import AdminConversas from "./pages/admin/AdminConversas";
+import AdminLeads from "./pages/admin/AdminLeads";
+import AdminRelatorios from "./pages/admin/AdminRelatorios";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +88,8 @@ function AppRoutes() {
         <Route path="/admin/conversas-vera" element={<AdminPage><AdminConversasVera /></AdminPage>} />
         <Route path="/admin/whatsapp" element={<AdminPage><AdminWhatsApp /></AdminPage>} />
         <Route path="/admin/conversas" element={<AdminPage><AdminConversas /></AdminPage>} />
+        <Route path="/admin/leads" element={<AdminPage><AdminLeads /></AdminPage>} />
+        <Route path="/admin/relatorios" element={<AdminPage><AdminRelatorios /></AdminPage>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
