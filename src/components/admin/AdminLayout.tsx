@@ -7,8 +7,8 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
-  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3, MessageCircle,
-  Smartphone, MessagesSquare, Contact, FileBarChart, Bot, Plug,
+  Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3,
+  Smartphone, MessagesSquare, Contact, FileBarChart,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,14 +39,11 @@ const navItems = [
   { title: "Roadmap", url: "/admin/roadmap", icon: Map, module: "roadmap" },
   { title: "Usuários", url: "/admin/usuarios", icon: UserCog, module: "users" },
   { title: "Configurações", url: "/admin/configuracoes", icon: Settings, module: "settings" },
-  { title: "Analytics", url: "/admin/analytics", icon: BarChart3, module: null },
-  { title: "Conversas Vera", url: "/admin/conversas-vera", icon: MessageCircle, module: null },
+  { title: "Analytics Site", url: "/admin/analytics", icon: BarChart3, module: null },
   { title: "WhatsApp", url: "/admin/whatsapp", icon: Smartphone, module: null },
-  { title: "Conversas WA", url: "/admin/conversas", icon: MessagesSquare, module: null },
+  { title: "Conversas", url: "/admin/conversas", icon: MessagesSquare, module: null },
   { title: "Leads CRM", url: "/admin/leads", icon: Contact, module: null },
   { title: "Relatórios WA", url: "/admin/relatorios", icon: FileBarChart, module: null },
-  { title: "Config IA Vera", url: "/admin/ia", icon: Bot, module: null },
-  { title: "Conexão", url: "/admin/conexao", icon: Plug, module: null },
 ];
 
 function AdminSidebar() {
@@ -62,7 +59,7 @@ function AdminSidebar() {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
     // WhatsApp pages only for admin/socio
-    if (["/admin/conversas-vera", "/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios", "/admin/ia", "/admin/conexao"].includes(item.url)) {
+    if (["/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios"].includes(item.url)) {
       return role === "admin" || role === "socio";
     }
     if (!item.module) return true;
