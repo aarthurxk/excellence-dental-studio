@@ -1,34 +1,45 @@
 
 
-## Plano: Página "Conversas Vera" no Admin
+## Plano: Consolidar itens duplicados no painel admin
 
-### O que será feito
-Nova página admin `/admin/conversas-vera` com layout estilo WhatsApp Web para visualizar conversas da assistente Vera, protegida por auth guard (admin only).
+### Problema
+A sidebar tem 21 itens, com sobreposições claras que confundem a navegação:
+- "Conversas Vera" e "Conversas WA" parecem duplicados pelo nome
+- "Config IA Vera" e "Conexão" são sub-funcionalidades de páginas maiores
+- "Relatórios WA" e "Analytics" sobrepõem métricas
 
-### Arquivos a criar/editar
+### Mudanças propostas
 
-**1. Criar `src/pages/admin/AdminConversasVera.tsx`**
-- Fetch GET para `https://bot.odontoexcellencerecife.com.br/webhook/vera-logs`
-- Layout split: lista de contatos à esquerda, chat à direita
-- Lista de contatos: nome, prévia da última mensagem, timestamp
-- Ao clicar, exibe conversa completa no painel direito
-- Mensagens human → direita (roxo/azul), ai → esquerda (cinza)
-- Parser para mensagens AI: extrai apenas conteúdo de `<resposta>...</resposta>`, remove `<proximo_estagio>` e `[CONTEXTO_SESSAO]`
-- Botão "Atualizar" que re-fetcha os dados
-- Responsivo: em mobile, lista e chat alternam (como WhatsApp mobile)
-- Usa `useQuery` com `queryKey: ["vera-logs"]` e `refetchOnWindowFocus: false`
+**1. Unificar "Conversas Vera" + "Conversas WA" em uma única entrada "Conversas"**
+- Criar uma página única `/admin/conversas` com **duas abas**: "WhatsApp" e "Vera (Site)"
+- Remover `/admin/conversas-vera` como rota separada
+- Mover o conteúdo de `AdminConversasVera.tsx` para dentro de uma aba
 
-**2. Editar `src/App.tsx`**
-- Import `AdminConversasVera`
-- Nova rota: `<Route path="/admin/conversas-vera" element={<AdminPage><AdminConversasVera /></AdminPage>} />`
+**2. Absorver "Conexão" dentro de "WhatsApp"**
+- Adicionar aba "Conexão / Uptime" na página `/admin/whatsapp`
+- Remover `/admin/conexao` da sidebar
 
-**3. Editar `src/components/admin/AdminLayout.tsx`**
-- Adicionar item no `navItems`: `{ title: "Conversas Vera", url: "/admin/conversas-vera", icon: MessageCircle, module: null }`
-- Visível apenas para admin/socio (já controlado pelo filtro de `role === "agencia"`)
+**3. Absorver "Config IA Vera" dentro de "Configurações"**
+- Adicionar aba "IA Vera" na página `/admin/configuracoes`
+- Remover `/admin/ia` da sidebar
 
-### Detalhes técnicos
-- A proteção auth já existe via `AdminPage` → `ProtectedRoute` (exige user + role)
-- Para restringir a admin/socio especificamente, o item do menu será filtrado por role e a página verificará `role` do `useAuth()`
-- O fetch ao endpoint externo será feito com `fetch()` direto (não é Supabase)
-- O parser de mensagens AI usa regex: `/&lt;resposta&gt;([\s\S]*?)&lt;\/resposta&gt;/` para extrair o texto limpo
+**4. Manter "Relatórios WA" e "Analytics" separados**
+- Analytics = métricas do site (sessões, leads do site, geo)
+- Relatórios WA = métricas exclusivas do WhatsApp (funil, mensagens)
+- Renomear "Analytics" para "Analytics Site" para clareza
+
+### Resultado: sidebar reduzida de 21 para 17 itens
+
+Itens removidos da sidebar:
+- ~~Conversas Vera~~ (vira aba em Conversas)
+- ~~Conexão~~ (vira aba em WhatsApp)
+- ~~Config IA Vera~~ (vira aba em Configurações)
+
+### Arquivos afetados
+- `AdminLayout.tsx` — remover 3 itens do `navItems`
+- `AdminConversas.tsx` — adicionar Tabs com conteúdo de Conversas Vera
+- `AdminWhatsApp.tsx` — adicionar aba Conexão com conteúdo de AdminConexao
+- `AdminSettings.tsx` — adicionar aba IA Vera com conteúdo de AdminVeraConfig
+- `App.tsx` — manter rotas antigas como redirects ou removê-las
+- Renomear "Analytics" para "Analytics Site" no `navItems`
 
