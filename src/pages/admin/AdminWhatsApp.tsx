@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Wifi, WifiOff, MessageSquare, Users, CalendarDays, RefreshCw,
-  AlertTriangle, Clock, PlugZap, Activity, RotateCw, LogOut,
+  AlertTriangle, Clock, PlugZap, Activity, RotateCw, LogOut, QrCode, Hash,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
@@ -69,6 +70,73 @@ function QRCodeModal({ isOpen, base64, onClose, onRegenerateQR, isConnected }: Q
   );
 }
 
+// ─── Pairing Code Modal ───
+function PairingCodeModal({ isOpen, onClose, onGetCode, isConnected }: {
+  isOpen: boolean;
+  onClose: () => void;
+  onGetCode: (phone: string) => Promise<string>;
+  isConnected: boolean;
+}) {
+  const [phone, setPhone] = useState("558191495200");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isConnected && isOpen) { onClose(); setCode(""); }
+  }, [isConnected, isOpen, onClose]);
+
+  async function handleGetCode() {
+    setLoading(true);
+    try {
+      const result = await onGetCode(phone);
+      setCode(result);
+    } catch (e: any) {
+      toast.error("Erro ao gerar código: " + e.message);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Conectar por Código</DialogTitle>
+        </DialogHeader>
+        {!code ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Digite o número do WhatsApp a conectar (com DDI e DDD, sem símbolos):
+            </p>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="5581999999999" />
+            <Button onClick={handleGetCode} disabled={loading} className="w-full">
+              {loading ? "Gerando..." : "Gerar Código"}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              No WhatsApp vá em Configurações → Aparelhos conectados → Conectar aparelho → Conectar com número de telefone e digite:
+            </p>
+            <p className="text-3xl font-bold tracking-widest text-center bg-muted py-4 rounded">{code}</p>
+            <p className="text-xs text-muted-foreground text-center">O código expira em 60 segundos</p>
+            <Button variant="outline" onClick={() => setCode("")} className="w-full">
+              Gerar novo código
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+async function handleGetPairingCode(phone: string): Promise<string> {
+  await evoProxy("connect");
+  const res = await evoProxy<{ pairingCode?: string; code?: string }>("pairingCode", { number: phone });
+  const c = res?.pairingCode || res?.code || "";
+  if (!c) throw new Error("Código não retornado pela API");
+  return c;
+}
+
 // ─── Conexão / Uptime Tab Content ───
 interface ConnectionLog { id: string; status: string; disconnect_reason: string | null; created_at: string; }
 
@@ -98,6 +166,7 @@ function ConexaoTab() {
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [isQROpen, setIsQROpen] = useState(false);
   const [qrBase64, setQrBase64] = useState("");
+  const [isPairingOpen, setIsPairingOpen] = useState(false);
 
   useEffect(() => { checkStatus(); fetchLogs(); }, []);
 
@@ -156,6 +225,7 @@ function ConexaoTab() {
   return (
     <>
       <QRCodeModal isOpen={isQROpen} base64={qrBase64} onClose={() => setIsQROpen(false)} onRegenerateQR={handleReconnect} isConnected={isOnline} />
+      <PairingCodeModal isOpen={isPairingOpen} onClose={() => setIsPairingOpen(false)} onGetCode={handleGetPairingCode} isConnected={isOnline} />
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -168,7 +238,16 @@ function ConexaoTab() {
                   <Button size="sm" variant="outline" onClick={checkStatus} disabled={checking}>
                     <RefreshCw className={`h-3 w-3 mr-1 ${checking ? "animate-spin" : ""}`} /> Verificar
                   </Button>
-                  {!isOnline && <Button size="sm" onClick={handleReconnect} disabled={reconnecting}>{reconnecting ? "Reconectando..." : "Reconectar"}</Button>}
+                  {!isOnline && (
+                    <>
+                      <Button size="sm" onClick={handleReconnect} disabled={reconnecting}>
+                        <QrCode className="h-3 w-3 mr-1" /> {reconnecting ? "Gerando QR..." : "QR Code"}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setIsPairingOpen(true)}>
+                        <Hash className="h-3 w-3 mr-1" /> Código
+                      </Button>
+                    </>
+                  )}
                   {isOnline && <Button size="sm" variant="outline" onClick={handleRestart} disabled={restarting}><RotateCw className="h-3 w-3 mr-1" /> {restarting ? "Reiniciando..." : "Reiniciar"}</Button>}
                   {isOnline && <Button size="sm" variant="outline" onClick={handleLogout} disabled={logging}><LogOut className="h-3 w-3 mr-1" /> {logging ? "Desconectando..." : "Desconectar"}</Button>}
                 </div>
@@ -239,6 +318,7 @@ function DashboardTab() {
   const [restarting, setRestarting] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
   const [qrBase64, setQrBase64] = useState("");
+  const [isPairingOpen, setIsPairingOpen] = useState(false);
 
   const handleReconnect = async () => {
     setReconnecting(true);
@@ -285,6 +365,7 @@ function DashboardTab() {
   return (
     <>
       <QRCodeModal isOpen={isQROpen} base64={qrBase64} onClose={() => setIsQROpen(false)} onRegenerateQR={handleReconnect} isConnected={isConnected} />
+      <PairingCodeModal isOpen={isPairingOpen} onClose={() => setIsPairingOpen(false)} onGetCode={handleGetPairingCode} isConnected={isConnected} />
       <div className="space-y-6">
         <div className="flex justify-end">
           <Button variant="outline" size="sm" onClick={refreshAll}><RefreshCw className="h-4 w-4 mr-2" /> Atualizar</Button>
@@ -304,7 +385,16 @@ function DashboardTab() {
                   <p className="text-sm text-muted-foreground">Instância: {connStatus?.instance?.instanceName || "vera-whatsapp"}</p>
                 </div>
               </div>
-              {!isConnected && <Button onClick={handleReconnect} disabled={reconnecting}><PlugZap className="h-4 w-4 mr-2" />{reconnecting ? "Reconectando..." : "Reconectar"}</Button>}
+              {!isConnected && (
+                <div className="flex gap-2">
+                  <Button onClick={handleReconnect} disabled={reconnecting}>
+                    <QrCode className="h-4 w-4 mr-2" />{reconnecting ? "Gerando QR..." : "QR Code"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsPairingOpen(true)}>
+                    <Hash className="h-4 w-4 mr-2" /> Código
+                  </Button>
+                </div>
+              )}
               {isConnected && (
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={handleRestart} disabled={restarting}><RotateCw className="h-4 w-4 mr-2" /> {restarting ? "Reiniciando..." : "Reiniciar"}</Button>

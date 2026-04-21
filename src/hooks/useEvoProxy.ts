@@ -9,7 +9,8 @@ export type EvoAction =
   | "connect"
   | "fetchInstances"
   | "logout"
-  | "restart";
+  | "restart"
+  | "pairingCode";
 
 export async function evoProxy<T = unknown>(
   action: EvoAction,
