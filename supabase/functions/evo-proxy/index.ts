@@ -25,16 +25,33 @@ async function evoFetch(path: string, method: string, apiKey: string, body?: unk
   const opts: RequestInit = { method, headers: { apikey: apiKey, "Content-Type": "application/json" } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${EVO_BASE}${path}`, opts);
-  return { status: res.status, data: await res.json() };
+  const data = await res.json().catch(() => ({}));
+  return { status: res.status, data };
 }
 
 async function ensureInstanceExists(apiKey: string): Promise<void> {
+  console.log("[evo-proxy] Creating instance...");
   await evoFetch("/instance/create", "POST", apiKey, {
     instanceName: INSTANCE, integration: "WHATSAPP-BAILEYS", token: apiKey, qrcode: true,
   });
   await new Promise((r) => setTimeout(r, 2000));
+  console.log("[evo-proxy] Setting webhook...");
   await evoFetch(`/webhook/set/${INSTANCE}`, "POST", apiKey, {
     webhook: { enabled: true, url: WA_WEBHOOK, webhookByEvents: false, webhookBase64: false, events: ["MESSAGES_UPSERT"] },
+  });
+}
+
+function ok(data: unknown) {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function err(message: string, status = 400) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
@@ -42,41 +59,49 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return new Response(JSON.stringify({ error: "Missing authorization header" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!authHeader) return err("Missing authorization header", 401);
 
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (authError || !user) return err("Unauthorized", 401);
 
   const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: user.id });
-  if (!isAdmin) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!isAdmin) return err("Forbidden", 403);
 
   let action: string, body: unknown;
   try { const json = await req.json(); action = json.action; body = json.body; }
-  catch { return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
+  catch { return err("Invalid JSON body"); }
 
   const endpoint = ALLOWED_ACTIONS[action];
-  if (!endpoint) return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!endpoint) return err(`Unknown action: ${action}`);
 
   const evoApiKey = Deno.env.get("EVO_API_KEY");
-  if (!evoApiKey) return new Response(JSON.stringify({ error: "EVO_API_KEY not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
-  const fetchOptions: RequestInit = { method: endpoint.method, headers: { apikey: evoApiKey, "Content-Type": "application/json" } };
-  if (endpoint.method === "POST" && body) fetchOptions.body = JSON.stringify(body);
+  if (!evoApiKey) return err("EVO_API_KEY not configured", 500);
 
   try {
-    const response = await fetch(`${EVO_BASE}${endpoint.path}`, fetchOptions);
-    let data = await response.json();
+    console.log(`[evo-proxy] action=${action} → ${endpoint.method} ${endpoint.path}`);
+    const response = await evoFetch(endpoint.path, endpoint.method, evoApiKey, endpoint.method === "POST" ? body : undefined);
+    console.log(`[evo-proxy] evo status=${response.status} data=${JSON.stringify(response.data).slice(0, 200)}`);
 
-    if (action === "connect" && (response.status === 404 || data?.error || (typeof data?.message === "string" && data.message.toLowerCase().includes("not found")))) {
+    if (
+      action === "connect" &&
+      (response.status === 404 ||
+        response.data?.error ||
+        (typeof response.data?.message === "string" && response.data.message.toLowerCase().includes("not found")))
+    ) {
+      console.log("[evo-proxy] Instance not found, auto-creating...");
       await ensureInstanceExists(evoApiKey);
-      const retry = await fetch(`${EVO_BASE}${endpoint.path}`, fetchOptions);
-      data = await retry.json();
-      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: retry.status });
+      const retry = await evoFetch(endpoint.path, endpoint.method, evoApiKey);
+      console.log(`[evo-proxy] retry status=${retry.status} data=${JSON.stringify(retry.data).slice(0, 200)}`);
+      return ok(retry.data);
     }
 
-    return new Response(JSON.stringify(data), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: response.status });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: "Failed to reach Evolution API", details: String(err) }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return ok(response.data);
+  } catch (e) {
+    console.error("[evo-proxy] error:", e);
+    return err(`Failed to reach Evolution API: ${String(e)}`, 502);
   }
 });
