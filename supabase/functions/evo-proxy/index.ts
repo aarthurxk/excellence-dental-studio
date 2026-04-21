@@ -19,6 +19,7 @@ const ALLOWED_ACTIONS: Record<string, { method: string; path: string }> = {
   fetchInstances: { method: "GET", path: `/instance/fetchInstances` },
   logout: { method: "DELETE", path: `/instance/logout/${INSTANCE}` },
   restart: { method: "PUT", path: `/instance/restart/${INSTANCE}` },
+  pairingCode: { method: "POST", path: `/instance/pairingCode/${INSTANCE}` },
 };
 
 async function evoFetch(path: string, method: string, apiKey: string, body?: unknown) {
