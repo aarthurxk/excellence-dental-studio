@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const EVO_BASE = "https://evo.odontoexcellencerecife.com.br";
 const INSTANCE = "vera-whatsapp";
+const WA_WEBHOOK = "https://bot.odontoexcellencerecife.com.br/webhook/vera-whatsapp";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,12 +22,46 @@ const ALLOWED_ACTIONS: Record<string, { method: string; path: string }> = {
   restart: { method: "PUT", path: `/instance/restart/${INSTANCE}` },
 };
 
+async function evoFetch(path: string, method: string, apiKey: string, body?: unknown) {
+  const opts: RequestInit = {
+    method,
+    headers: { apikey: apiKey, "Content-Type": "application/json" },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${EVO_BASE}${path}`, opts);
+  const data = await res.json();
+  return { status: res.status, data };
+}
+
+async function ensureInstanceExists(apiKey: string): Promise<void> {
+  // Criar instância
+  await evoFetch("/instance/create", "POST", apiKey, {
+    instanceName: INSTANCE,
+    integration: "WHATSAPP-BAILEYS",
+    token: apiKey,
+    qrcode: true,
+  });
+
+  // Aguardar instância inicializar
+  await new Promise((r) => setTimeout(r, 2000));
+
+  // Configurar webhook
+  await evoFetch(`/webhook/set/${INSTANCE}`, "POST", apiKey, {
+    webhook: {
+      enabled: true,
+      url: WA_WEBHOOK,
+      webhookByEvents: false,
+      webhookBase64: false,
+      events: ["MESSAGES_UPSERT"],
+    },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Verify JWT
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return new Response(
@@ -49,7 +84,6 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Check admin role
   const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: user.id });
   if (!isAdmin) {
     return new Response(
@@ -58,7 +92,6 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Parse request
   let action: string;
   let body: unknown;
   try {
@@ -88,21 +121,29 @@ Deno.serve(async (req) => {
     );
   }
 
-  const fetchOptions: RequestInit = {
-    method: endpoint.method,
-    headers: {
-      apikey: evoApiKey,
-      "Content-Type": "application/json",
-    },
-  };
-
-  if (endpoint.method === "POST" && body) {
-    fetchOptions.body = JSON.stringify(body);
-  }
-
   try {
+    const fetchOptions: RequestInit = {
+      method: endpoint.method,
+      headers: { apikey: evoApiKey, "Content-Type": "application/json" },
+    };
+    if (endpoint.method === "POST" && body) {
+      fetchOptions.body = JSON.stringify(body);
+    }
+
     const response = await fetch(`${EVO_BASE}${endpoint.path}`, fetchOptions);
-    const data = await response.json();
+    let data = await response.json();
+
+    // Se connect retornar 404, cria a instância automaticamente e tenta de novo
+    if (action === "connect" && (response.status === 404 || data?.error || data?.message?.includes?.("not found"))) {
+      await ensureInstanceExists(evoApiKey);
+      const retry = await fetch(`${EVO_BASE}${endpoint.path}`, fetchOptions);
+      data = await retry.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: retry.status,
+      });
+    }
+
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: response.status,
