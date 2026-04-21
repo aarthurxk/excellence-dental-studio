@@ -254,7 +254,7 @@ const SiteChatWidget = () => {
 
   return (
     <>
-      <div className="fixed bottom-4 right-20 z-[9998] hidden md:block">
+      <div className="fixed bottom-20 right-4 z-[9998] hidden md:block md:bottom-24 md:right-6">
         <span className="mb-3 block rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#111111] shadow-lg">
           Atendimento online
         </span>
@@ -263,7 +263,7 @@ const SiteChatWidget = () => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-20 z-[9998] flex h-12 w-12 items-center justify-center rounded-full bg-[#d72638] text-white shadow-xl transition-transform duration-300 hover:scale-105 md:bottom-6 md:right-24 md:h-14 md:w-14"
+        className="fixed bottom-20 right-4 z-[9998] flex h-12 w-12 items-center justify-center rounded-full bg-[#d72638] text-white shadow-xl transition-transform duration-300 hover:scale-105 md:bottom-24 md:right-6 md:h-14 md:w-14"
         aria-label="Abrir chat da clínica"
       >
         <span className="absolute inline-flex h-full w-full rounded-full bg-[#d72638] opacity-30 animate-ping" />
