@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Wifi, WifiOff, MessageSquare, Users, CalendarDays, RefreshCw,
-  AlertTriangle, Clock, PlugZap, Activity, RotateCw, LogOut,
+  AlertTriangle, Clock, PlugZap, Activity, RotateCw, LogOut, QrCode, Hash,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
