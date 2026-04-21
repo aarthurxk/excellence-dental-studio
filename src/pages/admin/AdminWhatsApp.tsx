@@ -166,6 +166,7 @@ function ConexaoTab() {
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [isQROpen, setIsQROpen] = useState(false);
   const [qrBase64, setQrBase64] = useState("");
+  const [isPairingOpen, setIsPairingOpen] = useState(false);
 
   useEffect(() => { checkStatus(); fetchLogs(); }, []);
 
@@ -224,6 +225,7 @@ function ConexaoTab() {
   return (
     <>
       <QRCodeModal isOpen={isQROpen} base64={qrBase64} onClose={() => setIsQROpen(false)} onRegenerateQR={handleReconnect} isConnected={isOnline} />
+      <PairingCodeModal isOpen={isPairingOpen} onClose={() => setIsPairingOpen(false)} onGetCode={handleGetPairingCode} isConnected={isOnline} />
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -236,7 +238,16 @@ function ConexaoTab() {
                   <Button size="sm" variant="outline" onClick={checkStatus} disabled={checking}>
                     <RefreshCw className={`h-3 w-3 mr-1 ${checking ? "animate-spin" : ""}`} /> Verificar
                   </Button>
-                  {!isOnline && <Button size="sm" onClick={handleReconnect} disabled={reconnecting}>{reconnecting ? "Reconectando..." : "Reconectar"}</Button>}
+                  {!isOnline && (
+                    <>
+                      <Button size="sm" onClick={handleReconnect} disabled={reconnecting}>
+                        <QrCode className="h-3 w-3 mr-1" /> {reconnecting ? "Gerando QR..." : "QR Code"}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setIsPairingOpen(true)}>
+                        <Hash className="h-3 w-3 mr-1" /> Código
+                      </Button>
+                    </>
+                  )}
                   {isOnline && <Button size="sm" variant="outline" onClick={handleRestart} disabled={restarting}><RotateCw className="h-3 w-3 mr-1" /> {restarting ? "Reiniciando..." : "Reiniciar"}</Button>}
                   {isOnline && <Button size="sm" variant="outline" onClick={handleLogout} disabled={logging}><LogOut className="h-3 w-3 mr-1" /> {logging ? "Desconectando..." : "Desconectar"}</Button>}
                 </div>
@@ -307,6 +318,7 @@ function DashboardTab() {
   const [restarting, setRestarting] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
   const [qrBase64, setQrBase64] = useState("");
+  const [isPairingOpen, setIsPairingOpen] = useState(false);
 
   const handleReconnect = async () => {
     setReconnecting(true);
@@ -353,6 +365,7 @@ function DashboardTab() {
   return (
     <>
       <QRCodeModal isOpen={isQROpen} base64={qrBase64} onClose={() => setIsQROpen(false)} onRegenerateQR={handleReconnect} isConnected={isConnected} />
+      <PairingCodeModal isOpen={isPairingOpen} onClose={() => setIsPairingOpen(false)} onGetCode={handleGetPairingCode} isConnected={isConnected} />
       <div className="space-y-6">
         <div className="flex justify-end">
           <Button variant="outline" size="sm" onClick={refreshAll}><RefreshCw className="h-4 w-4 mr-2" /> Atualizar</Button>
@@ -372,7 +385,16 @@ function DashboardTab() {
                   <p className="text-sm text-muted-foreground">Instância: {connStatus?.instance?.instanceName || "vera-whatsapp"}</p>
                 </div>
               </div>
-              {!isConnected && <Button onClick={handleReconnect} disabled={reconnecting}><PlugZap className="h-4 w-4 mr-2" />{reconnecting ? "Reconectando..." : "Reconectar"}</Button>}
+              {!isConnected && (
+                <div className="flex gap-2">
+                  <Button onClick={handleReconnect} disabled={reconnecting}>
+                    <QrCode className="h-4 w-4 mr-2" />{reconnecting ? "Gerando QR..." : "QR Code"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsPairingOpen(true)}>
+                    <Hash className="h-4 w-4 mr-2" /> Código
+                  </Button>
+                </div>
+              )}
               {isConnected && (
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={handleRestart} disabled={restarting}><RotateCw className="h-4 w-4 mr-2" /> {restarting ? "Reiniciando..." : "Reiniciar"}</Button>
