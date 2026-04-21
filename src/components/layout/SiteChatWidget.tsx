@@ -254,12 +254,6 @@ const SiteChatWidget = () => {
 
   return (
     <>
-      <div className="fixed bottom-20 right-4 z-[9998] hidden md:block md:bottom-24 md:right-6">
-        <span className="mb-3 block rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#111111] shadow-lg">
-          Atendimento online
-        </span>
-      </div>
-
       <button
         type="button"
         onClick={() => setIsOpen(true)}
