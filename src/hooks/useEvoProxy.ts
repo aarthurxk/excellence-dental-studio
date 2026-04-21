@@ -19,5 +19,6 @@ export async function evoProxy<T = unknown>(
     body: { action, body },
   });
   if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
   return data as T;
 }
