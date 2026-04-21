@@ -17,6 +17,8 @@ const ALLOWED_ACTIONS: Record<string, { method: string; path: string }> = {
   sendText: { method: "POST", path: `/message/sendText/${INSTANCE}` },
   connect: { method: "GET", path: `/instance/connect/${INSTANCE}` },
   fetchInstances: { method: "GET", path: `/instance/fetchInstances` },
+  logout: { method: "DELETE", path: `/instance/logout/${INSTANCE}` },
+  restart: { method: "PUT", path: `/instance/restart/${INSTANCE}` },
 };
 
 Deno.serve(async (req) => {

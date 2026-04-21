@@ -7,7 +7,9 @@ export type EvoAction =
   | "findContacts"
   | "sendText"
   | "connect"
-  | "fetchInstances";
+  | "fetchInstances"
+  | "logout"
+  | "restart";
 
 export async function evoProxy<T = unknown>(
   action: EvoAction,
