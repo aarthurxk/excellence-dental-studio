@@ -37,10 +37,6 @@ async function ensureInstanceExists(apiKey: string): Promise<void> {
     integration: "WHATSAPP-BAILEYS",
     token: "548C7E69-C5EA-49FE-9FD4-FCCD9797F52D",
     qrcode: true,
-  });
-  await new Promise((r) => setTimeout(r, 2000));
-  console.log("[evo-proxy] Setting webhook...");
-  await evoFetch(`/webhook/set/${INSTANCE}`, "POST", apiKey, {
     webhook: {
       enabled: true,
       url: WA_WEBHOOK,
@@ -49,6 +45,8 @@ async function ensureInstanceExists(apiKey: string): Promise<void> {
       events: ["MESSAGES_UPSERT"],
     },
   });
+  await new Promise((r) => setTimeout(r, 2000));
+  console.log("[evo-proxy] Webhook already set via create.");
 }
 
 function ok(data: unknown) {
@@ -90,12 +88,6 @@ Deno.serve(async (req) => {
 
   const evoApiKey = Deno.env.get("EVO_API_KEY");
   if (!evoApiKey) return err("EVO_API_KEY not configured", 500);
-
-  const fetchOptions: RequestInit = {
-    method: endpoint.method,
-    headers: { apikey: evoApiKey, "Content-Type": "application/json" },
-  };
-  if (endpoint.method === "POST" && body) fetchOptions.body = JSON.stringify(body);
 
   try {
     console.log(`[evo-proxy] action=${action} → ${endpoint.method} ${endpoint.path}`);
