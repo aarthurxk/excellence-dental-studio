@@ -179,12 +179,23 @@ function ConexaoTab() {
   async function handleReconnect() {
     setReconnecting(true);
     try {
-      const res = await evoProxy<{ pairingCode?: string; code?: string; base64?: string }>("connect");
-      if (res?.base64) {
-        setQrBase64(res.base64);
+      let res = await evoProxy<{ base64?: string; qrcode?: { base64?: string }; count?: number }>("connect");
+      let qr = res?.base64 || res?.qrcode?.base64;
+
+      if (!qr) {
+        toast.info("Resetando sessão...");
+        await evoProxy("logout");
+        await new Promise((r) => setTimeout(r, 3000));
+        res = await evoProxy<{ base64?: string; qrcode?: { base64?: string } }>("connect");
+        qr = res?.base64 || res?.qrcode?.base64;
+      }
+
+      if (qr) {
+        setQrBase64(qr);
         setIsQROpen(true);
       } else {
-        toast.success(`Reconectando... Código: ${res.pairingCode || res.code || "Enviado"}`);
+        toast.error("Não foi possível gerar o QR Code. Verifique os logs do servidor.");
+        console.error("[evo-proxy connect] sem QR após retry:", res);
       }
       setTimeout(checkStatus, 3000);
     } catch { toast.error("Erro ao reconectar"); }
@@ -323,12 +334,24 @@ function DashboardTab() {
   const handleReconnect = async () => {
     setReconnecting(true);
     try {
-      const res = await evoProxy<{ pairingCode?: string; code?: string; base64?: string }>("connect");
-      if (res?.base64) {
-        setQrBase64(res.base64);
+      let res = await evoProxy<{ base64?: string; qrcode?: { base64?: string }; count?: number }>("connect");
+      let qr = res?.base64 || res?.qrcode?.base64;
+
+      // Instância presa em "open" no banco mas sem sessão real — logout forçado e retry
+      if (!qr) {
+        toast.info("Resetando sessão...");
+        await evoProxy("logout");
+        await new Promise((r) => setTimeout(r, 3000));
+        res = await evoProxy<{ base64?: string; qrcode?: { base64?: string } }>("connect");
+        qr = res?.base64 || res?.qrcode?.base64;
+      }
+
+      if (qr) {
+        setQrBase64(qr);
         setIsQROpen(true);
       } else {
-        toast.success(`Reconectando... Código: ${res.pairingCode || res.code || "Enviado"}`);
+        toast.error("Não foi possível gerar o QR Code. Verifique os logs do servidor.");
+        console.error("[evo-proxy connect] sem QR após retry:", res);
       }
       qc.invalidateQueries({ queryKey: ["evo-connection"] });
     } catch (e: any) { toast.error("Erro ao reconectar: " + e.message); } finally { setReconnecting(false); }
