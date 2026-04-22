@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const EVO_BASE = "https://evo.odontoexcellencerecife.com.br";
 const INSTANCE = "vera-whatsapp";
-const WA_WEBHOOK = "https://bot.odontoexcellencerecife.com.br/webhook/vera-whatsapp";
+const WA_WEBHOOK = "http://10.0.2.4:5678/webhook/vera-wa-adapter";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
