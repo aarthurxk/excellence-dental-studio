@@ -12,6 +12,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
 
 interface EvoChat { remoteJid: string; name: string | null; unreadMessages: number; }
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
@@ -166,21 +167,29 @@ export default function ConversasWhatsApp() {
           <div className="flex-1 flex items-center justify-center text-muted-foreground">Selecione uma conversa para visualizar</div>
         ) : (
           <>
-            <div className="h-14 border-b flex items-center px-4 gap-3 shrink-0">
-              <button className="md:hidden" onClick={() => setSelectedChat(null)}><ArrowLeft className="h-5 w-5" /></button>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{selectedChatInfo?.name || selectedPhone}</p>
-                <p className="text-xs text-muted-foreground">{selectedPhone}</p>
+            <div className="border-b shrink-0">
+              <div className="h-14 flex items-center px-4 gap-3">
+                <button className="md:hidden" onClick={() => setSelectedChat(null)}><ArrowLeft className="h-5 w-5" /></button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{selectedChatInfo?.name || selectedPhone}</p>
+                  <p className="text-xs text-muted-foreground">{selectedPhone}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {leadInfo && (
+                    <Button variant="outline" size="sm" onClick={toggleAI} className={cn("text-xs gap-1", leadInfo.ai_enabled ? "text-green-600 border-green-500" : "text-amber-600 border-amber-500")}>
+                      {leadInfo.ai_enabled ? <><Bot className="h-3.5 w-3.5" /> IA Ativa</> : <><User className="h-3.5 w-3.5" /> Humano</>}
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => refetchMsgs()}><RefreshCw className="h-4 w-4" /></Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {leadInfo && (
-                  <Button variant="outline" size="sm" onClick={toggleAI} className={cn("text-xs gap-1", leadInfo.ai_enabled ? "text-green-600 border-green-500" : "text-amber-600 border-amber-500")}>
-                    {leadInfo.ai_enabled ? <><Bot className="h-3.5 w-3.5" /> IA Ativa</> : <><User className="h-3.5 w-3.5" /> Humano</>}
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => refetchMsgs()}><RefreshCw className="h-4 w-4" /></Button>
-              </div>
+              {leadInfo && (
+                <div className="px-4 pb-2">
+                  <LeadTagsEditor leadId={leadInfo.id} size="sm" />
+                </div>
+              )}
             </div>
+
             <ScrollArea className="flex-1 p-4">
               {msgsLoading ? <MessageSkeleton /> : messages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">Nenhuma mensagem</div>

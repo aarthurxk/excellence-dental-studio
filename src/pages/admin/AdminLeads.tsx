@@ -24,6 +24,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import LeadTagsEditor, { LeadTagChip } from "@/components/admin/LeadTagsEditor";
+import { useLeadTagsMap } from "@/hooks/useLeadTags";
 
 const STATUSES = [
   { value: "novo", label: "Novo", color: "bg-blue-500" },
@@ -55,7 +57,9 @@ export default function AdminLeads() {
     },
   });
 
-  // Lead detail
+  // Etiquetas de todos os leads carregados (uma única query)
+  const tagsMap = useLeadTagsMap(leads.map((l) => l.id)).data ?? {};
+
   const lead = useMemo(() => leads.find((l) => l.id === selectedLead), [leads, selectedLead]);
 
   // Messages for detail
@@ -222,6 +226,13 @@ export default function AdminLeads() {
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Phone className="h-3 w-3" /> {l.phone}
                         </p>
+                        {(tagsMap[l.id]?.length ?? 0) > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {tagsMap[l.id].map((t) => (
+                              <LeadTagChip key={t.id} tag={t} size="sm" />
+                            ))}
+                          </div>
+                        )}
                         {l.last_message_preview && (
                           <p className="text-xs text-muted-foreground truncate italic">
                             "{l.last_message_preview}"
@@ -234,6 +245,7 @@ export default function AdminLeads() {
                           )}
                         </div>
                       </CardContent>
+
                     </Card>
                   ))}
                 </div>
@@ -252,6 +264,7 @@ export default function AdminLeads() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Etiquetas</TableHead>
                 <TableHead>IA</TableHead>
                 <TableHead>Msgs</TableHead>
                 <TableHead>Último Contato</TableHead>
@@ -260,12 +273,13 @@ export default function AdminLeads() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={7} className="text-center">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center">Carregando...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Nenhum lead</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhum lead</TableCell></TableRow>
               ) : (
                 filtered.map((l) => {
                   const si = statusInfo(l.status ?? "novo");
+                  const leadTags = tagsMap[l.id] ?? [];
                   return (
                     <TableRow key={l.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(l.id)}>
                       <TableCell className="font-medium">{l.name || l.push_name || "—"}</TableCell>
@@ -275,6 +289,15 @@ export default function AdminLeads() {
                           <span className={cn("h-2 w-2 rounded-full", si.color)} />
                           {si.label}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {leadTags.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            leadTags.map((t) => <LeadTagChip key={t.id} tag={t} size="sm" />)
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{l.ai_enabled ? "🤖" : "👤"}</TableCell>
                       <TableCell>{(l.total_messages_in ?? 0) + (l.total_messages_out ?? 0)}</TableCell>
@@ -289,6 +312,7 @@ export default function AdminLeads() {
                 })
               )}
             </TableBody>
+
           </Table>
         </div>
       )}
@@ -349,8 +373,15 @@ export default function AdminLeads() {
                   </Select>
                 </div>
 
+                {/* Etiquetas */}
+                <div>
+                  <p className="text-muted-foreground text-xs mb-2">Etiquetas</p>
+                  <LeadTagsEditor leadId={lead.id} size="md" />
+                </div>
+
                 {/* Notes */}
                 <div>
+
                   <p className="text-muted-foreground text-xs mb-1">Notas Internas</p>
                   <Textarea
                     value={editingNotes}
