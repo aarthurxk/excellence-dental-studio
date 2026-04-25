@@ -264,6 +264,7 @@ export default function AdminLeads() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Etiquetas</TableHead>
                 <TableHead>IA</TableHead>
                 <TableHead>Msgs</TableHead>
                 <TableHead>Último Contato</TableHead>
@@ -272,12 +273,13 @@ export default function AdminLeads() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={7} className="text-center">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center">Carregando...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Nenhum lead</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhum lead</TableCell></TableRow>
               ) : (
                 filtered.map((l) => {
                   const si = statusInfo(l.status ?? "novo");
+                  const leadTags = tagsMap[l.id] ?? [];
                   return (
                     <TableRow key={l.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(l.id)}>
                       <TableCell className="font-medium">{l.name || l.push_name || "—"}</TableCell>
@@ -287,6 +289,15 @@ export default function AdminLeads() {
                           <span className={cn("h-2 w-2 rounded-full", si.color)} />
                           {si.label}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {leadTags.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            leadTags.map((t) => <LeadTagChip key={t.id} tag={t} size="sm" />)
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{l.ai_enabled ? "🤖" : "👤"}</TableCell>
                       <TableCell>{(l.total_messages_in ?? 0) + (l.total_messages_out ?? 0)}</TableCell>
@@ -301,6 +312,7 @@ export default function AdminLeads() {
                 })
               )}
             </TableBody>
+
           </Table>
         </div>
       )}
