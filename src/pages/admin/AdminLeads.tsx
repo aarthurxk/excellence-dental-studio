@@ -57,7 +57,9 @@ export default function AdminLeads() {
     },
   });
 
-  // Lead detail
+  // Etiquetas de todos os leads carregados (uma única query)
+  const tagsMap = useLeadTagsMap(leads.map((l) => l.id)).data ?? {};
+
   const lead = useMemo(() => leads.find((l) => l.id === selectedLead), [leads, selectedLead]);
 
   // Messages for detail
