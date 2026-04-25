@@ -24,6 +24,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import LeadTagsEditor, { LeadTagChip } from "@/components/admin/LeadTagsEditor";
+import { useLeadTagsMap } from "@/hooks/useLeadTags";
 
 const STATUSES = [
   { value: "novo", label: "Novo", color: "bg-blue-500" },
