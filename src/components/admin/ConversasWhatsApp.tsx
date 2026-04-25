@@ -12,6 +12,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
 
 interface EvoChat { remoteJid: string; name: string | null; unreadMessages: number; }
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
