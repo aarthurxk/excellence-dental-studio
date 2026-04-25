@@ -90,9 +90,22 @@ export default function ConversasWhatsApp() {
   const selectedPhone = selectedChat?.replace("@s.whatsapp.net", "") ?? "";
   const { data: leadInfo } = useQuery({
     queryKey: ["lead-info", selectedPhone],
-    queryFn: async () => { if (!selectedPhone) return null; const { data } = await supabase.from("leads").select("*").eq("phone", selectedPhone).maybeSingle(); return data; },
+    queryFn: async () => {
+      if (!selectedPhone) return null;
+      const { data: existing } = await supabase.from("leads").select("*").eq("phone", selectedPhone).maybeSingle();
+      if (existing) return existing;
+      // Cria lead "stub" automaticamente para permitir etiquetas/notas
+      const chatInfo = chats.find((c) => c.remoteJid === selectedChat);
+      const { data: created } = await supabase
+        .from("leads")
+        .insert({ phone: selectedPhone, push_name: chatInfo?.name ?? null, status: "novo" })
+        .select()
+        .single();
+      return created;
+    },
     enabled: !!selectedPhone,
   });
+
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
