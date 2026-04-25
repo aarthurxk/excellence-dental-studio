@@ -96,8 +96,6 @@ function AppRoutes() {
       </AnimatePresence>
       {!isAdmin && (
         <>
-          <SiteChatWidget />
-          <WhatsAppButton />
         </>
       )}
     </>
@@ -114,8 +112,6 @@ const App = () => (
           <ScrollToTop />
           <AppRoutes />
           <AnalyticsProvider />
-          <SiteChatWidget />
-          <WhatsAppButton />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
