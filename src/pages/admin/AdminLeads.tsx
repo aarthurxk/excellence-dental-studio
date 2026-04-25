@@ -226,6 +226,13 @@ export default function AdminLeads() {
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Phone className="h-3 w-3" /> {l.phone}
                         </p>
+                        {(tagsMap[l.id]?.length ?? 0) > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {tagsMap[l.id].map((t) => (
+                              <LeadTagChip key={t.id} tag={t} size="sm" />
+                            ))}
+                          </div>
+                        )}
                         {l.last_message_preview && (
                           <p className="text-xs text-muted-foreground truncate italic">
                             "{l.last_message_preview}"
@@ -238,6 +245,7 @@ export default function AdminLeads() {
                           )}
                         </div>
                       </CardContent>
+
                     </Card>
                   ))}
                 </div>
