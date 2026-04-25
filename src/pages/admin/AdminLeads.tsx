@@ -373,8 +373,15 @@ export default function AdminLeads() {
                   </Select>
                 </div>
 
+                {/* Etiquetas */}
+                <div>
+                  <p className="text-muted-foreground text-xs mb-2">Etiquetas</p>
+                  <LeadTagsEditor leadId={lead.id} size="md" />
+                </div>
+
                 {/* Notes */}
                 <div>
+
                   <p className="text-muted-foreground text-xs mb-1">Notas Internas</p>
                   <Textarea
                     value={editingNotes}
