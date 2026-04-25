@@ -55,43 +55,52 @@ function AdminPage({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/sobre" element={<PageTransition><About /></PageTransition>} />
-        <Route path="/equipe" element={<PageTransition><TeamPage /></PageTransition>} />
-        <Route path="/tratamentos" element={<PageTransition><ServicesPage /></PageTransition>} />
-        <Route path="/depoimentos" element={<PageTransition><TestimonialsPage /></PageTransition>} />
-        <Route path="/videos" element={<PageTransition><VideosPage /></PageTransition>} />
-        <Route path="/eventos" element={<PageTransition><EventsPage /></PageTransition>} />
-        <Route path="/contato" element={<PageTransition><ContactPage /></PageTransition>} />
+    <>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+          <Route path="/sobre" element={<PageTransition><About /></PageTransition>} />
+          <Route path="/equipe" element={<PageTransition><TeamPage /></PageTransition>} />
+          <Route path="/tratamentos" element={<PageTransition><ServicesPage /></PageTransition>} />
+          <Route path="/depoimentos" element={<PageTransition><TestimonialsPage /></PageTransition>} />
+          <Route path="/videos" element={<PageTransition><VideosPage /></PageTransition>} />
+          <Route path="/eventos" element={<PageTransition><EventsPage /></PageTransition>} />
+          <Route path="/contato" element={<PageTransition><ContactPage /></PageTransition>} />
 
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/reset-password" element={<AdminResetPassword />} />
-        <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
-        <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
-        <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
-        <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
-        <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
-        <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
-        <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
-        <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
-        <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
-        <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
-        <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
-        <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
-        <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
-        <Route path="/admin/analytics" element={<AdminPage><AdminAnalytics /></AdminPage>} />
-        <Route path="/admin/whatsapp" element={<AdminPage><AdminWhatsApp /></AdminPage>} />
-        <Route path="/admin/conversas" element={<AdminPage><AdminConversas /></AdminPage>} />
-        <Route path="/admin/leads" element={<AdminPage><AdminLeads /></AdminPage>} />
-        <Route path="/admin/relatorios" element={<AdminPage><AdminRelatorios /></AdminPage>} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+          <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
+          <Route path="/admin/tratamentos" element={<AdminPage><AdminServices /></AdminPage>} />
+          <Route path="/admin/dentistas" element={<AdminPage><AdminDentists /></AdminPage>} />
+          <Route path="/admin/depoimentos" element={<AdminPage><AdminTestimonials /></AdminPage>} />
+          <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
+          <Route path="/admin/eventos" element={<AdminPage><AdminEvents /></AdminPage>} />
+          <Route path="/admin/diferenciais" element={<AdminPage><AdminFeatures /></AdminPage>} />
+          <Route path="/admin/sobre" element={<AdminPage><AdminAbout /></AdminPage>} />
+          <Route path="/admin/mensagens" element={<AdminPage><AdminMessages /></AdminPage>} />
+          <Route path="/admin/configuracoes" element={<AdminPage><AdminSettings /></AdminPage>} />
+          <Route path="/admin/roadmap" element={<AdminPage><AdminRoadmap /></AdminPage>} />
+          <Route path="/admin/usuarios" element={<AdminPage><AdminUsers /></AdminPage>} />
+          <Route path="/admin/antes-depois" element={<AdminPage><AdminBeforeAfter /></AdminPage>} />
+          <Route path="/admin/analytics" element={<AdminPage><AdminAnalytics /></AdminPage>} />
+          <Route path="/admin/whatsapp" element={<AdminPage><AdminWhatsApp /></AdminPage>} />
+          <Route path="/admin/conversas" element={<AdminPage><AdminConversas /></AdminPage>} />
+          <Route path="/admin/leads" element={<AdminPage><AdminLeads /></AdminPage>} />
+          <Route path="/admin/relatorios" element={<AdminPage><AdminRelatorios /></AdminPage>} />
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AnimatePresence>
+      {!isAdmin && (
+        <>
+          <SiteChatWidget />
+          <WhatsAppButton />
+        </>
+      )}
+    </>
   );
 }
 
