@@ -142,6 +142,8 @@ Deno.serve(async (req) => {
       audio_pending: isAudio,
     });
 
+    fanOutToN8n(body);
+
     return jsonResponse({ ok: true });
   } catch (e) {
     console.error("[evo-webhook] error:", e);
