@@ -1,1 +1,16 @@
 project_id = "wgjorvpipbwgguaxyuvj"
+
+[functions.evo-webhook]
+verify_jwt = false
+
+[functions.evo-webhook-update]
+verify_jwt = false
+
+[functions.ingest-resumo]
+verify_jwt = false
+
+[functions.ingest-conversation-state]
+verify_jwt = false
+
+[functions.ingest-handoff]
+verify_jwt = false
