@@ -47,6 +47,7 @@ const navItems = [
   { title: "Resumos Vera", url: "/admin/resumos", icon: FileText, module: null },
   { title: "Handoff", url: "/admin/handoff", icon: HandHelping, module: null },
   { title: "Prompts Vera", url: "/admin/vera-prompts", icon: Brain, module: null },
+  { title: "Auditoria", url: "/admin/audit", icon: ShieldCheck, module: null },
 ];
 
 function AdminSidebar() {
