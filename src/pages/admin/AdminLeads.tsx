@@ -49,6 +49,12 @@ export default function AdminLeads() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState("");
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; when: string } | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [rescheduleTarget, setRescheduleTarget] = useState<{ id: string; when: string } | null>(null);
+  const [newDateTime, setNewDateTime] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["crm-leads"],
