@@ -43,6 +43,7 @@ import AdminConversas from "./pages/admin/AdminConversas";
 import AdminLeads from "./pages/admin/AdminLeads";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminResumos from "./pages/admin/AdminResumos";
+import AdminHandoff from "./pages/admin/AdminHandoff";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ function AppRoutes() {
           <Route path="/admin/leads" element={<AdminPage><AdminLeads /></AdminPage>} />
           <Route path="/admin/relatorios" element={<AdminPage><AdminRelatorios /></AdminPage>} />
           <Route path="/admin/resumos" element={<AdminPage><AdminResumos /></AdminPage>} />
+          <Route path="/admin/handoff" element={<AdminPage><AdminHandoff /></AdminPage>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
