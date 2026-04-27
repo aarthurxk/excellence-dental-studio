@@ -45,6 +45,7 @@ import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminResumos from "./pages/admin/AdminResumos";
 import AdminHandoff from "./pages/admin/AdminHandoff";
 import AdminVeraPrompts from "./pages/admin/AdminVeraPrompts";
+import AdminAudit from "./pages/admin/AdminAudit";
 
 const queryClient = new QueryClient();
 
