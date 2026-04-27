@@ -8,7 +8,7 @@ import {
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
   Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3,
-  Smartphone, MessagesSquare, Contact, FileBarChart, FileText, HandHelping, Brain,
+  Smartphone, MessagesSquare, Contact, FileBarChart, FileText, HandHelping, Brain, ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
