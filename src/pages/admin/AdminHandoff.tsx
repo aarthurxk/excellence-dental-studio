@@ -121,7 +121,7 @@ export default function AdminHandoff() {
   async function confirmAction() {
     if (!noteDialog || !user) return;
     const { id, action } = noteDialog;
-    const patch: Partial<Handoff> = {};
+    const patch: Record<string, string | null> = {};
     if (action === "assumir") {
       patch.status = "assumido";
       patch.assumido_em = new Date().toISOString();
@@ -131,7 +131,6 @@ export default function AdminHandoff() {
       patch.resolvido_em = new Date().toISOString();
     }
     if (noteText.trim()) {
-      // append note
       const existing = filtered.find((h) => h.id === id)?.notas ?? "";
       const stamp = format(new Date(), "dd/MM HH:mm", { locale: ptBR });
       patch.notas = (existing ? existing + "\n" : "") + `[${stamp}] ${noteText.trim()}`;
