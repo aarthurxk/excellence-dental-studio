@@ -129,7 +129,51 @@ export default function AdminLeads() {
     toast.success("Notas salvas");
   };
 
-  const exportCSV = () => {
+  const handleCancel = async () => {
+    if (!cancelTarget) return;
+    setActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("cancel-appointment", {
+      body: { appointment_id: cancelTarget.id, reason: cancelReason || undefined },
+    });
+    setActionLoading(false);
+    if (error || (data as any)?.error) {
+      toast.error("Erro ao cancelar: " + (error?.message || (data as any)?.error));
+      return;
+    }
+    toast.success("Agendamento cancelado");
+    if ((data as any)?.gcal && !(data as any).gcal.ok) {
+      toast.warning("Banco atualizado, mas Google Calendar falhou");
+    }
+    setCancelTarget(null);
+    setCancelReason("");
+    qc.invalidateQueries({ queryKey: ["lead-appts", lead?.phone] });
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleTarget || !newDateTime) return;
+    setActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("reschedule-appointment", {
+      body: {
+        appointment_id: rescheduleTarget.id,
+        new_scheduled_at: new Date(newDateTime).toISOString(),
+        reason: rescheduleReason || undefined,
+      },
+    });
+    setActionLoading(false);
+    if (error || (data as any)?.error) {
+      toast.error("Erro ao reagendar: " + (error?.message || (data as any)?.error));
+      return;
+    }
+    toast.success("Agendamento remarcado");
+    if ((data as any)?.gcal && !(data as any).gcal.ok) {
+      toast.warning("Banco atualizado, mas Google Calendar falhou");
+    }
+    setRescheduleTarget(null);
+    setNewDateTime("");
+    setRescheduleReason("");
+    qc.invalidateQueries({ queryKey: ["lead-appts", lead?.phone] });
+  };
+
     const rows = [
       ["Telefone", "Nome", "Push Name", "Status", "IA", "Msgs In", "Msgs Out", "Primeiro Contato", "Último Contato", "UTM Source", "Notas"],
       ...filtered.map((l) => [
