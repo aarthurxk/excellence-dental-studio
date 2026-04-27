@@ -97,6 +97,7 @@ function AppRoutes() {
           <Route path="/admin/resumos" element={<AdminPage><AdminResumos /></AdminPage>} />
           <Route path="/admin/handoff" element={<AdminPage><AdminHandoff /></AdminPage>} />
           <Route path="/admin/vera-prompts" element={<AdminPage><AdminVeraPrompts /></AdminPage>} />
+          <Route path="/admin/audit" element={<AdminPage><AdminAudit /></AdminPage>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
