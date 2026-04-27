@@ -174,6 +174,7 @@ export default function AdminLeads() {
     qc.invalidateQueries({ queryKey: ["lead-appts", lead?.phone] });
   };
 
+  const exportCSV = () => {
     const rows = [
       ["Telefone", "Nome", "Push Name", "Status", "IA", "Msgs In", "Msgs Out", "Primeiro Contato", "Último Contato", "UTM Source", "Notas"],
       ...filtered.map((l) => [
