@@ -526,6 +526,76 @@ export default function AdminLeads() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Cancel Dialog */}
+      <Dialog open={!!cancelTarget} onOpenChange={(o) => !o && (setCancelTarget(null), setCancelReason(""))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar agendamento</DialogTitle>
+            <DialogDescription>
+              {cancelTarget?.when} — esta ação cancela no Google Calendar e notifica o paciente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
+            <Textarea
+              id="cancel-reason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Ex: paciente solicitou cancelamento"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={actionLoading}>
+              Voltar
+            </Button>
+            <Button variant="destructive" onClick={handleCancel} disabled={actionLoading}>
+              {actionLoading ? "Cancelando..." : "Confirmar cancelamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduleTarget} onOpenChange={(o) => !o && (setRescheduleTarget(null), setNewDateTime(""), setRescheduleReason(""))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reagendar</DialogTitle>
+            <DialogDescription>
+              Atual: {rescheduleTarget?.when}. O Google Calendar será atualizado automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="new-dt">Nova data e horário</Label>
+              <Input
+                id="new-dt"
+                type="datetime-local"
+                value={newDateTime}
+                onChange={(e) => setNewDateTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resch-reason">Motivo (opcional)</Label>
+              <Textarea
+                id="resch-reason"
+                value={rescheduleReason}
+                onChange={(e) => setRescheduleReason(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleTarget(null)} disabled={actionLoading}>
+              Voltar
+            </Button>
+            <Button onClick={handleReschedule} disabled={actionLoading || !newDateTime}>
+              {actionLoading ? "Salvando..." : "Confirmar reagendamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
