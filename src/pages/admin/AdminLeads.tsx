@@ -413,7 +413,28 @@ export default function AdminLeads() {
                   </div>
                 </div>
 
-                {/* Status */}
+                {/* Vera context */}
+                {(lead.procedimento_interesse || lead.ultimo_interesse || lead.ja_e_paciente || lead.data_agendamento || lead.resumo) && (
+                  <div className="rounded-md bg-muted/40 p-3 space-y-2 text-sm">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contexto Vera</p>
+                    {lead.ja_e_paciente && (
+                      <Badge variant="secondary" className="text-xs">Já é paciente</Badge>
+                    )}
+                    {lead.procedimento_interesse && (
+                      <p><span className="text-muted-foreground text-xs">Procedimento: </span>{lead.procedimento_interesse}</p>
+                    )}
+                    {lead.ultimo_interesse && lead.ultimo_interesse !== lead.procedimento_interesse && (
+                      <p><span className="text-muted-foreground text-xs">Último interesse: </span>{lead.ultimo_interesse}</p>
+                    )}
+                    {lead.data_agendamento && (
+                      <p><span className="text-muted-foreground text-xs">Agendado para: </span>{format(new Date(lead.data_agendamento), "dd/MM/yy HH:mm")}</p>
+                    )}
+                    {lead.resumo && (
+                      <p className="text-xs italic border-l-2 border-primary/40 pl-2">{lead.resumo}</p>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <p className="text-muted-foreground text-xs mb-1">Status</p>
                   <Select value={lead.status ?? "novo"} onValueChange={(v) => updateStatus(lead.id, v)}>
