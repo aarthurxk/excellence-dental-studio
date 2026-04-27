@@ -193,9 +193,12 @@ export type Database = {
       }
       conversations_log: {
         Row: {
+          audio_pending: boolean | null
           created_at: string | null
           direction: string | null
+          hidden_from_ai: boolean | null
           id: string
+          is_audio: boolean | null
           lead_phone: string
           message_text: string | null
           message_type: string | null
@@ -205,9 +208,12 @@ export type Database = {
           whatsapp_timestamp: number | null
         }
         Insert: {
+          audio_pending?: boolean | null
           created_at?: string | null
           direction?: string | null
+          hidden_from_ai?: boolean | null
           id?: string
+          is_audio?: boolean | null
           lead_phone: string
           message_text?: string | null
           message_type?: string | null
@@ -217,9 +223,12 @@ export type Database = {
           whatsapp_timestamp?: number | null
         }
         Update: {
+          audio_pending?: boolean | null
           created_at?: string | null
           direction?: string | null
+          hidden_from_ai?: boolean | null
           id?: string
+          is_audio?: boolean | null
           lead_phone?: string
           message_text?: string | null
           message_type?: string | null
@@ -396,18 +405,24 @@ export type Database = {
         Row: {
           ai_enabled: boolean | null
           created_at: string | null
+          data_agendamento: string | null
           first_contact_at: string | null
+          gcal_event_id: string | null
           id: string
+          ja_e_paciente: boolean | null
           last_contact_at: string | null
           last_message_preview: string | null
           name: string | null
           notes: string | null
           phone: string
+          procedimento_interesse: string | null
           profile_pic_url: string | null
           push_name: string | null
+          resumo: string | null
           status: string | null
           total_messages_in: number | null
           total_messages_out: number | null
+          ultimo_interesse: string | null
           updated_at: string | null
           utm_campaign: string | null
           utm_medium: string | null
@@ -416,18 +431,24 @@ export type Database = {
         Insert: {
           ai_enabled?: boolean | null
           created_at?: string | null
+          data_agendamento?: string | null
           first_contact_at?: string | null
+          gcal_event_id?: string | null
           id?: string
+          ja_e_paciente?: boolean | null
           last_contact_at?: string | null
           last_message_preview?: string | null
           name?: string | null
           notes?: string | null
           phone: string
+          procedimento_interesse?: string | null
           profile_pic_url?: string | null
           push_name?: string | null
+          resumo?: string | null
           status?: string | null
           total_messages_in?: number | null
           total_messages_out?: number | null
+          ultimo_interesse?: string | null
           updated_at?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -436,18 +457,24 @@ export type Database = {
         Update: {
           ai_enabled?: boolean | null
           created_at?: string | null
+          data_agendamento?: string | null
           first_contact_at?: string | null
+          gcal_event_id?: string | null
           id?: string
+          ja_e_paciente?: boolean | null
           last_contact_at?: string | null
           last_message_preview?: string | null
           name?: string | null
           notes?: string | null
           phone?: string
+          procedimento_interesse?: string | null
           profile_pic_url?: string | null
           push_name?: string | null
+          resumo?: string | null
           status?: string | null
           total_messages_in?: number | null
           total_messages_out?: number | null
+          ultimo_interesse?: string | null
           updated_at?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -767,6 +794,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vera_audit_log: {
+        Row: {
+          acao: string
+          criado_em: string | null
+          dados_antes: Json | null
+          dados_depois: Json | null
+          id: number
+          ip: string | null
+          registro_id: string | null
+          tabela: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          criado_em?: string | null
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          id?: number
+          ip?: string | null
+          registro_id?: string | null
+          tabela?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          criado_em?: string | null
+          dados_antes?: Json | null
+          dados_depois?: Json | null
+          id?: number
+          ip?: string | null
+          registro_id?: string | null
+          tabela?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vera_config: {
         Row: {
           ai_enabled: boolean | null
@@ -800,6 +869,162 @@ export type Database = {
           working_days?: number[] | null
           working_hours_end?: string | null
           working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      vera_conversation_state: {
+        Row: {
+          channel: string
+          chat_id: string
+          id: number
+          spin_stage: string
+          stage_entered_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel: string
+          chat_id: string
+          id?: number
+          spin_stage?: string
+          stage_entered_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel?: string
+          chat_id?: string
+          id?: number
+          spin_stage?: string
+          stage_entered_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      vera_handoff_queue: {
+        Row: {
+          assumido_em: string | null
+          assumido_por: string | null
+          channel: string
+          chat_id: string
+          criado_em: string | null
+          id: number
+          motivo: string
+          notas: string | null
+          payload: Json | null
+          resolvido_em: string | null
+          status: string
+        }
+        Insert: {
+          assumido_em?: string | null
+          assumido_por?: string | null
+          channel: string
+          chat_id: string
+          criado_em?: string | null
+          id?: number
+          motivo: string
+          notas?: string | null
+          payload?: Json | null
+          resolvido_em?: string | null
+          status?: string
+        }
+        Update: {
+          assumido_em?: string | null
+          assumido_por?: string | null
+          channel?: string
+          chat_id?: string
+          criado_em?: string | null
+          id?: number
+          motivo?: string
+          notas?: string | null
+          payload?: Json | null
+          resolvido_em?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      vera_resumos: {
+        Row: {
+          channel: string
+          criado_em: string | null
+          data_agendamento: string | null
+          id: number
+          origem: string | null
+          outcome: string | null
+          resumo: string
+          tags: string[] | null
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          criado_em?: string | null
+          data_agendamento?: string | null
+          id?: number
+          origem?: string | null
+          outcome?: string | null
+          resumo: string
+          tags?: string[] | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          criado_em?: string | null
+          data_agendamento?: string | null
+          id?: number
+          origem?: string | null
+          outcome?: string | null
+          resumo?: string
+          tags?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vera_spin_prompts: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          chave: string
+          descricao: string | null
+          valor: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          chave: string
+          descricao?: string | null
+          valor?: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          chave?: string
+          descricao?: string | null
+          valor?: string
+        }
+        Relationships: []
+      }
+      vera_spin_prompts_history: {
+        Row: {
+          alterado_em: string | null
+          alterado_por: string | null
+          chave: string
+          id: number
+          valor_antigo: string | null
+          valor_novo: string
+        }
+        Insert: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          chave: string
+          id?: number
+          valor_antigo?: string | null
+          valor_novo: string
+        }
+        Update: {
+          alterado_em?: string | null
+          alterado_por?: string | null
+          chave?: string
+          id?: number
+          valor_antigo?: string | null
+          valor_novo?: string
         }
         Relationships: []
       }
@@ -979,6 +1204,8 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_secretaria_only: { Args: { _uid: string }; Returns: boolean }
+      is_staff: { Args: { _uid: string }; Returns: boolean }
     }
     Enums: {
       app_role:
