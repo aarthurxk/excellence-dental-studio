@@ -452,16 +452,49 @@ export default function AdminLeads() {
                     <p className="text-muted-foreground text-xs mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Agendamentos
                     </p>
-                    <div className="space-y-1">
-                      {leadAppts.map((a) => (
-                        <div key={a.id} className="text-sm flex items-center justify-between border-b pb-1">
-                          <span>{format(new Date(a.scheduled_at), "dd/MM HH:mm")}</span>
-                          <Badge variant="outline" className="text-xs">{a.status}</Badge>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      {leadAppts.map((a) => {
+                        const when = format(new Date(a.scheduled_at), "dd/MM/yy HH:mm");
+                        const canAct = a.status !== "cancelled" && a.status !== "completed";
+                        return (
+                          <div key={a.id} className="text-sm border rounded-md p-2 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{when}</span>
+                              <Badge variant="outline" className="text-xs">{a.status}</Badge>
+                            </div>
+                            {a.procedure_interest && (
+                              <p className="text-xs text-muted-foreground">{a.procedure_interest}</p>
+                            )}
+                            {canAct && (
+                              <div className="flex gap-1 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => {
+                                    setRescheduleTarget({ id: a.id, when });
+                                    setNewDateTime(format(new Date(a.scheduled_at), "yyyy-MM-dd'T'HH:mm"));
+                                  }}
+                                >
+                                  <CalendarClock className="h-3 w-3 mr-1" /> Reagendar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs text-destructive hover:text-destructive"
+                                  onClick={() => setCancelTarget({ id: a.id, when })}
+                                >
+                                  <X className="h-3 w-3 mr-1" /> Cancelar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
+
 
                 {/* Recent messages */}
                 <div>
