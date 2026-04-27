@@ -18,8 +18,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   Search, Download, LayoutGrid, TableIcon, Phone, MessageSquare,
-  Calendar, User, RefreshCw, GripVertical,
+  Calendar, User, RefreshCw, GripVertical, X, CalendarClock,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -45,6 +49,12 @@ export default function AdminLeads() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState("");
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; when: string } | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [rescheduleTarget, setRescheduleTarget] = useState<{ id: string; when: string } | null>(null);
+  const [newDateTime, setNewDateTime] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["crm-leads"],
@@ -117,6 +127,51 @@ export default function AdminLeads() {
     await supabase.from("leads").update({ notes: editingNotes }).eq("id", selectedLead);
     qc.invalidateQueries({ queryKey: ["crm-leads"] });
     toast.success("Notas salvas");
+  };
+
+  const handleCancel = async () => {
+    if (!cancelTarget) return;
+    setActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("cancel-appointment", {
+      body: { appointment_id: cancelTarget.id, reason: cancelReason || undefined },
+    });
+    setActionLoading(false);
+    if (error || (data as any)?.error) {
+      toast.error("Erro ao cancelar: " + (error?.message || (data as any)?.error));
+      return;
+    }
+    toast.success("Agendamento cancelado");
+    if ((data as any)?.gcal && !(data as any).gcal.ok) {
+      toast.warning("Banco atualizado, mas Google Calendar falhou");
+    }
+    setCancelTarget(null);
+    setCancelReason("");
+    qc.invalidateQueries({ queryKey: ["lead-appts", lead?.phone] });
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleTarget || !newDateTime) return;
+    setActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("reschedule-appointment", {
+      body: {
+        appointment_id: rescheduleTarget.id,
+        new_scheduled_at: new Date(newDateTime).toISOString(),
+        reason: rescheduleReason || undefined,
+      },
+    });
+    setActionLoading(false);
+    if (error || (data as any)?.error) {
+      toast.error("Erro ao reagendar: " + (error?.message || (data as any)?.error));
+      return;
+    }
+    toast.success("Agendamento remarcado");
+    if ((data as any)?.gcal && !(data as any).gcal.ok) {
+      toast.warning("Banco atualizado, mas Google Calendar falhou");
+    }
+    setRescheduleTarget(null);
+    setNewDateTime("");
+    setRescheduleReason("");
+    qc.invalidateQueries({ queryKey: ["lead-appts", lead?.phone] });
   };
 
   const exportCSV = () => {
@@ -358,7 +413,28 @@ export default function AdminLeads() {
                   </div>
                 </div>
 
-                {/* Status */}
+                {/* Vera context */}
+                {(lead.procedimento_interesse || lead.ultimo_interesse || lead.ja_e_paciente || lead.data_agendamento || lead.resumo) && (
+                  <div className="rounded-md bg-muted/40 p-3 space-y-2 text-sm">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contexto Vera</p>
+                    {lead.ja_e_paciente && (
+                      <Badge variant="secondary" className="text-xs">Já é paciente</Badge>
+                    )}
+                    {lead.procedimento_interesse && (
+                      <p><span className="text-muted-foreground text-xs">Procedimento: </span>{lead.procedimento_interesse}</p>
+                    )}
+                    {lead.ultimo_interesse && lead.ultimo_interesse !== lead.procedimento_interesse && (
+                      <p><span className="text-muted-foreground text-xs">Último interesse: </span>{lead.ultimo_interesse}</p>
+                    )}
+                    {lead.data_agendamento && (
+                      <p><span className="text-muted-foreground text-xs">Agendado para: </span>{format(new Date(lead.data_agendamento), "dd/MM/yy HH:mm")}</p>
+                    )}
+                    {lead.resumo && (
+                      <p className="text-xs italic border-l-2 border-primary/40 pl-2">{lead.resumo}</p>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <p className="text-muted-foreground text-xs mb-1">Status</p>
                   <Select value={lead.status ?? "novo"} onValueChange={(v) => updateStatus(lead.id, v)}>
@@ -397,16 +473,49 @@ export default function AdminLeads() {
                     <p className="text-muted-foreground text-xs mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Agendamentos
                     </p>
-                    <div className="space-y-1">
-                      {leadAppts.map((a) => (
-                        <div key={a.id} className="text-sm flex items-center justify-between border-b pb-1">
-                          <span>{format(new Date(a.scheduled_at), "dd/MM HH:mm")}</span>
-                          <Badge variant="outline" className="text-xs">{a.status}</Badge>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      {leadAppts.map((a) => {
+                        const when = format(new Date(a.scheduled_at), "dd/MM/yy HH:mm");
+                        const canAct = a.status !== "cancelled" && a.status !== "completed";
+                        return (
+                          <div key={a.id} className="text-sm border rounded-md p-2 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{when}</span>
+                              <Badge variant="outline" className="text-xs">{a.status}</Badge>
+                            </div>
+                            {a.procedure_interest && (
+                              <p className="text-xs text-muted-foreground">{a.procedure_interest}</p>
+                            )}
+                            {canAct && (
+                              <div className="flex gap-1 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={() => {
+                                    setRescheduleTarget({ id: a.id, when });
+                                    setNewDateTime(format(new Date(a.scheduled_at), "yyyy-MM-dd'T'HH:mm"));
+                                  }}
+                                >
+                                  <CalendarClock className="h-3 w-3 mr-1" /> Reagendar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs text-destructive hover:text-destructive"
+                                  onClick={() => setCancelTarget({ id: a.id, when })}
+                                >
+                                  <X className="h-3 w-3 mr-1" /> Cancelar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
+
 
                 {/* Recent messages */}
                 <div>
@@ -438,6 +547,76 @@ export default function AdminLeads() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Cancel Dialog */}
+      <Dialog open={!!cancelTarget} onOpenChange={(o) => !o && (setCancelTarget(null), setCancelReason(""))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar agendamento</DialogTitle>
+            <DialogDescription>
+              {cancelTarget?.when} — esta ação cancela no Google Calendar e notifica o paciente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
+            <Textarea
+              id="cancel-reason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Ex: paciente solicitou cancelamento"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={actionLoading}>
+              Voltar
+            </Button>
+            <Button variant="destructive" onClick={handleCancel} disabled={actionLoading}>
+              {actionLoading ? "Cancelando..." : "Confirmar cancelamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduleTarget} onOpenChange={(o) => !o && (setRescheduleTarget(null), setNewDateTime(""), setRescheduleReason(""))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reagendar</DialogTitle>
+            <DialogDescription>
+              Atual: {rescheduleTarget?.when}. O Google Calendar será atualizado automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="new-dt">Nova data e horário</Label>
+              <Input
+                id="new-dt"
+                type="datetime-local"
+                value={newDateTime}
+                onChange={(e) => setNewDateTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resch-reason">Motivo (opcional)</Label>
+              <Textarea
+                id="resch-reason"
+                value={rescheduleReason}
+                onChange={(e) => setRescheduleReason(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleTarget(null)} disabled={actionLoading}>
+              Voltar
+            </Button>
+            <Button onClick={handleReschedule} disabled={actionLoading || !newDateTime}>
+              {actionLoading ? "Salvando..." : "Confirmar reagendamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
