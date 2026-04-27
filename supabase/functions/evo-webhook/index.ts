@@ -8,6 +8,34 @@ import {
   validateIngestToken,
 } from "../_shared/ingest.ts";
 
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
+function fanOutToN8n(body: unknown) {
+  const url = Deno.env.get("N8N_VERA_WA_ADAPTER_URL");
+  if (!url) return;
+  const task = (async () => {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) {
+        console.error("[evo-webhook] n8n fan-out failed:", res.status, await res.text());
+      }
+    } catch (e) {
+      console.error("[evo-webhook] n8n fan-out error:", e);
+    }
+  })();
+  try {
+    EdgeRuntime.waitUntil(task);
+  } catch {
+    // EdgeRuntime not available — fire and forget
+    task.catch(() => {});
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
