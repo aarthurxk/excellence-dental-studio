@@ -18,8 +18,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   Search, Download, LayoutGrid, TableIcon, Phone, MessageSquare,
-  Calendar, User, RefreshCw, GripVertical,
+  Calendar, User, RefreshCw, GripVertical, X, CalendarClock,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
