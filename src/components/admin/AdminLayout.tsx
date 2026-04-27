@@ -8,7 +8,7 @@ import {
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
   Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3,
-  Smartphone, MessagesSquare, Contact, FileBarChart, FileText,
+  Smartphone, MessagesSquare, Contact, FileBarChart, FileText, HandHelping,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const navItems = [
   { title: "Leads CRM", url: "/admin/leads", icon: Contact, module: null },
   { title: "Relatórios WA", url: "/admin/relatorios", icon: FileBarChart, module: null },
   { title: "Resumos Vera", url: "/admin/resumos", icon: FileText, module: null },
+  { title: "Handoff", url: "/admin/handoff", icon: HandHelping, module: null },
 ];
 
 function AdminSidebar() {
@@ -60,7 +61,7 @@ function AdminSidebar() {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
     // WhatsApp pages only for admin/socio
-    if (["/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios", "/admin/resumos"].includes(item.url)) {
+    if (["/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios", "/admin/resumos", "/admin/handoff"].includes(item.url)) {
       return role === "admin" || role === "socio";
     }
     if (!item.module) return true;
