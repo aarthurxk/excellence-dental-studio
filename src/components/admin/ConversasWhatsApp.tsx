@@ -7,7 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Send, RefreshCw, ArrowLeft, Bot, User } from "lucide-react";
+import {
+  Search,
+  Send,
+  RefreshCw,
+  ArrowLeft,
+  Bot,
+  User,
+  Mic,
+  Loader2,
+  EyeOff,
+  Eye,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -18,6 +35,35 @@ interface EvoChat { remoteJid: string; name: string | null; unreadMessages: numb
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
 interface EvoMessageRecord { key: { id: string; fromMe: boolean; remoteJid: string }; pushName: string | null; messageType: string; message: Record<string, string>; messageTimestamp: number; }
 interface ChatItem { remoteJid: string; name: string; profilePic: string | null; unread: number; lastMessage?: string; lastTimestamp?: number; }
+
+interface ConvLogMeta {
+  id: string;
+  whatsapp_message_id: string | null;
+  is_audio: boolean | null;
+  audio_pending: boolean | null;
+  hidden_from_ai: boolean | null;
+  message_text: string | null;
+}
+
+const SPIN_LABELS: Record<string, string> = {
+  triagem: "Triagem",
+  situacao: "Situação",
+  problema: "Problema",
+  implicacao: "Implicação",
+  necessidade: "Necessidade",
+  proposta: "Proposta",
+  encerramento: "Encerramento",
+};
+
+const SPIN_COLORS: Record<string, string> = {
+  triagem: "bg-slate-500/15 text-slate-700 border-slate-500/30",
+  situacao: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+  problema: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  implicacao: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+  necessidade: "bg-violet-500/15 text-violet-700 border-violet-500/30",
+  proposta: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  encerramento: "bg-green-600/15 text-green-700 border-green-600/30",
+};
 
 function ContactSkeleton() {
   return (
@@ -88,13 +134,13 @@ export default function ConversasWhatsApp() {
   });
 
   const selectedPhone = selectedChat?.replace("@s.whatsapp.net", "") ?? "";
+
   const { data: leadInfo } = useQuery({
     queryKey: ["lead-info", selectedPhone],
     queryFn: async () => {
       if (!selectedPhone) return null;
       const { data: existing } = await supabase.from("leads").select("*").eq("phone", selectedPhone).maybeSingle();
       if (existing) return existing;
-      // Cria lead "stub" automaticamente para permitir etiquetas/notas
       const chatInfo = chats.find((c) => c.remoteJid === selectedChat);
       const { data: created } = await supabase
         .from("leads")
@@ -106,13 +152,66 @@ export default function ConversasWhatsApp() {
     enabled: !!selectedPhone,
   });
 
+  // SPIN stage do chat
+  const { data: spinState } = useQuery({
+    queryKey: ["spin-state", selectedPhone],
+    queryFn: async () => {
+      if (!selectedPhone) return null;
+      const chatId = `wa:${selectedPhone}`;
+      const { data } = await supabase
+        .from("vera_conversation_state")
+        .select("spin_stage, stage_entered_at, updated_at")
+        .eq("chat_id", chatId)
+        .eq("channel", "whatsapp")
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!selectedPhone,
+  });
+
+  // Metadados das msgs (áudio pendente, oculto da IA) — lookup no conversations_log
+  const { data: convLogMeta = [] } = useQuery({
+    queryKey: ["conv-log-meta", selectedChat],
+    queryFn: async () => {
+      if (!selectedChat) return [] as ConvLogMeta[];
+      const { data } = await supabase
+        .from("conversations_log")
+        .select("id, whatsapp_message_id, is_audio, audio_pending, hidden_from_ai, message_text")
+        .eq("remote_jid", selectedChat)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      return (data ?? []) as ConvLogMeta[];
+    },
+    enabled: !!selectedChat,
+  });
+
+  const metaByMsgId = new Map<string, ConvLogMeta>();
+  for (const m of convLogMeta) {
+    if (m.whatsapp_message_id) metaByMsgId.set(m.whatsapp_message_id, m);
+  }
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   useEffect(() => {
-    const channel = supabase.channel("conversations-rt").on("postgres_changes", { event: "INSERT", schema: "public", table: "conversations_log" }, (payload) => { if ((payload.new as any).remote_jid === selectedChat) refetchMsgs(); }).subscribe();
+    const channel = supabase
+      .channel("conversations-rt")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversations_log" }, (payload) => {
+        if ((payload.new as any).remote_jid === selectedChat) {
+          refetchMsgs();
+          qc.invalidateQueries({ queryKey: ["conv-log-meta", selectedChat] });
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "conversations_log" }, (payload) => {
+        if ((payload.new as any).remote_jid === selectedChat) {
+          qc.invalidateQueries({ queryKey: ["conv-log-meta", selectedChat] });
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "vera_conversation_state" }, () => {
+        qc.invalidateQueries({ queryKey: ["spin-state", selectedPhone] });
+      })
+      .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [selectedChat, refetchMsgs]);
+  }, [selectedChat, selectedPhone, refetchMsgs, qc]);
 
   const handleSend = async () => {
     if (!msgInput.trim() || !selectedChat) return;
@@ -131,7 +230,19 @@ export default function ConversasWhatsApp() {
     toast.success(newVal ? "IA reativada" : "IA desativada — você assumiu a conversa");
   };
 
-  const getMsgText = (msg: EvoMessageRecord) => {
+  const toggleHiddenFromAI = async (logId: string, current: boolean) => {
+    const { error } = await supabase
+      .from("conversations_log")
+      .update({ hidden_from_ai: !current })
+      .eq("id", logId);
+    if (error) { toast.error("Erro: " + error.message); return; }
+    qc.invalidateQueries({ queryKey: ["conv-log-meta", selectedChat] });
+    toast.success(!current ? "Mensagem oculta da IA" : "Mensagem visível para a IA");
+  };
+
+  const getMsgText = (msg: EvoMessageRecord, meta?: ConvLogMeta) => {
+    // Se há texto no log (ex.: transcrição já chegou), prefere ele
+    if (meta?.message_text && !meta.audio_pending) return meta.message_text;
     if (!msg.message) return "[mídia]";
     return msg.message.conversation || msg.message.extendedTextMessage || msg.message.caption || `[${msg.messageType}]`;
   };
@@ -139,7 +250,10 @@ export default function ConversasWhatsApp() {
   const filteredChats = chats.filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.remoteJid.includes(searchTerm));
   const selectedChatInfo = chats.find((c) => c.remoteJid === selectedChat);
 
+  const spinStage = spinState?.spin_stage as string | undefined;
+
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="h-full flex rounded-lg border overflow-hidden bg-background">
       <div className={cn("w-full md:w-[340px] lg:w-[380px] border-r flex flex-col shrink-0", selectedChat ? "hidden md:flex" : "flex")}>
         <div className="p-3 border-b space-y-2">
@@ -184,7 +298,39 @@ export default function ConversasWhatsApp() {
               <div className="h-14 flex items-center px-4 gap-3">
                 <button className="md:hidden" onClick={() => setSelectedChat(null)}><ArrowLeft className="h-5 w-5" /></button>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{selectedChatInfo?.name || selectedPhone}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm truncate">{selectedChatInfo?.name || selectedPhone}</p>
+                    {spinStage && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-medium px-1.5 py-0 h-5",
+                              SPIN_COLORS[spinStage] ?? "bg-muted",
+                            )}
+                          >
+                            SPIN: {SPIN_LABELS[spinStage] ?? spinStage}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">
+                            Estágio atual da conversa no protocolo SPIN.
+                            {spinState?.stage_entered_at && (
+                              <>
+                                {" "}Entrou{" "}
+                                {formatDistanceToNow(new Date(spinState.stage_entered_at), {
+                                  addSuffix: true,
+                                  locale: ptBR,
+                                })}
+                                .
+                              </>
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{selectedPhone}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -210,13 +356,90 @@ export default function ConversasWhatsApp() {
                 <div className="space-y-2">
                   {[...messages].reverse().map((msg) => {
                     const isFromMe = msg.key.fromMe;
-                    const text = getMsgText(msg);
+                    const meta = metaByMsgId.get(msg.key.id);
+                    const text = getMsgText(msg, meta);
                     const time = msg.messageTimestamp ? format(new Date(msg.messageTimestamp * 1000), "HH:mm") : "";
+                    const isAudio = !!meta?.is_audio;
+                    const audioPending = !!meta?.audio_pending;
+                    const hidden = !!meta?.hidden_from_ai;
                     return (
-                      <div key={msg.key.id} className={cn("flex", isFromMe ? "justify-end" : "justify-start")}>
-                        <div className={cn("max-w-[75%] rounded-lg px-3 py-2 text-sm", isFromMe ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                      <div key={msg.key.id} className={cn("flex group", isFromMe ? "justify-end" : "justify-start")}>
+                        <div
+                          className={cn(
+                            "max-w-[75%] rounded-lg px-3 py-2 text-sm relative",
+                            isFromMe ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none",
+                            hidden && "opacity-60 ring-1 ring-dashed ring-muted-foreground",
+                          )}
+                        >
+                          {isAudio && (
+                            <div
+                              className={cn(
+                                "flex items-center gap-1 text-[10px] mb-1 font-medium",
+                                isFromMe ? "text-primary-foreground/80" : "text-muted-foreground",
+                              )}
+                            >
+                              {audioPending ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Áudio — transcrevendo…
+                                </>
+                              ) : (
+                                <>
+                                  <Mic className="h-3 w-3" />
+                                  Áudio (transcrição)
+                                </>
+                              )}
+                            </div>
+                          )}
                           <p className="whitespace-pre-wrap break-words">{text}</p>
-                          <p className={cn("text-[10px] mt-1 text-right", isFromMe ? "text-primary-foreground/70" : "text-muted-foreground")}>{time}</p>
+                          <div className="flex items-center justify-between gap-2 mt-1">
+                            {hidden && (
+                              <span
+                                className={cn(
+                                  "text-[10px] flex items-center gap-1",
+                                  isFromMe ? "text-primary-foreground/70" : "text-muted-foreground",
+                                )}
+                              >
+                                <EyeOff className="h-3 w-3" /> oculta da IA
+                              </span>
+                            )}
+                            <p
+                              className={cn(
+                                "text-[10px] ml-auto",
+                                isFromMe ? "text-primary-foreground/70" : "text-muted-foreground",
+                              )}
+                            >
+                              {time}
+                            </p>
+                          </div>
+
+                          {meta && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleHiddenFromAI(meta.id, hidden)}
+                                  className={cn(
+                                    "absolute -top-2 opacity-0 group-hover:opacity-100 transition-opacity",
+                                    "rounded-full bg-background border shadow-sm p-1 hover:bg-muted",
+                                    isFromMe ? "-left-2" : "-right-2",
+                                  )}
+                                  aria-label={hidden ? "Tornar visível para a IA" : "Ocultar da IA"}
+                                >
+                                  {hidden ? (
+                                    <Eye className="h-3 w-3 text-foreground" />
+                                  ) : (
+                                    <EyeOff className="h-3 w-3 text-foreground" />
+                                  )}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                <p className="text-xs">
+                                  {hidden ? "Tornar visível para a IA" : "Ocultar essa mensagem da IA"}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
                       </div>
                     );
@@ -233,5 +456,6 @@ export default function ConversasWhatsApp() {
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }
