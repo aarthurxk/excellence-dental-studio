@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.ingest-handoff]
 verify_jwt = false
+
+[functions.vera-lead-actions]
+verify_jwt = true
+
+[functions.vera-conversation-logs]
+verify_jwt = true

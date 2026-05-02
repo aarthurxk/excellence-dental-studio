@@ -35,7 +35,7 @@ async function ensureInstanceExists(apiKey: string): Promise<void> {
   await evoFetch("/instance/create", "POST", apiKey, {
     instanceName: INSTANCE,
     integration: "WHATSAPP-BAILEYS",
-    token: "548C7E69-C5EA-49FE-9FD4-FCCD9797F52D",
+    token: apiKey,
     qrcode: true,
     webhook: {
       enabled: true,

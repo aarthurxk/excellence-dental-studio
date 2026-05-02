@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
   Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog, ExternalLink, SlidersHorizontal, BarChart3,
   Smartphone, MessagesSquare, Contact, FileBarChart, FileText, HandHelping, Brain, ShieldCheck,
+  ListChecks,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ const navItems = [
   { title: "Relatórios WA", url: "/admin/relatorios", icon: FileBarChart, module: null },
   { title: "Resumos Vera", url: "/admin/resumos", icon: FileText, module: null },
   { title: "Handoff", url: "/admin/handoff", icon: HandHelping, module: null },
+  { title: "Acoes Vera", url: "/admin/vera-actions", icon: ListChecks, module: null },
   { title: "Prompts Vera", url: "/admin/vera-prompts", icon: Brain, module: null },
   { title: "Auditoria", url: "/admin/audit", icon: ShieldCheck, module: null },
 ];
@@ -63,7 +65,7 @@ function AdminSidebar() {
       return item.url === "/admin/analytics" || item.url === "/admin";
     }
     // WhatsApp pages only for admin/socio
-    if (["/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios", "/admin/resumos", "/admin/handoff", "/admin/vera-prompts", "/admin/audit"].includes(item.url)) {
+    if (["/admin/whatsapp", "/admin/conversas", "/admin/leads", "/admin/relatorios", "/admin/resumos", "/admin/handoff", "/admin/vera-actions", "/admin/vera-prompts", "/admin/audit"].includes(item.url)) {
       return role === "admin" || role === "socio";
     }
     if (!item.module) return true;

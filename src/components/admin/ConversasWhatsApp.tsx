@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { evoProxy } from "@/hooks/useEvoProxy";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,10 @@ import {
   Loader2,
   EyeOff,
   Eye,
+  ListChecks,
+  ShieldCheck,
+  RotateCcw,
+  XCircle,
 } from "lucide-react";
 import {
   Tooltip,
@@ -25,11 +29,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
+import { normalizeWhatsappPhone, whatsappRemoteJidFromVeraChatId } from "@/lib/veraActions";
 
 interface EvoChat { remoteJid: string; name: string | null; unreadMessages: number; }
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
@@ -43,6 +51,32 @@ interface ConvLogMeta {
   audio_pending: boolean | null;
   hidden_from_ai: boolean | null;
   message_text: string | null;
+}
+
+interface VeraLeadAction {
+  id: number;
+  chat_id: string;
+  channel: string | null;
+  action_type: string;
+  reason: string | null;
+  score: number | null;
+  prioridade: string | null;
+  temperatura: string | null;
+  ultimo_interesse: string | null;
+  sinais: string[] | null;
+  status: string;
+  scheduled_for: string | null;
+  response_text: string | null;
+  executor_note: string | null;
+  patient_replied_after_action?: boolean;
+}
+
+interface VeraActionsResponse {
+  ok: boolean;
+  actions?: VeraLeadAction[];
+  updated?: VeraLeadAction[];
+  items?: Array<{ decision: string; note: string; followup_text: string }>;
+  error?: string;
 }
 
 const SPIN_LABELS: Record<string, string> = {
@@ -64,6 +98,34 @@ const SPIN_COLORS: Record<string, string> = {
   proposta: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
   encerramento: "bg-green-600/15 text-green-700 border-green-600/30",
 };
+
+function actionStatusColor(status: string) {
+  switch (status) {
+    case "pending": return "bg-amber-500/15 text-amber-700 border-amber-500/30";
+    case "ignored": return "bg-slate-500/15 text-slate-700 border-slate-500/30";
+    case "simulated": return "bg-blue-500/15 text-blue-700 border-blue-500/30";
+    case "sent": return "bg-emerald-500/15 text-emerald-700 border-emerald-500/30";
+    case "failed": return "bg-rose-500/15 text-rose-700 border-rose-500/30";
+    default: return "bg-muted text-muted-foreground";
+  }
+}
+
+function actionPriorityColor(priority: string | null) {
+  switch (priority) {
+    case "alta": return "bg-rose-500/15 text-rose-700 border-rose-500/30";
+    case "media": return "bg-amber-500/15 text-amber-700 border-amber-500/30";
+    case "baixa": return "bg-blue-500/15 text-blue-700 border-blue-500/30";
+    default: return "bg-muted text-muted-foreground";
+  }
+}
+
+async function callVeraActions(body: Record<string, unknown>): Promise<VeraActionsResponse> {
+  const { data, error } = await supabase.functions.invoke("vera-lead-actions", { body });
+  if (error) throw error;
+  const payload = data as VeraActionsResponse;
+  if (payload?.error) throw new Error(payload.error);
+  return payload;
+}
 
 function ContactSkeleton() {
   return (
@@ -89,12 +151,13 @@ function MessageSkeleton() {
   );
 }
 
-export default function ConversasWhatsApp() {
+export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: string }) {
   const qc = useQueryClient();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [msgInput, setMsgInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [simulatedFollowUp, setSimulatedFollowUp] = useState<{ decision: string; note: string; text: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: chats = [], isLoading: chatsLoading, refetch: refetchChats } = useQuery({
@@ -134,6 +197,17 @@ export default function ConversasWhatsApp() {
   });
 
   const selectedPhone = selectedChat?.replace("@s.whatsapp.net", "") ?? "";
+  const selectedVeraChatId = selectedPhone ? `wa:${selectedPhone}` : "";
+
+  useEffect(() => {
+    if (!initialPhone || selectedChat || !chats.length) return;
+    const phone = normalizeWhatsappPhone(initialPhone);
+    if (!phone) return;
+    const targetJid = whatsappRemoteJidFromVeraChatId(`wa:${phone}`);
+    const found = chats.find((chat) => chat.remoteJid === targetJid);
+    if (found) setSelectedChat(found.remoteJid);
+    else setSearchTerm(phone);
+  }, [initialPhone, selectedChat, chats]);
 
   const { data: leadInfo } = useQuery({
     queryKey: ["lead-info", selectedPhone],
@@ -167,6 +241,51 @@ export default function ConversasWhatsApp() {
       return data;
     },
     enabled: !!selectedPhone,
+  });
+
+  const { data: veraActionsData, isFetching: actionsFetching } = useQuery({
+    queryKey: ["vera-actions-chat", selectedVeraChatId],
+    queryFn: () => callVeraActions({
+      action: "list",
+      search: selectedVeraChatId,
+      include_future: true,
+      limit: 20,
+    }),
+    enabled: !!selectedVeraChatId,
+    refetchOnWindowFocus: false,
+  });
+
+  const veraActions = veraActionsData?.actions ?? [];
+  const openVeraActions = veraActions.filter((action) => ["pending", "failed", "simulated"].includes(action.status));
+
+  const markActionMutation = useMutation({
+    mutationFn: ({ id, targetStatus }: { id: number; targetStatus: "ignored" | "pending" }) =>
+      callVeraActions({
+        action: "mark",
+        action_id: id,
+        target_status: targetStatus,
+        note: targetStatus === "ignored" ? "Ignorado pela conversa WhatsApp" : "Reaberto pela conversa WhatsApp",
+        include_future: true,
+      }),
+    onSuccess: () => {
+      toast.success("Action da Vera atualizada");
+      qc.invalidateQueries({ queryKey: ["vera-actions-chat", selectedVeraChatId] });
+      qc.invalidateQueries({ queryKey: ["vera-lead-actions"] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const simulateActionMutation = useMutation({
+    mutationFn: (id: number) => callVeraActions({ action: "simulate", action_id: id }),
+    onSuccess: (data) => {
+      const item = data.items?.[0];
+      setSimulatedFollowUp({
+        decision: item?.decision || "-",
+        note: item?.note || "",
+        text: item?.followup_text || "",
+      });
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   // Metadados das msgs (áudio pendente, oculto da IA) — lookup no conversations_log
@@ -347,6 +466,70 @@ export default function ConversasWhatsApp() {
                   <LeadTagsEditor leadId={leadInfo.id} size="sm" />
                 </div>
               )}
+              {(openVeraActions.length > 0 || actionsFetching) && (
+                <div className="border-t bg-muted/25 px-4 py-2">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                      <ListChecks className="h-3.5 w-3.5" />
+                      Actions Vera
+                      {actionsFetching && <RefreshCw className="h-3 w-3 animate-spin" />}
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{openVeraActions.length} aberta{openVeraActions.length === 1 ? "" : "s"}</Badge>
+                  </div>
+                  <div className="space-y-1.5">
+                    {openVeraActions.slice(0, 3).map((action) => (
+                      <div key={action.id} className="flex flex-col gap-2 rounded-md border bg-background/80 p-2 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center gap-1">
+                            <Badge variant="outline" className={cn("text-[10px]", actionStatusColor(action.status))}>{action.status}</Badge>
+                            <Badge variant="outline" className={cn("text-[10px]", actionPriorityColor(action.prioridade))}>{action.prioridade || "-"}</Badge>
+                            <span className="text-xs font-medium">{action.reason || action.action_type}</span>
+                          </div>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {action.ultimo_interesse || "sem interesse"} · score {action.score ?? 0}
+                            {action.patient_replied_after_action ? " · paciente respondeu depois" : ""}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => simulateActionMutation.mutate(action.id)}
+                            disabled={simulateActionMutation.isPending}
+                          >
+                            <ShieldCheck className="mr-1 h-3 w-3" />
+                            Simular
+                          </Button>
+                          {action.status === "pending" ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => markActionMutation.mutate({ id: action.id, targetStatus: "ignored" })}
+                              disabled={markActionMutation.isPending}
+                            >
+                              <XCircle className="mr-1 h-3 w-3" />
+                              Ignorar
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => markActionMutation.mutate({ id: action.id, targetStatus: "pending" })}
+                              disabled={markActionMutation.isPending}
+                            >
+                              <RotateCcw className="mr-1 h-3 w-3" />
+                              Reabrir
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <ScrollArea className="flex-1 p-4">
@@ -455,6 +638,49 @@ export default function ConversasWhatsApp() {
           </>
         )}
       </div>
+      <Dialog open={!!simulatedFollowUp} onOpenChange={(open) => !open && setSimulatedFollowUp(null)}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Simulacao da Vera
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-[11px] font-medium uppercase text-muted-foreground">Decisao</p>
+              <p className="text-sm">{simulatedFollowUp?.decision || "-"}</p>
+            </div>
+            {simulatedFollowUp?.note && (
+              <div>
+                <p className="text-[11px] font-medium uppercase text-muted-foreground">Nota</p>
+                <p className="text-sm">{simulatedFollowUp.note}</p>
+              </div>
+            )}
+            <div>
+              <p className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">Texto que seria usado</p>
+              <p className="whitespace-pre-wrap rounded border bg-muted/40 p-3 text-sm">
+                {simulatedFollowUp?.text || "Nenhum texto retornado."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!simulatedFollowUp?.text) return;
+                setMsgInput(simulatedFollowUp.text);
+                setSimulatedFollowUp(null);
+                toast.info("Texto colocado no campo de mensagem para revisao");
+              }}
+              disabled={!simulatedFollowUp?.text}
+            >
+              Usar no campo
+            </Button>
+            <Button onClick={() => setSimulatedFollowUp(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     </TooltipProvider>
   );

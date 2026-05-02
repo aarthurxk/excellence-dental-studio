@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,9 +42,9 @@ function formatTimestamp(ts: string) {
 }
 
 async function fetchVeraLogs(): Promise<Contato[]> {
-  const res = await fetch("https://bot.odontoexcellencerecife.com.br/webhook/vera-logs");
-  if (!res.ok) throw new Error("Erro ao carregar conversas");
-  const data = await res.json();
+  const { data, error } = await supabase.functions.invoke("vera-conversation-logs", { body: {} });
+  if (error) throw error;
+  if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
   return data.contatos ?? [];
 }
 
