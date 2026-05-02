@@ -52,6 +52,7 @@ export type VeraHealthSummary = {
   scheduleMentions: number;
   prematureDataRequests: number;
   prematureScheduleMentions: number;
+  fallbackResponses: number;
   issues: string[];
 };
 
@@ -98,6 +99,11 @@ function hasDataRequest(value?: string | null) {
     /\b(me passa|pode me passar|qual seu|seu nome|seu telefone|confirmar|agendamento)\b/.test(text);
 }
 
+function hasFallbackSignal(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /(\bdesculp|nao consegui|não consegui|nao entendi|não entendi|confus[aã]o|erro|instabilidade|falha|tente novamente|vou corrigir|corrigir isso\b)/.test(text);
+}
+
 function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
   let repeated = 0;
   for (const conversation of conversations) {
@@ -111,6 +117,14 @@ function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
     }
   }
   return repeated;
+}
+
+function countFallbackResponses(conversations: VeraConversationHealthItem[]) {
+  return conversations.reduce(
+    (total, conversation) =>
+      total + (conversation.mensagens ?? []).filter((message) => message.tipo === "ai" && hasFallbackSignal(message.conteudo)).length,
+    0,
+  );
 }
 
 function countPrematureDataRequests(conversations: VeraConversationHealthItem[]) {
@@ -200,6 +214,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const scheduleMentions = countScheduleMentions(conversations);
   const prematureDataRequests = countPrematureDataRequests(conversations);
   const prematureScheduleMentions = countPrematureScheduleMentions(conversations);
+  const fallbackResponses = countFallbackResponses(conversations);
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -214,6 +229,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (repeatedAiResponses > 0) issues.push("Ha possivel repeticao de resposta da IA");
   if (prematureDataRequests > 0) issues.push("Vera pode estar pedindo dados cedo demais");
   if (prematureScheduleMentions > 0) issues.push("Vera pode estar conduzindo para agenda cedo demais");
+  if (fallbackResponses > 0) issues.push("Ha respostas de fallback ou erro da Vera");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
@@ -222,6 +238,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     Math.min(repeatedAiResponses * 8, 24) +
     Math.min(prematureDataRequests * 10, 30) +
     Math.min(prematureScheduleMentions * 10, 30) +
+    Math.min(fallbackResponses * 8, 24) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -245,6 +262,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     scheduleMentions,
     prematureDataRequests,
     prematureScheduleMentions,
+    fallbackResponses,
     issues,
   };
 }

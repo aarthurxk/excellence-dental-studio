@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Smartphone,
   CalendarClock,
+  CircleAlert,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeVeraHealth, type VeraActionHealthItem, type VeraConversationHealthItem } from "@/lib/veraHealth";
@@ -276,6 +277,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={Repeat2} title="Repeticoes IA" value={summary.repeatedAiResponses} detail={`${summary.scheduleMentions} mencoes de agenda`} />
         <MetricCard icon={UserRoundX} title="Dados cedo" value={summary.prematureDataRequests} detail="nome/telefone antes da hora" />
         <MetricCard icon={CalendarClock} title="Agenda cedo" value={summary.prematureScheduleMentions} detail="avaliacao antes da intencao" />
+        <MetricCard icon={CircleAlert} title="Fallbacks IA" value={summary.fallbackResponses} detail="desculpa, erro ou confusao" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

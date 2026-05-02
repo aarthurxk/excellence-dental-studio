@@ -146,4 +146,27 @@ describe("summarizeVeraHealth", () => {
     expect(summary.issues).toContain("Vera pode estar conduzindo para agenda cedo demais");
     expect(summary.score).toBe(90);
   });
+
+  it("detects fallback or error-like AI responses", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [],
+      conversations: [
+        {
+          session_id: "wa:fallback",
+          updated_at: "2026-05-02T11:00:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Esse horario serve?", timestamp: "2026-05-02T10:00:00.000Z" },
+            { tipo: "ai", conteudo: "Desculpe pela confusao, vou corrigir isso para voce.", timestamp: "2026-05-02T10:00:05.000Z" },
+          ],
+        },
+      ],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.fallbackResponses).toBe(1);
+    expect(summary.issues).toContain("Ha respostas de fallback ou erro da Vera");
+    expect(summary.score).toBe(92);
+  });
 });
