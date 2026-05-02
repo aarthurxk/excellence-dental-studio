@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.vera-conversation-logs]
 verify_jwt = true
+
+[functions.vera-n8n-executions]
+verify_jwt = true

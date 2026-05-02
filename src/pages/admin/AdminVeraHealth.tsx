@@ -18,6 +18,7 @@ import {
   CalendarClock,
   CircleAlert,
   MessageSquareWarning,
+  Workflow,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeVeraHealth, type VeraActionHealthItem, type VeraConversationHealthItem } from "@/lib/veraHealth";
@@ -40,6 +41,22 @@ type VeraActionsResponse = {
 
 type VeraLogsResponse = {
   contatos?: VeraConversationHealthItem[];
+  error?: string;
+};
+
+type N8nExecution = {
+  id: string | number | null;
+  workflowId: string | null;
+  workflowName: string | null;
+  status: string | null;
+  finished: boolean | null;
+  startedAt: string | null;
+  stoppedAt: string | null;
+};
+
+type N8nExecutionsResponse = {
+  executions?: N8nExecution[];
+  errors?: string[];
   error?: string;
 };
 
@@ -87,6 +104,19 @@ async function fetchVeraLogs() {
   const payload = data as VeraLogsResponse;
   if (payload.error) throw new Error(payload.error);
   return payload.contatos ?? [];
+}
+
+async function fetchN8nExecutions() {
+  const { data, error } = await supabase.functions.invoke("vera-n8n-executions", {
+    body: { limit: 10 },
+  });
+  if (error) throw error;
+  const payload = data as N8nExecutionsResponse;
+  if (payload.error) throw new Error(payload.error);
+  if ((payload.errors?.length ?? 0) > 0 && (payload.executions?.length ?? 0) === 0) {
+    throw new Error(payload.errors!.join("; "));
+  }
+  return payload;
 }
 
 export default function AdminVeraHealth() {
@@ -158,6 +188,12 @@ export default function AdminVeraHealth() {
     refetchInterval: 120_000,
   });
 
+  const n8nQuery = useQuery({
+    queryKey: ["vera-health-n8n-executions"],
+    queryFn: fetchN8nExecutions,
+    refetchInterval: 120_000,
+  });
+
   const summary = useMemo(
     () =>
       summarizeVeraHealth({
@@ -165,10 +201,11 @@ export default function AdminVeraHealth() {
         conversations: logsQuery.data,
         audits: auditQuery.data ?? [],
         connectionLogs: connectionQuery.data ?? [],
+        n8nExecutions: n8nQuery.data?.executions ?? [],
         summariesCount: summariesQuery.data ?? 0,
         statesCount: statesQuery.data ?? 0,
       }),
-    [actionsQuery.data, auditQuery.data, connectionQuery.data, logsQuery.data, statesQuery.data, summariesQuery.data],
+    [actionsQuery.data, auditQuery.data, connectionQuery.data, logsQuery.data, n8nQuery.data, statesQuery.data, summariesQuery.data],
   );
 
   const isFetching =
@@ -177,7 +214,8 @@ export default function AdminVeraHealth() {
     connectionQuery.isFetching ||
     auditQuery.isFetching ||
     summariesQuery.isFetching ||
-    statesQuery.isFetching;
+    statesQuery.isFetching ||
+    n8nQuery.isFetching;
 
   const errors = [
     actionsQuery.error,
@@ -186,6 +224,7 @@ export default function AdminVeraHealth() {
     auditQuery.error,
     summariesQuery.error,
     statesQuery.error,
+    n8nQuery.error,
   ].filter(Boolean) as Error[];
 
   function refetchAll() {
@@ -195,6 +234,7 @@ export default function AdminVeraHealth() {
     auditQuery.refetch();
     summariesQuery.refetch();
     statesQuery.refetch();
+    n8nQuery.refetch();
   }
 
   return (
@@ -280,6 +320,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={CalendarClock} title="Agenda cedo" value={summary.prematureScheduleMentions} detail="avaliacao antes da intencao" />
         <MetricCard icon={CircleAlert} title="Fallbacks IA" value={summary.fallbackResponses} detail="desculpa, erro ou confusao" />
         <MetricCard icon={MessageSquareWarning} title="Sem resposta" value={summary.unansweredConversations} detail="lead aguardando ha mais de 10min" />
+        <MetricCard icon={Workflow} title="Execucoes n8n" value={summary.n8nExecutionsCount} detail={`${summary.n8nFailedExecutions} falha(s), ${summary.n8nRunningExecutions} rodando`} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -339,6 +380,51 @@ export default function AdminVeraHealth() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Workflow className="h-4 w-4" />
+              Execucoes n8n recentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Quando</TableHead>
+                  <TableHead>Workflow</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(n8nQuery.data?.executions ?? []).slice(0, 8).map((row, index) => (
+                  <TableRow key={`${row.id}-${row.workflowId}-${index}`}>
+                    <TableCell className="text-xs whitespace-nowrap">{fmtRelative(row.startedAt)}</TableCell>
+                    <TableCell className="text-xs">{row.workflowName ?? row.workflowId ?? "-"}</TableCell>
+                    <TableCell className="text-xs">
+                      <Badge variant="outline" className={row.status === "error" || row.status === "failed" ? "border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-400" : ""}>
+                        {row.status ?? "-"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(n8nQuery.data?.executions ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-sm text-muted-foreground py-8">
+                      Nenhuma execucao recente carregada.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            {(n8nQuery.data?.errors?.length ?? 0) > 0 && (
+              <div className="border-t p-3 text-xs text-muted-foreground space-y-1">
+                {n8nQuery.data!.errors!.map((error) => <div key={error}>{error}</div>)}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

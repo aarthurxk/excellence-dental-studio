@@ -25,11 +25,22 @@ export type VeraConnectionLogHealthItem = {
   created_at?: string | null;
 };
 
+export type VeraN8nExecutionHealthItem = {
+  id?: string | number | null;
+  workflowId?: string | null;
+  workflowName?: string | null;
+  status?: string | null;
+  finished?: boolean | null;
+  startedAt?: string | null;
+  stoppedAt?: string | null;
+};
+
 export type VeraHealthInputs = {
   actions?: VeraActionHealthItem[];
   conversations?: VeraConversationHealthItem[];
   audits?: VeraAuditHealthItem[];
   connectionLogs?: VeraConnectionLogHealthItem[];
+  n8nExecutions?: VeraN8nExecutionHealthItem[];
   summariesCount?: number;
   statesCount?: number;
   now?: Date;
@@ -54,6 +65,9 @@ export type VeraHealthSummary = {
   prematureScheduleMentions: number;
   fallbackResponses: number;
   unansweredConversations: number;
+  n8nExecutionsCount: number;
+  n8nFailedExecutions: number;
+  n8nRunningExecutions: number;
   issues: string[];
 };
 
@@ -206,6 +220,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const conversations = input.conversations ?? [];
   const audits = input.audits ?? [];
   const connectionLogs = input.connectionLogs ?? [];
+  const n8nExecutions = input.n8nExecutions ?? [];
 
   const openActions = actions.filter((a) => OPEN_ACTION_STATUSES.has(a.status ?? "")).length;
   const failedActions = actions.filter((a) => a.status === "failed").length;
@@ -229,6 +244,13 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const prematureScheduleMentions = countPrematureScheduleMentions(conversations);
   const fallbackResponses = countFallbackResponses(conversations);
   const unansweredConversations = countUnansweredConversations(conversations, now);
+  const recentN8nExecutions = n8nExecutions.filter((execution) => isWithin(execution.startedAt, now, 24));
+  const n8nFailedExecutions = recentN8nExecutions.filter(
+    (execution) => execution.status === "error" || execution.status === "failed" || execution.finished === false && !!execution.stoppedAt,
+  ).length;
+  const n8nRunningExecutions = recentN8nExecutions.filter(
+    (execution) => execution.status === "running" || execution.finished === false && !execution.stoppedAt,
+  ).length;
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -245,6 +267,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (prematureScheduleMentions > 0) issues.push("Vera pode estar conduzindo para agenda cedo demais");
   if (fallbackResponses > 0) issues.push("Ha respostas de fallback ou erro da Vera");
   if (unansweredConversations > 0) issues.push("Ha conversas possivelmente sem resposta da Vera");
+  if (n8nFailedExecutions > 0) issues.push("Ha execucoes n8n recentes com falha");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
@@ -255,6 +278,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     Math.min(prematureScheduleMentions * 10, 30) +
     Math.min(fallbackResponses * 8, 24) +
     Math.min(unansweredConversations * 12, 36) +
+    Math.min(n8nFailedExecutions * 12, 36) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -280,6 +304,9 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     prematureScheduleMentions,
     fallbackResponses,
     unansweredConversations,
+    n8nExecutionsCount: recentN8nExecutions.length,
+    n8nFailedExecutions,
+    n8nRunningExecutions,
     issues,
   };
 }

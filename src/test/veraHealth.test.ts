@@ -200,4 +200,24 @@ describe("summarizeVeraHealth", () => {
     expect(summary.issues).toContain("Ha conversas possivelmente sem resposta da Vera");
     expect(summary.score).toBe(88);
   });
+
+  it("detects recent n8n execution failures", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      conversations: [{ session_id: "wa:ok", updated_at: "2026-05-02T11:45:00.000Z" }],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+      n8nExecutions: [
+        { id: 1, workflowId: "core", status: "success", finished: true, startedAt: "2026-05-02T11:00:00.000Z" },
+        { id: 2, workflowId: "adapter", status: "error", finished: true, startedAt: "2026-05-02T11:10:00.000Z" },
+        { id: 3, workflowId: "logs", status: "running", finished: false, startedAt: "2026-05-02T11:55:00.000Z" },
+      ],
+    });
+
+    expect(summary.n8nExecutionsCount).toBe(3);
+    expect(summary.n8nFailedExecutions).toBe(1);
+    expect(summary.n8nRunningExecutions).toBe(1);
+    expect(summary.issues).toContain("Ha execucoes n8n recentes com falha");
+    expect(summary.score).toBe(88);
+  });
 });
