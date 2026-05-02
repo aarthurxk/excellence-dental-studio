@@ -16,16 +16,22 @@ export function jsonResponse(body: unknown, status = 200) {
 
 /**
  * Validates X-Ingest-Token header against INGEST_TOKEN secret using
- * a constant-time comparison. Returns null if OK, or a Response if rejected.
+ * a constant-time comparison. N8N_LEAD_ACTIONS_TOKEN is accepted as a rollout
+ * fallback because the VPS already shares it with Lovable.
+ * Returns null if OK, or a Response if rejected.
  */
 export function validateIngestToken(req: Request): Response | null {
-  const expected = Deno.env.get("INGEST_TOKEN");
-  if (!expected) {
-    console.error("[ingest] INGEST_TOKEN not configured");
+  const expectedTokens = [
+    Deno.env.get("INGEST_TOKEN"),
+    Deno.env.get("N8N_LEAD_ACTIONS_TOKEN"),
+  ].filter((token): token is string => Boolean(token));
+
+  if (!expectedTokens.length) {
+    console.error("[ingest] INGEST_TOKEN/N8N_LEAD_ACTIONS_TOKEN not configured");
     return jsonResponse({ error: "Server misconfigured" }, 500);
   }
   const provided = req.headers.get("X-Ingest-Token") ?? "";
-  if (!constantTimeEqual(provided, expected)) {
+  if (!expectedTokens.some((expected) => constantTimeEqual(provided, expected))) {
     return jsonResponse({ error: "Invalid token" }, 401);
   }
   return null;

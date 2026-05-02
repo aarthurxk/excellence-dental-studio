@@ -12,6 +12,13 @@ const VALID_STAGES = [
   "encerramento",
 ];
 
+const STAGE_ALIASES: Record<string, string> = {
+  situation: "situacao",
+  problem: "problema",
+  implication: "implicacao",
+  need_payoff: "necessidade",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -28,7 +35,8 @@ Deno.serve(async (req) => {
 
   const chat_id = String(body?.chat_id ?? "").trim();
   const channel = String(body?.channel ?? "").trim();
-  const spin_stage = String(body?.spin_stage ?? "").trim();
+  const raw_spin_stage = String(body?.spin_stage ?? "").trim().toLowerCase();
+  const spin_stage = STAGE_ALIASES[raw_spin_stage] ?? raw_spin_stage;
   if (!chat_id || !channel || !spin_stage) {
     return jsonResponse({ error: "chat_id, channel, spin_stage required" }, 400);
   }
