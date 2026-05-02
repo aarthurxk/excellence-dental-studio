@@ -47,6 +47,7 @@ import AdminHandoff from "./pages/admin/AdminHandoff";
 import AdminVeraPrompts from "./pages/admin/AdminVeraPrompts";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminVeraActions from "./pages/admin/AdminVeraActions";
+import AdminVeraHealth from "./pages/admin/AdminVeraHealth";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ function AppRoutes() {
           <Route path="/admin/resumos" element={<AdminPage><AdminResumos /></AdminPage>} />
           <Route path="/admin/handoff" element={<AdminPage><AdminHandoff /></AdminPage>} />
           <Route path="/admin/vera-actions" element={<AdminPage><AdminVeraActions /></AdminPage>} />
+          <Route path="/admin/vera-health" element={<AdminPage><AdminVeraHealth /></AdminPage>} />
           <Route path="/admin/vera-prompts" element={<AdminPage><AdminVeraPrompts /></AdminPage>} />
           <Route path="/admin/audit" element={<AdminPage><AdminAudit /></AdminPage>} />
 

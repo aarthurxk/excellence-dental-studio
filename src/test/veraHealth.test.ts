@@ -1,0 +1,60 @@
+import { describe, expect, it } from "vitest";
+import { summarizeVeraHealth } from "@/lib/veraHealth";
+
+const now = new Date("2026-05-02T12:00:00.000Z");
+
+describe("summarizeVeraHealth", () => {
+  it("marks a healthy Vera when core signals are present", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [{ status: "pending", priority: "media", scheduled_at: "2026-05-02T10:00:00.000Z" }],
+      conversations: [{ session_id: "site:1", updated_at: "2026-05-02T11:00:00.000Z", mensagens: [] }],
+      audits: [{ acao: "vera_lead_actions:list", criado_em: "2026-05-02T11:30:00.000Z" }],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:50:00.000Z" }],
+      summariesCount: 3,
+      statesCount: 5,
+    });
+
+    expect(summary.label).toBe("ok");
+    expect(summary.score).toBe(100);
+    expect(summary.openActions).toBe(1);
+    expect(summary.activeConversations24h).toBe(1);
+    expect(summary.issues).toEqual([]);
+  });
+
+  it("flags failed and stale actions", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [
+        { status: "failed", priority: "alta", scheduled_at: "2026-05-01T10:00:00.000Z" },
+        { status: "pending", priority: "baixa", scheduled_at: "2026-05-02T11:00:00.000Z" },
+      ],
+      conversations: [{ session_id: "wa:1", updated_at: "2026-05-02T11:00:00.000Z" }],
+      connectionLogs: [{ status: "connected", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.failedActions).toBe(1);
+    expect(summary.staleActions).toBe(1);
+    expect(summary.highPriorityActions).toBe(1);
+    expect(summary.label).toBe("attention");
+    expect(summary.issues).toContain("Ha actions com falha");
+    expect(summary.issues).toContain("Ha actions abertas ha mais de 24h");
+  });
+
+  it("marks critical when WhatsApp and logs are unhealthy", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [],
+      conversations: [],
+      connectionLogs: [{ status: "close", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 0,
+    });
+
+    expect(summary.label).toBe("critical");
+    expect(summary.score).toBeLessThan(55);
+    expect(summary.issues).toContain("WhatsApp nao esta confirmado como online");
+    expect(summary.issues).toContain("Logs de conversa Vera nao retornaram contatos");
+    expect(summary.issues).toContain("Nenhum resumo recente da Vera");
+  });
+});
