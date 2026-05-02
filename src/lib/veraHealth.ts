@@ -82,6 +82,7 @@ export type VeraHealthSummary = {
   prematureScheduleMentions: number;
   fallbackResponses: number;
   unansweredConversations: number;
+  poorlyHandledPriceResponses: number;
   n8nExecutionsCount: number;
   n8nFailedExecutions: number;
   n8nRunningExecutions: number;
@@ -139,6 +140,21 @@ function hasFallbackSignal(value?: string | null) {
   return /(\bdesculp|nao consegui|não consegui|nao entendi|não entendi|confus[aã]o|erro|instabilidade|falha|tente novamente|vou corrigir|corrigir isso\b)/.test(text);
 }
 
+function hasPriceMention(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /\b(preco|preço|valor|valores|custa|custo|or[cç]amento|parcela|pagamento|pix|cart[aã]o|dinheiro|carn[eê])\b/.test(text);
+}
+
+function hasExplicitPriceValue(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /(r\$\s*\d+|\b\d{2,5}(,\d{2})?\s*reais\b|\b\d{2,5},\d{2}\b)/.test(text);
+}
+
+function hasEvaluationGuidance(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /\b(avalia[cç][aã]o|avaliar|consulta|diagn[oó]stico|plano de tratamento|dentista|especialista)\b/.test(text);
+}
+
 function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
   let repeated = 0;
   for (const conversation of conversations) {
@@ -162,6 +178,18 @@ function countFallbackResponses(conversations: VeraConversationHealthItem[]) {
   );
 }
 
+function countPoorlyHandledPriceResponses(conversations: VeraConversationHealthItem[]) {
+  return conversations.reduce(
+    (total, conversation) =>
+      total + (conversation.mensagens ?? []).filter((message) => {
+        if (message.tipo !== "ai") return false;
+        if (!hasPriceMention(message.conteudo)) return false;
+        return hasExplicitPriceValue(message.conteudo) || !hasEvaluationGuidance(message.conteudo);
+      }).length,
+    0,
+  );
+}
+
 function countUnansweredConversations(conversations: VeraConversationHealthItem[], now: Date) {
   let count = 0;
   for (const conversation of conversations) {
@@ -178,7 +206,7 @@ function countPrematureDataRequests(conversations: VeraConversationHealthItem[])
   let count = 0;
   for (const conversation of conversations) {
     let humanTurns = 0;
-    let scheduleIntentSeen = false;
+    let conversionIntentSeen = false;
 
     const orderedMessages = (conversation.mensagens ?? []).slice().sort((a, b) => {
       const left = parseTime(a.timestamp) ?? 0;
@@ -189,10 +217,10 @@ function countPrematureDataRequests(conversations: VeraConversationHealthItem[])
     for (const message of orderedMessages) {
       if (message.tipo === "human") {
         humanTurns += 1;
-        if (hasScheduleMention(message.conteudo)) scheduleIntentSeen = true;
+        if (hasScheduleMention(message.conteudo) || hasPriceMention(message.conteudo)) conversionIntentSeen = true;
       }
 
-      if (message.tipo === "ai" && hasDataRequest(message.conteudo) && humanTurns <= 2 && !scheduleIntentSeen) {
+      if (message.tipo === "ai" && hasDataRequest(message.conteudo) && humanTurns <= 2 && !conversionIntentSeen) {
         count += 1;
       }
     }
@@ -204,7 +232,7 @@ function countPrematureScheduleMentions(conversations: VeraConversationHealthIte
   let count = 0;
   for (const conversation of conversations) {
     let humanTurns = 0;
-    let scheduleIntentSeen = false;
+    let conversionIntentSeen = false;
 
     const orderedMessages = (conversation.mensagens ?? []).slice().sort((a, b) => {
       const left = parseTime(a.timestamp) ?? 0;
@@ -215,10 +243,10 @@ function countPrematureScheduleMentions(conversations: VeraConversationHealthIte
     for (const message of orderedMessages) {
       if (message.tipo === "human") {
         humanTurns += 1;
-        if (hasScheduleMention(message.conteudo)) scheduleIntentSeen = true;
+        if (hasScheduleMention(message.conteudo) || hasPriceMention(message.conteudo)) conversionIntentSeen = true;
       }
 
-      if (message.tipo === "ai" && hasScheduleMention(message.conteudo) && humanTurns <= 1 && !scheduleIntentSeen) {
+      if (message.tipo === "ai" && hasScheduleMention(message.conteudo) && humanTurns <= 1 && !conversionIntentSeen) {
         count += 1;
       }
     }
@@ -286,6 +314,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const prematureScheduleMentions = countPrematureScheduleMentions(conversations);
   const fallbackResponses = countFallbackResponses(conversations);
   const unansweredConversations = countUnansweredConversations(conversations, now);
+  const poorlyHandledPriceResponses = countPoorlyHandledPriceResponses(conversations);
   const recentN8nExecutions = n8nExecutions.filter((execution) => isWithin(execution.startedAt, now, 24));
   const n8nFailedExecutions = recentN8nExecutions.filter(
     (execution) => execution.status === "error" || execution.status === "failed" || execution.finished === false && !!execution.stoppedAt,
@@ -316,6 +345,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (prematureScheduleMentions > 0) issues.push("Vera pode estar conduzindo para agenda cedo demais");
   if (fallbackResponses > 0) issues.push("Ha respostas de fallback ou erro da Vera");
   if (unansweredConversations > 0) issues.push("Ha conversas possivelmente sem resposta da Vera");
+  if (poorlyHandledPriceResponses > 0) issues.push("Vera pode estar conduzindo preco de forma ruim");
   if (n8nFailedExecutions > 0) issues.push("Ha execucoes n8n recentes com falha");
   if (pendingHandoffs > 0) issues.push("Ha handoffs pendentes para atendimento humano");
 
@@ -328,6 +358,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     Math.min(prematureScheduleMentions * 10, 30) +
     Math.min(fallbackResponses * 8, 24) +
     Math.min(unansweredConversations * 12, 36) +
+    Math.min(poorlyHandledPriceResponses * 12, 36) +
     Math.min(n8nFailedExecutions * 12, 36) +
     Math.min(pendingHandoffs * 8, 24) +
     (conversations.length === 0 ? 20 : 0) +
@@ -355,6 +386,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     prematureScheduleMentions,
     fallbackResponses,
     unansweredConversations,
+    poorlyHandledPriceResponses,
     n8nExecutionsCount: recentN8nExecutions.length,
     n8nFailedExecutions,
     n8nRunningExecutions,

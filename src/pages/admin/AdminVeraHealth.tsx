@@ -20,6 +20,7 @@ import {
   MessageSquareWarning,
   Workflow,
   HandHelping,
+  BadgeDollarSign,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeVeraHealth, type VeraActionHealthItem, type VeraConversationHealthItem } from "@/lib/veraHealth";
@@ -348,6 +349,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={CalendarClock} title="Agenda cedo" value={summary.prematureScheduleMentions} detail="avaliacao antes da intencao" />
         <MetricCard icon={CircleAlert} title="Fallbacks IA" value={summary.fallbackResponses} detail="desculpa, erro ou confusao" />
         <MetricCard icon={MessageSquareWarning} title="Sem resposta" value={summary.unansweredConversations} detail="lead aguardando ha mais de 10min" />
+        <MetricCard icon={BadgeDollarSign} title="Preco ruim" value={summary.poorlyHandledPriceResponses} detail="valor sem avaliacao" />
         <MetricCard icon={Workflow} title="Execucoes n8n" value={summary.n8nExecutionsCount} detail={`${summary.n8nFailedExecutions} falha(s), ${summary.n8nRunningExecutions} rodando`} />
         <MetricCard icon={HandHelping} title="Handoffs" value={summary.pendingHandoffs} detail="pendentes para humano" />
       </div>

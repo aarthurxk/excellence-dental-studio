@@ -245,4 +245,27 @@ describe("summarizeVeraHealth", () => {
     expect(summary.topHandoffReasons[0]).toEqual({ label: "duvida clinica", count: 2 });
     expect(summary.issues).toContain("Ha handoffs pendentes para atendimento humano");
   });
+
+  it("detects poorly handled price responses", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      conversations: [
+        {
+          session_id: "wa:price",
+          updated_at: "2026-05-02T11:00:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Quanto custa implante?", timestamp: "2026-05-02T10:00:00.000Z" },
+            { tipo: "ai", conteudo: "Implante fica R$ 2500 e pode parcelar no cartao.", timestamp: "2026-05-02T10:00:05.000Z" },
+            { tipo: "ai", conteudo: "As formas de pagamento sao pix, cartao, dinheiro e carne da clinica. O ideal e fazer uma avaliacao para o dentista montar seu plano.", timestamp: "2026-05-02T10:01:05.000Z" },
+          ],
+        },
+      ],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.poorlyHandledPriceResponses).toBe(1);
+    expect(summary.issues).toContain("Vera pode estar conduzindo preco de forma ruim");
+    expect(summary.score).toBe(88);
+  });
 });
