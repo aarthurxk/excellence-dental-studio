@@ -53,6 +53,7 @@ export type VeraHealthSummary = {
   prematureDataRequests: number;
   prematureScheduleMentions: number;
   fallbackResponses: number;
+  unansweredConversations: number;
   issues: string[];
 };
 
@@ -125,6 +126,18 @@ function countFallbackResponses(conversations: VeraConversationHealthItem[]) {
       total + (conversation.mensagens ?? []).filter((message) => message.tipo === "ai" && hasFallbackSignal(message.conteudo)).length,
     0,
   );
+}
+
+function countUnansweredConversations(conversations: VeraConversationHealthItem[], now: Date) {
+  let count = 0;
+  for (const conversation of conversations) {
+    const orderedMessages = (conversation.mensagens ?? [])
+      .slice()
+      .sort((a, b) => (parseTime(a.timestamp) ?? 0) - (parseTime(b.timestamp) ?? 0));
+    const last = orderedMessages[orderedMessages.length - 1];
+    if (last?.tipo === "human" && isOlderThan(last.timestamp, now, 10 / 60)) count += 1;
+  }
+  return count;
 }
 
 function countPrematureDataRequests(conversations: VeraConversationHealthItem[]) {
@@ -215,6 +228,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const prematureDataRequests = countPrematureDataRequests(conversations);
   const prematureScheduleMentions = countPrematureScheduleMentions(conversations);
   const fallbackResponses = countFallbackResponses(conversations);
+  const unansweredConversations = countUnansweredConversations(conversations, now);
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -230,6 +244,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (prematureDataRequests > 0) issues.push("Vera pode estar pedindo dados cedo demais");
   if (prematureScheduleMentions > 0) issues.push("Vera pode estar conduzindo para agenda cedo demais");
   if (fallbackResponses > 0) issues.push("Ha respostas de fallback ou erro da Vera");
+  if (unansweredConversations > 0) issues.push("Ha conversas possivelmente sem resposta da Vera");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
@@ -239,6 +254,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     Math.min(prematureDataRequests * 10, 30) +
     Math.min(prematureScheduleMentions * 10, 30) +
     Math.min(fallbackResponses * 8, 24) +
+    Math.min(unansweredConversations * 12, 36) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -263,6 +279,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     prematureDataRequests,
     prematureScheduleMentions,
     fallbackResponses,
+    unansweredConversations,
     issues,
   };
 }

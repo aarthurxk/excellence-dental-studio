@@ -169,4 +169,35 @@ describe("summarizeVeraHealth", () => {
     expect(summary.issues).toContain("Ha respostas de fallback ou erro da Vera");
     expect(summary.score).toBe(92);
   });
+
+  it("detects conversations waiting for an AI response", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [],
+      conversations: [
+        {
+          session_id: "wa:waiting",
+          updated_at: "2026-05-02T11:40:00.000Z",
+          mensagens: [
+            { tipo: "ai", conteudo: "Oi, como posso ajudar?", timestamp: "2026-05-02T11:00:00.000Z" },
+            { tipo: "human", conteudo: "Quero saber sobre implante", timestamp: "2026-05-02T11:40:00.000Z" },
+          ],
+        },
+        {
+          session_id: "wa:answered",
+          updated_at: "2026-05-02T11:55:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Quero agendar", timestamp: "2026-05-02T11:50:00.000Z" },
+            { tipo: "ai", conteudo: "Claro, vou te ajudar.", timestamp: "2026-05-02T11:55:00.000Z" },
+          ],
+        },
+      ],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.unansweredConversations).toBe(1);
+    expect(summary.issues).toContain("Ha conversas possivelmente sem resposta da Vera");
+    expect(summary.score).toBe(88);
+  });
 });
