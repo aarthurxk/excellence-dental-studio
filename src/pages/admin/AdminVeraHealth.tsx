@@ -15,6 +15,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Smartphone,
+  CalendarClock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeVeraHealth, type VeraActionHealthItem, type VeraConversationHealthItem } from "@/lib/veraHealth";
@@ -274,6 +275,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={Smartphone} title="Conexao WA" value={summary.whatsappStatus} detail={`ultimo evento ${fmtRelative(connectionQuery.data?.[0]?.created_at)}`} />
         <MetricCard icon={Repeat2} title="Repeticoes IA" value={summary.repeatedAiResponses} detail={`${summary.scheduleMentions} mencoes de agenda`} />
         <MetricCard icon={UserRoundX} title="Dados cedo" value={summary.prematureDataRequests} detail="nome/telefone antes da hora" />
+        <MetricCard icon={CalendarClock} title="Agenda cedo" value={summary.prematureScheduleMentions} detail="avaliacao antes da intencao" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

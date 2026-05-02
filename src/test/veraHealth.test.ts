@@ -68,7 +68,7 @@ describe("summarizeVeraHealth", () => {
           session_id: "wa:1",
           updated_at: "2026-05-02T11:00:00.000Z",
           mensagens: [
-            { tipo: "human", conteudo: "Quero marcar", timestamp: "2026-05-02T10:00:00.000Z" },
+            { tipo: "human", conteudo: "Quero agendar uma avaliacao", timestamp: "2026-05-02T10:00:00.000Z" },
             { tipo: "ai", conteudo: `<resposta>${repeatedText}</resposta>`, timestamp: "2026-05-02T10:01:00.000Z" },
             { tipo: "ai", conteudo: repeatedText, timestamp: "2026-05-02T10:02:00.000Z" },
           ],
@@ -112,6 +112,38 @@ describe("summarizeVeraHealth", () => {
 
     expect(summary.prematureDataRequests).toBe(1);
     expect(summary.issues).toContain("Vera pode estar pedindo dados cedo demais");
+    expect(summary.score).toBe(90);
+  });
+
+  it("detects when Vera pushes scheduling too early", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [],
+      conversations: [
+        {
+          session_id: "site:schedule-too-soon",
+          updated_at: "2026-05-02T11:00:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Oi, boa tarde", timestamp: "2026-05-02T10:00:00.000Z" },
+            { tipo: "ai", conteudo: "Boa tarde! Tenho horarios para avaliacao hoje. Quer agendar?", timestamp: "2026-05-02T10:00:05.000Z" },
+          ],
+        },
+        {
+          session_id: "site:schedule-ok",
+          updated_at: "2026-05-02T11:00:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Quero agendar uma avaliacao", timestamp: "2026-05-02T10:10:00.000Z" },
+            { tipo: "ai", conteudo: "Perfeito, vou olhar a agenda para avaliacao.", timestamp: "2026-05-02T10:10:05.000Z" },
+          ],
+        },
+      ],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.prematureScheduleMentions).toBe(1);
+    expect(summary.scheduleMentions).toBe(2);
+    expect(summary.issues).toContain("Vera pode estar conduzindo para agenda cedo demais");
     expect(summary.score).toBe(90);
   });
 });
