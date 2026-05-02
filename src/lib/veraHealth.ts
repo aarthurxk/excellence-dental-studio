@@ -50,6 +50,7 @@ export type VeraHealthSummary = {
   statesCount: number;
   repeatedAiResponses: number;
   scheduleMentions: number;
+  prematureDataRequests: number;
   issues: string[];
 };
 
@@ -90,6 +91,12 @@ function hasScheduleMention(value?: string | null) {
   return /\b(agenda|agendar|agendamento|avaliacao|avaliação|horario|horário)\b/.test(text);
 }
 
+function hasDataRequest(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /\b(nome|telefone|whatsapp|zap|numero|número|contato)\b/.test(text) &&
+    /\b(me passa|pode me passar|qual seu|seu nome|seu telefone|confirmar|agendamento)\b/.test(text);
+}
+
 function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
   let repeated = 0;
   for (const conversation of conversations) {
@@ -103,6 +110,32 @@ function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
     }
   }
   return repeated;
+}
+
+function countPrematureDataRequests(conversations: VeraConversationHealthItem[]) {
+  let count = 0;
+  for (const conversation of conversations) {
+    let humanTurns = 0;
+    let scheduleIntentSeen = false;
+
+    const orderedMessages = (conversation.mensagens ?? []).slice().sort((a, b) => {
+      const left = parseTime(a.timestamp) ?? 0;
+      const right = parseTime(b.timestamp) ?? 0;
+      return left - right;
+    });
+
+    for (const message of orderedMessages) {
+      if (message.tipo === "human") {
+        humanTurns += 1;
+        if (hasScheduleMention(message.conteudo)) scheduleIntentSeen = true;
+      }
+
+      if (message.tipo === "ai" && hasDataRequest(message.conteudo) && humanTurns <= 2 && !scheduleIntentSeen) {
+        count += 1;
+      }
+    }
+  }
+  return count;
 }
 
 function countScheduleMentions(conversations: VeraConversationHealthItem[]) {
@@ -138,6 +171,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const recentAuditCount = audits.filter((a) => isWithin(a.criado_em, now, 24)).length;
   const repeatedAiResponses = countRepeatedAiResponses(conversations);
   const scheduleMentions = countScheduleMentions(conversations);
+  const prematureDataRequests = countPrematureDataRequests(conversations);
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -150,12 +184,14 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (conversations.length === 0) issues.push("Logs de conversa Vera nao retornaram contatos");
   if ((input.summariesCount ?? 0) === 0) issues.push("Nenhum resumo recente da Vera");
   if (repeatedAiResponses > 0) issues.push("Ha possivel repeticao de resposta da IA");
+  if (prematureDataRequests > 0) issues.push("Vera pode estar pedindo dados cedo demais");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
     Math.min(failedActions * 15, 30) +
     Math.min(staleActions * 10, 25) +
     Math.min(repeatedAiResponses * 8, 24) +
+    Math.min(prematureDataRequests * 10, 30) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -177,6 +213,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     statesCount: input.statesCount ?? 0,
     repeatedAiResponses,
     scheduleMentions,
+    prematureDataRequests,
     issues,
   };
 }
