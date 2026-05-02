@@ -220,4 +220,29 @@ describe("summarizeVeraHealth", () => {
     expect(summary.issues).toContain("Ha execucoes n8n recentes com falha");
     expect(summary.score).toBe(88);
   });
+
+  it("summarizes action and handoff reasons", () => {
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [
+        { status: "pending", action_type: "follow_up", reason: "objecao_preco_pagamento", prioridade: "alta" },
+        { status: "failed", action_type: "follow_up", reason: "objecao_preco_pagamento", prioridade: "media" },
+        { status: "ignored", action_type: "handoff", reason: "fora_escopo", prioridade: "alta" },
+      ],
+      handoffs: [
+        { status: "pendente", motivo: "duvida_clinica", criado_em: "2026-05-02T11:00:00.000Z" },
+        { status: "pendente", motivo: "duvida_clinica", criado_em: "2026-05-02T11:10:00.000Z" },
+        { status: "resolvido", motivo: "agenda", criado_em: "2026-05-02T11:20:00.000Z" },
+      ],
+      conversations: [{ session_id: "wa:ok", updated_at: "2026-05-02T11:45:00.000Z" }],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.highPriorityActions).toBe(1);
+    expect(summary.pendingHandoffs).toBe(2);
+    expect(summary.topActionReasons[0]).toEqual({ label: "objecao preco pagamento", count: 2 });
+    expect(summary.topHandoffReasons[0]).toEqual({ label: "duvida clinica", count: 2 });
+    expect(summary.issues).toContain("Ha handoffs pendentes para atendimento humano");
+  });
 });

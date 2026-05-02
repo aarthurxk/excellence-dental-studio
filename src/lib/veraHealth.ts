@@ -1,8 +1,12 @@
 export type VeraActionHealthItem = {
+  action_type?: string | null;
+  reason?: string | null;
   status?: string | null;
   scheduled_at?: string | null;
+  scheduled_for?: string | null;
   created_at?: string | null;
   priority?: string | null;
+  prioridade?: string | null;
 };
 
 export type VeraConversationHealthItem = {
@@ -35,12 +39,25 @@ export type VeraN8nExecutionHealthItem = {
   stoppedAt?: string | null;
 };
 
+export type VeraHandoffHealthItem = {
+  status?: string | null;
+  motivo?: string | null;
+  channel?: string | null;
+  criado_em?: string | null;
+};
+
+export type VeraReasonCount = {
+  label: string;
+  count: number;
+};
+
 export type VeraHealthInputs = {
   actions?: VeraActionHealthItem[];
   conversations?: VeraConversationHealthItem[];
   audits?: VeraAuditHealthItem[];
   connectionLogs?: VeraConnectionLogHealthItem[];
   n8nExecutions?: VeraN8nExecutionHealthItem[];
+  handoffs?: VeraHandoffHealthItem[];
   summariesCount?: number;
   statesCount?: number;
   now?: Date;
@@ -68,6 +85,9 @@ export type VeraHealthSummary = {
   n8nExecutionsCount: number;
   n8nFailedExecutions: number;
   n8nRunningExecutions: number;
+  pendingHandoffs: number;
+  topActionReasons: VeraReasonCount[];
+  topHandoffReasons: VeraReasonCount[];
   issues: string[];
 };
 
@@ -214,6 +234,27 @@ function countScheduleMentions(conversations: VeraConversationHealthItem[]) {
   );
 }
 
+function normalizeReason(value?: string | null) {
+  const text = (value ?? "").trim().toLowerCase();
+  if (!text) return "sem motivo";
+  return text
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 80);
+}
+
+function topReasons(values: Array<string | null | undefined>, limit = 5): VeraReasonCount[] {
+  const counts = new Map<string, number>();
+  for (const value of values) {
+    const key = normalizeReason(value);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, limit);
+}
+
 export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary {
   const now = input.now ?? new Date();
   const actions = input.actions ?? [];
@@ -221,6 +262,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const audits = input.audits ?? [];
   const connectionLogs = input.connectionLogs ?? [];
   const n8nExecutions = input.n8nExecutions ?? [];
+  const handoffs = input.handoffs ?? [];
 
   const openActions = actions.filter((a) => OPEN_ACTION_STATUSES.has(a.status ?? "")).length;
   const failedActions = actions.filter((a) => a.status === "failed").length;
@@ -228,7 +270,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     (a) => (a.status === "pending" || a.status === "failed") && isOlderThan(a.scheduled_at ?? a.created_at, now, 24),
   ).length;
   const highPriorityActions = actions.filter(
-    (a) => OPEN_ACTION_STATUSES.has(a.status ?? "") && a.priority === "alta",
+    (a) => OPEN_ACTION_STATUSES.has(a.status ?? "") && (a.priority ?? a.prioridade) === "alta",
   ).length;
 
   const activeConversations24h = conversations.filter((c) => {
@@ -251,6 +293,13 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   const n8nRunningExecutions = recentN8nExecutions.filter(
     (execution) => execution.status === "running" || execution.finished === false && !execution.stoppedAt,
   ).length;
+  const pendingHandoffs = handoffs.filter((handoff) => handoff.status === "pendente").length;
+  const topActionReasons = topReasons(
+    actions
+      .filter((action) => OPEN_ACTION_STATUSES.has(action.status ?? ""))
+      .map((action) => action.reason ?? action.action_type),
+  );
+  const topHandoffReasons = topReasons(handoffs.map((handoff) => handoff.motivo));
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -268,6 +317,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (fallbackResponses > 0) issues.push("Ha respostas de fallback ou erro da Vera");
   if (unansweredConversations > 0) issues.push("Ha conversas possivelmente sem resposta da Vera");
   if (n8nFailedExecutions > 0) issues.push("Ha execucoes n8n recentes com falha");
+  if (pendingHandoffs > 0) issues.push("Ha handoffs pendentes para atendimento humano");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
@@ -279,6 +329,7 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     Math.min(fallbackResponses * 8, 24) +
     Math.min(unansweredConversations * 12, 36) +
     Math.min(n8nFailedExecutions * 12, 36) +
+    Math.min(pendingHandoffs * 8, 24) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -307,6 +358,9 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     n8nExecutionsCount: recentN8nExecutions.length,
     n8nFailedExecutions,
     n8nRunningExecutions,
+    pendingHandoffs,
+    topActionReasons,
+    topHandoffReasons,
     issues,
   };
 }

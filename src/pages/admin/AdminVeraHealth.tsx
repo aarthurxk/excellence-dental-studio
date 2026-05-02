@@ -19,6 +19,7 @@ import {
   CircleAlert,
   MessageSquareWarning,
   Workflow,
+  HandHelping,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeVeraHealth, type VeraActionHealthItem, type VeraConversationHealthItem } from "@/lib/veraHealth";
@@ -71,6 +72,13 @@ type AuditRow = {
   tabela: string | null;
   criado_em: string | null;
   user_email: string | null;
+};
+
+type HandoffRow = {
+  status: string | null;
+  motivo: string | null;
+  channel: string | null;
+  criado_em: string | null;
 };
 
 function fmtRelative(value?: string | null) {
@@ -194,6 +202,22 @@ export default function AdminVeraHealth() {
     refetchInterval: 120_000,
   });
 
+  const handoffQuery = useQuery({
+    queryKey: ["vera-health-handoffs"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("vera_handoff_queue")
+        .select("status, motivo, channel, criado_em")
+        .gte("criado_em", since)
+        .order("criado_em", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as HandoffRow[];
+    },
+    refetchInterval: 120_000,
+  });
+
   const summary = useMemo(
     () =>
       summarizeVeraHealth({
@@ -202,10 +226,11 @@ export default function AdminVeraHealth() {
         audits: auditQuery.data ?? [],
         connectionLogs: connectionQuery.data ?? [],
         n8nExecutions: n8nQuery.data?.executions ?? [],
+        handoffs: handoffQuery.data ?? [],
         summariesCount: summariesQuery.data ?? 0,
         statesCount: statesQuery.data ?? 0,
       }),
-    [actionsQuery.data, auditQuery.data, connectionQuery.data, logsQuery.data, n8nQuery.data, statesQuery.data, summariesQuery.data],
+    [actionsQuery.data, auditQuery.data, connectionQuery.data, handoffQuery.data, logsQuery.data, n8nQuery.data, statesQuery.data, summariesQuery.data],
   );
 
   const isFetching =
@@ -215,7 +240,8 @@ export default function AdminVeraHealth() {
     auditQuery.isFetching ||
     summariesQuery.isFetching ||
     statesQuery.isFetching ||
-    n8nQuery.isFetching;
+    n8nQuery.isFetching ||
+    handoffQuery.isFetching;
 
   const errors = [
     actionsQuery.error,
@@ -225,6 +251,7 @@ export default function AdminVeraHealth() {
     summariesQuery.error,
     statesQuery.error,
     n8nQuery.error,
+    handoffQuery.error,
   ].filter(Boolean) as Error[];
 
   function refetchAll() {
@@ -235,6 +262,7 @@ export default function AdminVeraHealth() {
     summariesQuery.refetch();
     statesQuery.refetch();
     n8nQuery.refetch();
+    handoffQuery.refetch();
   }
 
   return (
@@ -321,6 +349,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={CircleAlert} title="Fallbacks IA" value={summary.fallbackResponses} detail="desculpa, erro ou confusao" />
         <MetricCard icon={MessageSquareWarning} title="Sem resposta" value={summary.unansweredConversations} detail="lead aguardando ha mais de 10min" />
         <MetricCard icon={Workflow} title="Execucoes n8n" value={summary.n8nExecutionsCount} detail={`${summary.n8nFailedExecutions} falha(s), ${summary.n8nRunningExecutions} rodando`} />
+        <MetricCard icon={HandHelping} title="Handoffs" value={summary.pendingHandoffs} detail="pendentes para humano" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -427,6 +456,9 @@ export default function AdminVeraHealth() {
             )}
           </CardContent>
         </Card>
+
+        <ReasonCard title="Motivos de follow-up" rows={summary.topActionReasons} empty="Nenhuma action aberta recente." />
+        <ReasonCard title="Motivos de handoff" rows={summary.topHandoffReasons} empty="Nenhum handoff recente." />
       </div>
     </div>
   );
@@ -452,6 +484,28 @@ function MetricCard({
       <CardContent>
         <p className="text-2xl font-bold">{value}</p>
         <p className="text-xs text-muted-foreground mt-1">{detail}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReasonCard({ title, rows, empty }: { title: string; rows: Array<{ label: string; count: number }>; empty: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{empty}</p>
+        ) : (
+          rows.map((row) => (
+            <div key={row.label} className="flex items-center justify-between gap-3 text-sm">
+              <span className="truncate">{row.label}</span>
+              <Badge variant="secondary">{row.count}</Badge>
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );
