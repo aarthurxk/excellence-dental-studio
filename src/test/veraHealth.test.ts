@@ -57,4 +57,30 @@ describe("summarizeVeraHealth", () => {
     expect(summary.issues).toContain("Logs de conversa Vera nao retornaram contatos");
     expect(summary.issues).toContain("Nenhum resumo recente da Vera");
   });
+
+  it("detects repeated AI responses and schedule mentions from conversation logs", () => {
+    const repeatedText = "Olhei aqui na agenda e tenho horarios disponiveis para avaliacao. Qual desses fica melhor para voce?";
+    const summary = summarizeVeraHealth({
+      now,
+      actions: [],
+      conversations: [
+        {
+          session_id: "wa:1",
+          updated_at: "2026-05-02T11:00:00.000Z",
+          mensagens: [
+            { tipo: "human", conteudo: "Quero marcar", timestamp: "2026-05-02T10:00:00.000Z" },
+            { tipo: "ai", conteudo: `<resposta>${repeatedText}</resposta>`, timestamp: "2026-05-02T10:01:00.000Z" },
+            { tipo: "ai", conteudo: repeatedText, timestamp: "2026-05-02T10:02:00.000Z" },
+          ],
+        },
+      ],
+      connectionLogs: [{ status: "open", created_at: "2026-05-02T11:45:00.000Z" }],
+      summariesCount: 1,
+    });
+
+    expect(summary.repeatedAiResponses).toBe(1);
+    expect(summary.scheduleMentions).toBe(2);
+    expect(summary.issues).toContain("Ha possivel repeticao de resposta da IA");
+    expect(summary.score).toBe(92);
+  });
 });

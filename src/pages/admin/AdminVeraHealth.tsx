@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Repeat2,
   ListChecks,
   MessageCircle,
   RefreshCw,
@@ -270,6 +271,7 @@ export default function AdminVeraHealth() {
         <MetricCard icon={MessageCircle} title="Conversas Vera" value={summary.conversationCount} detail={`${summary.activeConversations24h} ativas em 24h`} />
         <MetricCard icon={Clock} title="Resumos 7 dias" value={summary.summariesCount} detail={`${summary.statesCount} estados SPIN salvos`} />
         <MetricCard icon={Smartphone} title="Conexao WA" value={summary.whatsappStatus} detail={`ultimo evento ${fmtRelative(connectionQuery.data?.[0]?.created_at)}`} />
+        <MetricCard icon={Repeat2} title="Repeticoes IA" value={summary.repeatedAiResponses} detail={`${summary.scheduleMentions} mencoes de agenda`} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

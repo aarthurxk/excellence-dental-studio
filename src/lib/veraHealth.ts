@@ -8,7 +8,11 @@ export type VeraActionHealthItem = {
 export type VeraConversationHealthItem = {
   session_id?: string | null;
   updated_at?: string | null;
-  mensagens?: Array<{ timestamp?: string | null }>;
+  mensagens?: Array<{
+    tipo?: string | null;
+    conteudo?: string | null;
+    timestamp?: string | null;
+  }>;
 };
 
 export type VeraAuditHealthItem = {
@@ -44,6 +48,8 @@ export type VeraHealthSummary = {
   whatsappStatus: string;
   summariesCount: number;
   statesCount: number;
+  repeatedAiResponses: number;
+  scheduleMentions: number;
   issues: string[];
 };
 
@@ -66,6 +72,45 @@ function isOlderThan(value: string | null | undefined, now: Date, hours: number)
   const time = parseTime(value);
   if (!time) return false;
   return now.getTime() - time > hours * 60 * 60 * 1000;
+}
+
+function normalizeAiText(value?: string | null) {
+  if (!value) return "";
+  return value
+    .replace(/<resposta>([\s\S]*?)<\/resposta>/i, "$1")
+    .replace(/<[^>]+>[\s\S]*?<\/[^>]+>/g, " ")
+    .replace(/\[CONTEXTO_SESSAO\][\s\S]*?(\[\/CONTEXTO_SESSAO\]|$)/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function hasScheduleMention(value?: string | null) {
+  const text = normalizeAiText(value);
+  return /\b(agenda|agendar|agendamento|avaliacao|avaliação|horario|horário)\b/.test(text);
+}
+
+function countRepeatedAiResponses(conversations: VeraConversationHealthItem[]) {
+  let repeated = 0;
+  for (const conversation of conversations) {
+    const seen = new Set<string>();
+    for (const message of conversation.mensagens ?? []) {
+      if (message.tipo !== "ai") continue;
+      const normalized = normalizeAiText(message.conteudo);
+      if (normalized.length < 40) continue;
+      if (seen.has(normalized)) repeated += 1;
+      seen.add(normalized);
+    }
+  }
+  return repeated;
+}
+
+function countScheduleMentions(conversations: VeraConversationHealthItem[]) {
+  return conversations.reduce(
+    (total, conversation) =>
+      total + (conversation.mensagens ?? []).filter((message) => message.tipo === "ai" && hasScheduleMention(message.conteudo)).length,
+    0,
+  );
 }
 
 export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary {
@@ -91,6 +136,8 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   }).length;
 
   const recentAuditCount = audits.filter((a) => isWithin(a.criado_em, now, 24)).length;
+  const repeatedAiResponses = countRepeatedAiResponses(conversations);
+  const scheduleMentions = countScheduleMentions(conversations);
   const latestConnection = connectionLogs
     .slice()
     .sort((a, b) => (parseTime(b.created_at) ?? 0) - (parseTime(a.created_at) ?? 0))[0];
@@ -102,11 +149,13 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
   if (staleActions > 0) issues.push("Ha actions abertas ha mais de 24h");
   if (conversations.length === 0) issues.push("Logs de conversa Vera nao retornaram contatos");
   if ((input.summariesCount ?? 0) === 0) issues.push("Nenhum resumo recente da Vera");
+  if (repeatedAiResponses > 0) issues.push("Ha possivel repeticao de resposta da IA");
 
   const penalty =
     (ONLINE_WHATSAPP_STATUSES.has(whatsappStatus) ? 0 : 25) +
     Math.min(failedActions * 15, 30) +
     Math.min(staleActions * 10, 25) +
+    Math.min(repeatedAiResponses * 8, 24) +
     (conversations.length === 0 ? 20 : 0) +
     ((input.summariesCount ?? 0) === 0 ? 10 : 0);
 
@@ -126,6 +175,8 @@ export function summarizeVeraHealth(input: VeraHealthInputs): VeraHealthSummary 
     whatsappStatus,
     summariesCount: input.summariesCount ?? 0,
     statesCount: input.statesCount ?? 0,
+    repeatedAiResponses,
+    scheduleMentions,
     issues,
   };
 }
