@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   RotateCcw,
   XCircle,
+  Trash2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -38,6 +39,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
 import { normalizeWhatsappPhone, whatsappRemoteJidFromVeraChatId } from "@/lib/veraActions";
+import { DeletedMessageBadge } from "@/components/admin/badges/DeletedMessageBadge";
+import { usePermissions } from "@/hooks/usePermissions";
+import { TagFilter } from "@/components/admin/filters/TagFilter";
+import { useTags, useLeadTagsMap } from "@/hooks/useLeadTags";
 
 interface EvoChat { remoteJid: string; name: string | null; unreadMessages: number; }
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
@@ -51,6 +56,9 @@ interface ConvLogMeta {
   audio_pending: boolean | null;
   hidden_from_ai: boolean | null;
   message_text: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  deletion_reason: string | null;
 }
 
 interface VeraLeadAction {
@@ -155,6 +163,7 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
   const qc = useQueryClient();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [msgInput, setMsgInput] = useState("");
   const [sending, setSending] = useState(false);
   const [simulatedFollowUp, setSimulatedFollowUp] = useState<{ decision: string; note: string; text: string } | null>(null);
@@ -295,7 +304,7 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
       if (!selectedChat) return [] as ConvLogMeta[];
       const { data } = await supabase
         .from("conversations_log")
-        .select("id, whatsapp_message_id, is_audio, audio_pending, hidden_from_ai, message_text")
+        .select("id, whatsapp_message_id, is_audio, audio_pending, hidden_from_ai, message_text, deleted_at, deleted_by, deletion_reason")
         .eq("remote_jid", selectedChat)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -303,6 +312,41 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
     },
     enabled: !!selectedChat,
   });
+
+  const allPerms = usePermissions() as Record<string, { can_view: boolean }>;
+  const canViewDeletedMsgs = allPerms["messages_audit"]?.can_view === true;
+
+  const { data: allTags = [] } = useTags();
+
+  // Mapa lead_id→tags para filtrar chats por tag
+  const chatPhones = chats.map((c) => c.remoteJid.replace("@s.whatsapp.net", ""));
+  const { data: leadsByPhone = {} } = useQuery({
+    queryKey: ["leads-by-phone", chatPhones.slice(0, 50).join(",")],
+    queryFn: async () => {
+      if (!chatPhones.length) return {} as Record<string, string>;
+      const { data } = await supabase
+        .from("leads")
+        .select("id, phone")
+        .in("phone", chatPhones.slice(0, 50));
+      const map: Record<string, string> = {};
+      for (const l of data ?? []) map[l.phone] = l.id;
+      return map;
+    },
+    enabled: chatPhones.length > 0,
+  });
+
+  const leadIds = Object.values(leadsByPhone);
+  const { data: tagsMap = {} } = useLeadTagsMap(leadIds);
+
+  const softDeleteConvLog = async (logId: string) => {
+    const { error } = await supabase
+      .from("conversations_log")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", logId);
+    if (error) { toast.error("Erro: " + error.message); return; }
+    qc.invalidateQueries({ queryKey: ["conv-log-meta", selectedChat] });
+    toast.success("Mensagem removida do histórico da IA.");
+  };
 
   const metaByMsgId = new Map<string, ConvLogMeta>();
   for (const m of convLogMeta) {
@@ -366,7 +410,16 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
     return msg.message.conversation || msg.message.extendedTextMessage || msg.message.caption || `[${msg.messageType}]`;
   };
 
-  const filteredChats = chats.filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.remoteJid.includes(searchTerm));
+  const filteredChats = chats.filter((c) => {
+    const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.remoteJid.includes(searchTerm);
+    if (!matchSearch) return false;
+    if (selectedTagIds.length === 0) return true;
+    const phone = c.remoteJid.replace("@s.whatsapp.net", "");
+    const leadId = leadsByPhone[phone];
+    if (!leadId) return false;
+    const leadTags = (tagsMap[leadId] ?? []).map((t) => t.id);
+    return selectedTagIds.some((id) => leadTags.includes(id));
+  });
   const selectedChatInfo = chats.find((c) => c.remoteJid === selectedChat);
 
   const spinStage = spinState?.spin_stage as string | undefined;
@@ -384,6 +437,15 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar contato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
           </div>
+          {allTags.length > 0 && (
+            <TagFilter
+              tags={allTags}
+              selected={selectedTagIds}
+              onChange={setSelectedTagIds}
+              placeholder="Tag"
+              className="flex-wrap"
+            />
+          )}
         </div>
         <ScrollArea className="flex-1">
           {chatsLoading ? Array.from({ length: 8 }).map((_, i) => <ContactSkeleton key={i} />) : filteredChats.length === 0 ? (
@@ -545,6 +607,38 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
                     const isAudio = !!meta?.is_audio;
                     const audioPending = !!meta?.audio_pending;
                     const hidden = !!meta?.hidden_from_ai;
+                    const isDeleted = !!meta?.deleted_at;
+
+                    // Mensagem apagada — exibe badge no lugar da bubble
+                    if (isDeleted) {
+                      if (!canViewDeletedMsgs) {
+                        return (
+                          <div key={msg.key.id} className={cn("flex", isFromMe ? "justify-end" : "justify-start")}>
+                            <DeletedMessageBadge
+                              originalContent={text}
+                              info={{ deletedAt: meta!.deleted_at! }}
+                              canViewContent={false}
+                              className="max-w-[75%]"
+                            />
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={msg.key.id} className={cn("flex", isFromMe ? "justify-end" : "justify-start")}>
+                          <DeletedMessageBadge
+                            originalContent={text}
+                            info={{
+                              deletedAt: meta!.deleted_at!,
+                              deletedBy: meta!.deleted_by ?? undefined,
+                              reason: meta!.deletion_reason ?? undefined,
+                            }}
+                            canViewContent={true}
+                            className="max-w-[75%]"
+                          />
+                        </div>
+                      );
+                    }
+
                     return (
                       <div key={msg.key.id} className={cn("flex group", isFromMe ? "justify-end" : "justify-start")}>
                         <div
@@ -597,31 +691,54 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
                           </div>
 
                           {meta && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={() => toggleHiddenFromAI(meta.id, hidden)}
-                                  className={cn(
-                                    "absolute -top-2 opacity-0 group-hover:opacity-100 transition-opacity",
-                                    "rounded-full bg-background border shadow-sm p-1 hover:bg-muted",
-                                    isFromMe ? "-left-2" : "-right-2",
-                                  )}
-                                  aria-label={hidden ? "Tornar visível para a IA" : "Ocultar da IA"}
-                                >
-                                  {hidden ? (
-                                    <Eye className="h-3 w-3 text-foreground" />
-                                  ) : (
-                                    <EyeOff className="h-3 w-3 text-foreground" />
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top">
-                                <p className="text-xs">
-                                  {hidden ? "Tornar visível para a IA" : "Ocultar essa mensagem da IA"}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
+                            <div
+                              className={cn(
+                                "absolute -top-2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity",
+                                isFromMe ? "-left-2 flex-row-reverse" : "-right-2",
+                              )}
+                            >
+                              {/* Toggle ocultar da IA */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleHiddenFromAI(meta.id, hidden)}
+                                    className="rounded-full bg-background border shadow-sm p-1 hover:bg-muted"
+                                    aria-label={hidden ? "Tornar visível para a IA" : "Ocultar da IA"}
+                                  >
+                                    {hidden ? (
+                                      <Eye className="h-3 w-3 text-foreground" />
+                                    ) : (
+                                      <EyeOff className="h-3 w-3 text-foreground" />
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p className="text-xs">
+                                    {hidden ? "Tornar visível para a IA" : "Ocultar essa mensagem da IA"}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+
+                              {/* Soft delete — apenas admin/supervisor */}
+                              {canViewDeletedMsgs && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      onClick={() => softDeleteConvLog(meta.id)}
+                                      className="rounded-full bg-background border shadow-sm p-1 hover:bg-destructive/10 hover:border-destructive/30"
+                                      aria-label="Apagar mensagem (auditável)"
+                                    >
+                                      <Trash2 className="h-3 w-3 text-destructive" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p className="text-xs">Apagar mensagem (fica no audit)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>

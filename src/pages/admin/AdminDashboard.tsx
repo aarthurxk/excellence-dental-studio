@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stethoscope, Users, Star, Video, CalendarDays, MessageSquare, Mail, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SectionEquipe } from "@/components/admin/dashboard/SectionEquipe";
 
 const stats = [
   { key: "services", label: "Tratamentos", icon: Stethoscope, table: "services" as const, url: "/admin/tratamentos", filterActive: true },
@@ -60,6 +61,8 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      <SectionEquipe />
     </div>
   );
 }

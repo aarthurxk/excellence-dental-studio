@@ -17,8 +17,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Lato', 'sans-serif'],
+        sans: ['Inter', 'Lato', 'sans-serif'],
         display: ['Raleway', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         "clinic-dark": "hsl(var(--clinic-dark))",
