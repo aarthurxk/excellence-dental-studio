@@ -41,15 +41,14 @@ async function assertStaff(authHeader: string) {
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
-  const token = authHeader.replace("Bearer ", "");
-  const { data: claims, error: authErr } = await userClient.auth.getClaims(token);
-  if (authErr || !claims?.claims?.sub) return false;
+  const { data: userData, error: authErr } = await userClient.auth.getUser();
+  if (authErr || !userData?.user) return false;
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
   const { data: isStaff, error: staffErr } = await admin.rpc("is_staff", {
-    _uid: claims.claims.sub as string,
+    _uid: userData.user.id,
   });
   if (staffErr) throw staffErr;
   return !!isStaff;
