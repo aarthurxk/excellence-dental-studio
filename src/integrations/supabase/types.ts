@@ -164,6 +164,9 @@ export type Database = {
       contact_messages: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
           email: string
           id: string
           message: string
@@ -173,6 +176,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           email?: string
           id?: string
           message: string
@@ -182,6 +188,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           email?: string
           id?: string
           message?: string
@@ -195,6 +204,9 @@ export type Database = {
         Row: {
           audio_pending: boolean | null
           created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
           direction: string | null
           hidden_from_ai: boolean | null
           id: string
@@ -210,6 +222,9 @@ export type Database = {
         Insert: {
           audio_pending?: boolean | null
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           direction?: string | null
           hidden_from_ai?: boolean | null
           id?: string
@@ -225,6 +240,9 @@ export type Database = {
         Update: {
           audio_pending?: boolean | null
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           direction?: string | null
           hidden_from_ai?: boolean | null
           id?: string
@@ -236,6 +254,48 @@ export type Database = {
           sent_by?: string | null
           whatsapp_message_id?: string | null
           whatsapp_timestamp?: number | null
+        }
+        Relationships: []
+      }
+      deleted_message_audit: {
+        Row: {
+          author: string | null
+          author_phone: string | null
+          content: string
+          deleted_at: string
+          deleted_by: string | null
+          deletion_reason: string | null
+          id: string
+          metadata: Json | null
+          sent_at: string
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          author?: string | null
+          author_phone?: string | null
+          content: string
+          deleted_at?: string
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at: string
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          author?: string | null
+          author_phone?: string | null
+          content?: string
+          deleted_at?: string
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string
+          source_id?: string
+          source_table?: string
         }
         Relationships: []
       }
@@ -404,6 +464,7 @@ export type Database = {
       leads: {
         Row: {
           ai_enabled: boolean | null
+          assigned_to: string | null
           created_at: string | null
           data_agendamento: string | null
           first_contact_at: string | null
@@ -415,10 +476,12 @@ export type Database = {
           name: string | null
           notes: string | null
           phone: string
+          priority: number | null
           procedimento_interesse: string | null
           profile_pic_url: string | null
           push_name: string | null
           resumo: string | null
+          sla_due_at: string | null
           status: string | null
           total_messages_in: number | null
           total_messages_out: number | null
@@ -430,6 +493,7 @@ export type Database = {
         }
         Insert: {
           ai_enabled?: boolean | null
+          assigned_to?: string | null
           created_at?: string | null
           data_agendamento?: string | null
           first_contact_at?: string | null
@@ -441,10 +505,12 @@ export type Database = {
           name?: string | null
           notes?: string | null
           phone: string
+          priority?: number | null
           procedimento_interesse?: string | null
           profile_pic_url?: string | null
           push_name?: string | null
           resumo?: string | null
+          sla_due_at?: string | null
           status?: string | null
           total_messages_in?: number | null
           total_messages_out?: number | null
@@ -456,6 +522,7 @@ export type Database = {
         }
         Update: {
           ai_enabled?: boolean | null
+          assigned_to?: string | null
           created_at?: string | null
           data_agendamento?: string | null
           first_contact_at?: string | null
@@ -467,10 +534,12 @@ export type Database = {
           name?: string | null
           notes?: string | null
           phone?: string
+          priority?: number | null
           procedimento_interesse?: string | null
           profile_pic_url?: string | null
           push_name?: string | null
           resumo?: string | null
+          sla_due_at?: string | null
           status?: string | null
           total_messages_in?: number | null
           total_messages_out?: number | null
