@@ -1,9 +1,25 @@
+import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stethoscope, Users, Star, Video, CalendarDays, MessageSquare, Mail, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SectionEquipe } from "@/components/admin/dashboard/SectionEquipe";
+
+class EquipeErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 const stats = [
   { key: "services", label: "Tratamentos", icon: Stethoscope, table: "services" as const, url: "/admin/tratamentos", filterActive: true },
@@ -62,7 +78,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <SectionEquipe />
+      <EquipeErrorBoundary><SectionEquipe /></EquipeErrorBoundary>
     </div>
   );
 }

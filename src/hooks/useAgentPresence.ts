@@ -26,54 +26,65 @@ export function useAgentPresence() {
   React.useEffect(() => {
     if (!user) return;
 
-    const channel = supabase.channel(CHANNEL, {
-      config: { presence: { key: user.id } },
-    });
+    // Nome único por mount evita reuso de canal já subscrito (erro Supabase Realtime)
+    const channelName = `${CHANNEL}-${user.id.slice(0, 8)}-${Date.now()}`;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const myState: Omit<AgentPresenceEntry, "status"> = {
-      agentId: user.id,
-      email: user.email ?? "",
-      displayName: user.user_metadata?.full_name ?? user.email ?? "",
-      avatarUrl: user.user_metadata?.avatar_url ?? undefined,
-      onlineSince: new Date().toISOString(),
-    };
-
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<Omit<AgentPresenceEntry, "status">>();
-        const next: Record<string, AgentPresenceEntry> = {};
-        for (const [key, presArr] of Object.entries(state)) {
-          const pres = presArr[0];
-          if (!pres) continue;
-          next[key] = {
-            agentId: key,
-            email: (pres as any).email ?? "",
-            displayName: (pres as any).displayName,
-            avatarUrl: (pres as any).avatarUrl,
-            onlineSince: (pres as any).onlineSince,
-            status: "online",
-          };
-        }
-        setPresences(next);
-      })
-      .on("presence", { event: "leave" }, ({ leftPresences }) => {
-        setPresences((prev) => {
-          const next = { ...prev };
-          for (const p of leftPresences as any[]) {
-            if (next[p.key]) next[p.key] = { ...next[p.key], status: "offline" };
-          }
-          return next;
-        });
+    try {
+      channel = supabase.channel(channelName, {
+        config: { presence: { key: user.id } },
       });
 
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        await channel.track(myState);
-      }
-    });
+      const myState: Omit<AgentPresenceEntry, "status"> = {
+        agentId: user.id,
+        email: user.email ?? "",
+        displayName: user.user_metadata?.full_name ?? user.email ?? "",
+        avatarUrl: user.user_metadata?.avatar_url ?? undefined,
+        onlineSince: new Date().toISOString(),
+      };
+
+      channel
+        .on("presence", { event: "sync" }, () => {
+          if (!channel) return;
+          try {
+            const state = channel.presenceState<Omit<AgentPresenceEntry, "status">>();
+            const next: Record<string, AgentPresenceEntry> = {};
+            for (const [key, presArr] of Object.entries(state)) {
+              const pres = presArr[0];
+              if (!pres) continue;
+              next[key] = {
+                agentId: key,
+                email: (pres as any).email ?? "",
+                displayName: (pres as any).displayName,
+                avatarUrl: (pres as any).avatarUrl,
+                onlineSince: (pres as any).onlineSince,
+                status: "online",
+              };
+            }
+            setPresences(next);
+          } catch { /* ignora erros de sync */ }
+        })
+        .on("presence", { event: "leave" }, ({ leftPresences }) => {
+          setPresences((prev) => {
+            const next = { ...prev };
+            for (const p of leftPresences as any[]) {
+              if (next[p.key]) next[p.key] = { ...next[p.key], status: "offline" };
+            }
+            return next;
+          });
+        });
+
+      channel.subscribe(async (status) => {
+        if (status === "SUBSCRIBED" && channel) {
+          try { await channel.track(myState); } catch { /* WebSocket pode não estar pronto */ }
+        }
+      });
+    } catch {
+      /* Realtime indisponível — presença desabilitada silenciosamente */
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel).catch(() => {});
     };
   }, [user]);
 
