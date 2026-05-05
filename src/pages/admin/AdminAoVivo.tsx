@@ -17,7 +17,22 @@ import { ExternalLink, MessageSquare, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function initials(name: string) {
-  return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const cleaned = (name ?? "").trim();
+  if (!cleaned) return "?";
+  if (/^\+?\d[\d\s()-]*$/.test(cleaned)) return "#";
+  return cleaned.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
+
+function parseAiContent(raw: string): string {
+  const m = raw.match(/<resposta>([\s\S]*?)<\/resposta>/);
+  let text = m ? m[1] : raw;
+  text = text.replace(/<proximo_estagio>[\s\S]*?<\/proximo_estagio>/g, "");
+  text = text.replace(/\[CONTEXTO_SESSAO\][\s\S]*?(\[\/CONTEXTO_SESSAO\]|$)/g, "");
+  return text.trim();
+}
+
+function normalizePhone(v: string) {
+  return String(v ?? "").replace(/\D/g, "");
 }
 
 export default function AdminAoVivo() {
@@ -45,10 +60,32 @@ export default function AdminAoVivo() {
     refetchInterval: 30_000,
   });
 
-  // Fallback: buscar pushName via Evolution Contacts para leads sem nome
+  // Vera logs (n8n) — fonte oficial de nomes e mensagens
+  const { data: veraData } = useQuery({
+    queryKey: ["ao-vivo-vera-logs"],
+    queryFn: async () => {
+      try {
+        const { data } = await supabase.functions.invoke("vera-conversation-logs", { body: {} });
+        const contatos: any[] = (data as any)?.contatos ?? [];
+        const map: Record<string, { nome: string; mensagens: any[] }> = {};
+        for (const c of contatos) {
+          const phone = normalizePhone(c.session_id ?? "");
+          if (!phone) continue;
+          map[phone] = { nome: c.nome ?? "", mensagens: c.mensagens ?? [] };
+        }
+        return map;
+      } catch {
+        return {} as Record<string, { nome: string; mensagens: any[] }>;
+      }
+    },
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+
+  // Fallback: pushName via Evolution Contacts
   const phonesNeedingName = useMemo(
-    () => leads.filter((l) => !l.name && !l.push_name).map((l) => l.phone),
-    [leads],
+    () => leads.filter((l) => !l.name && !l.push_name && !veraData?.[normalizePhone(l.phone)]?.nome).map((l) => l.phone),
+    [leads, veraData],
   );
 
   const { data: pushNameByPhone = {} } = useQuery({
@@ -78,10 +115,12 @@ export default function AdminAoVivo() {
     const waitMinutes = lead.last_contact_at
       ? Math.floor((Date.now() - new Date(lead.last_contact_at).getTime()) / 60_000)
       : undefined;
+    const phoneKey = normalizePhone(lead.phone);
+    const veraName = veraData?.[phoneKey]?.nome;
     const fallbackPush = pushNameByPhone[lead.phone];
     return {
       id: lead.id,
-      displayName: lead.push_name || lead.name || fallbackPush || lead.phone,
+      displayName: veraName || lead.push_name || lead.name || fallbackPush || lead.phone,
       phone: lead.phone,
       avatarUrl: lead.profile_pic_url,
       lastMessage: lead.last_message_preview,
@@ -117,20 +156,20 @@ export default function AdminAoVivo() {
     (c) => c.conversations.length > 0 || c.agentId !== "__unassigned__",
   );
 
-  // Mensagens da conversa selecionada (preview lateral)
-  const { data: previewMessages = [], isLoading: msgsLoading } = useQuery({
-    queryKey: ["ao-vivo-preview", openChat?.phone],
-    enabled: !!openChat?.phone,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("conversations_log")
-        .select("id, message_text, direction, created_at, sent_by")
-        .eq("remote_jid", `${openChat!.phone}@s.whatsapp.net`)
-        .order("created_at", { ascending: false })
-        .limit(40);
-      return (data ?? []).reverse();
-    },
-  });
+  // Mensagens da conversa (Vera n8n é a fonte oficial)
+  const previewMessages = useMemo(() => {
+    if (!openChat?.phone) return [] as { id: string; text: string; isOut: boolean; ts: string }[];
+    const phoneKey = normalizePhone(openChat.phone);
+    const msgs = veraData?.[phoneKey]?.mensagens ?? [];
+    return msgs
+      .map((m: any, i: number) => {
+        const isOut = m.tipo === "ai";
+        const text = isOut ? parseAiContent(m.conteudo ?? "") : (m.conteudo ?? "");
+        return { id: `${i}`, text, isOut, ts: m.timestamp };
+      })
+      .filter((m) => m.text);
+  }, [openChat?.phone, veraData]);
+  const msgsLoading = false;
 
   if (isLoading) {
     return (
@@ -174,7 +213,7 @@ export default function AdminAoVivo() {
       )}
 
       <Sheet open={!!openChat} onOpenChange={(o) => !o && setOpenChat(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 flex flex-col">
           <SheetHeader className="border-b p-4">
             <SheetTitle className="flex items-center gap-3 text-left">
               <Avatar className="h-10 w-10">
@@ -202,24 +241,21 @@ export default function AdminAoVivo() {
               </div>
             ) : (
               <div className="space-y-2">
-                {previewMessages.map((m: any) => {
-                  const isOut = m.direction === "outgoing" || m.sent_by;
-                  return (
-                    <div key={m.id} className={cn("flex", isOut ? "justify-end" : "justify-start")}>
-                      <div
-                        className={cn(
-                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
-                          isOut ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm",
-                        )}
-                      >
-                        <p className="whitespace-pre-wrap break-words">{m.message_text || "[mídia]"}</p>
-                        <p className={cn("mt-1 text-[10px]", isOut ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                          {m.created_at ? format(new Date(m.created_at), "dd/MM HH:mm", { locale: ptBR }) : ""}
-                        </p>
-                      </div>
+                {previewMessages.map((m) => (
+                  <div key={m.id} className={cn("flex", m.isOut ? "justify-end" : "justify-start")}>
+                    <div
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                        m.isOut ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm",
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                      <p className={cn("mt-1 text-[10px]", m.isOut ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                        {m.ts ? format(new Date(m.ts), "dd/MM HH:mm", { locale: ptBR }) : ""}
+                      </p>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </ScrollArea>
