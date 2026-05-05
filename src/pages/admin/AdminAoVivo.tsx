@@ -78,7 +78,7 @@ export default function AdminAoVivo() {
     const waitMinutes = lead.last_contact_at
       ? Math.floor((Date.now() - new Date(lead.last_contact_at).getTime()) / 60_000)
       : undefined;
-    const fallbackPush = pushNameByJid[`${lead.phone}@s.whatsapp.net`];
+    const fallbackPush = pushNameByPhone[lead.phone];
     return {
       id: lead.id,
       displayName: lead.push_name || lead.name || fallbackPush || lead.phone,
