@@ -18,8 +18,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle, Bot, CheckCircle2, ChevronDown, ChevronRight, Clock3,
-  Flame, MessageSquare, RefreshCw, RotateCcw, Search, Send, ShieldCheck, XCircle,
+  Flame, Info, MessageSquare, RefreshCw, RotateCcw, Search, Send, ShieldCheck, XCircle,
 } from "lucide-react";
+import {
+  HoverCard, HoverCardContent, HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Link } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
