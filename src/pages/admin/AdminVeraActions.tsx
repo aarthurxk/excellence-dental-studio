@@ -270,7 +270,51 @@ export default function AdminVeraActions() {
                 <TableHead>Motivo</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead>Prioridade</TableHead>
-                <TableHead className="text-right">Acoes</TableHead>
+                <TableHead className="text-right">
+                  <div className="inline-flex items-center gap-1.5">
+                    Acoes
+                    <HoverCard openDelay={120}>
+                      <HoverCardTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-muted-foreground/40 text-[10px] text-muted-foreground hover:border-primary hover:text-primary"
+                          aria-label="Como funcionam as ações"
+                        >
+                          <Info className="h-3 w-3" />
+                        </button>
+                      </HoverCardTrigger>
+                      <HoverCardContent align="end" className="w-80 text-left text-xs leading-relaxed">
+                        <p className="mb-2 font-semibold text-sm">Como funcionam as ações</p>
+                        <ul className="space-y-2">
+                          <li>
+                            <span className="font-medium text-foreground">Chat:</span>{" "}
+                            abre a conversa do WhatsApp para você ver e responder.
+                          </li>
+                          <li>
+                            <span className="font-medium text-foreground">Simular:</span>{" "}
+                            roda o follow-up em modo seguro (dry-run) — mostra o texto
+                            que a Vera enviaria ao paciente, <strong>sem disparar nada</strong>.
+                          </li>
+                          <li>
+                            <span className="font-medium text-foreground">Ignorar:</span>{" "}
+                            marca a action como descartada para não gerar follow-up.
+                            Use quando o lead já foi tratado por fora ou não faz sentido seguir.
+                          </li>
+                          <li>
+                            <span className="font-medium text-foreground">Reabrir:</span>{" "}
+                            volta a action para "pending" e ela entra de novo na fila.
+                          </li>
+                        </ul>
+                        <p className="mt-3 border-t pt-2 text-muted-foreground">
+                          <span className="font-medium text-foreground">Temperatura</span>{" "}
+                          (quente / morno / frio) é calculada pela Vera com base no estágio
+                          SPIN, sinais de intenção (orçamento, urgência, agendamento) e
+                          tempo de resposta do paciente.
+                        </p>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
