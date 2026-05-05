@@ -165,7 +165,7 @@ export default function AdminAoVivo() {
       leadPushName: lead.push_name,
       leadName: lead.name,
       evoContactName: fallbackPush,
-      lastMessage: lead.last_message_preview,
+      lastMessage: lead.last_message_preview ?? lastAiMsgByPhone[phoneKey],
       phone: lead.phone,
     });
     return {
