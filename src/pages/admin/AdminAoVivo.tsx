@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ExternalLink, MessageSquare, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { resolveContactName } from "@/lib/contactName";
 
 function initials(name: string) {
   const cleaned = (name ?? "").trim();
