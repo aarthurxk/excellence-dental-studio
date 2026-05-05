@@ -115,10 +115,12 @@ export default function AdminAoVivo() {
     const waitMinutes = lead.last_contact_at
       ? Math.floor((Date.now() - new Date(lead.last_contact_at).getTime()) / 60_000)
       : undefined;
+    const phoneKey = normalizePhone(lead.phone);
+    const veraName = veraData?.[phoneKey]?.nome;
     const fallbackPush = pushNameByPhone[lead.phone];
     return {
       id: lead.id,
-      displayName: lead.push_name || lead.name || fallbackPush || lead.phone,
+      displayName: veraName || lead.push_name || lead.name || fallbackPush || lead.phone,
       phone: lead.phone,
       avatarUrl: lead.profile_pic_url,
       lastMessage: lead.last_message_preview,
