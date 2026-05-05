@@ -39,6 +39,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
 import { normalizeWhatsappPhone, whatsappRemoteJidFromVeraChatId } from "@/lib/veraActions";
+import { resolveContactName } from "@/lib/contactName";
 import { DeletedMessageBadge } from "@/components/admin/badges/DeletedMessageBadge";
 import { usePermissions } from "@/hooks/usePermissions";
 import { TagFilter } from "@/components/admin/filters/TagFilter";
@@ -231,9 +232,16 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
           const contact = contactMap.get(c.remoteJid);
           const phone = normalizeWhatsappPhone(c.remoteJid.replace("@s.whatsapp.net", ""));
           const lastMsg = lastMsgMap.get(c.remoteJid);
+          const name = resolveContactName({
+            veraName: veraNames[phone],
+            leadPushName: leadNames[phone],
+            evoContactName: contact?.pushName || c.name,
+            lastMessage: lastMsg?.text,
+            phone,
+          });
           return {
             remoteJid: c.remoteJid,
-            name: veraNames[phone] || leadNames[phone] || contact?.pushName || c.name || phone,
+            name,
             profilePic: contact?.profilePicUrl || null,
             unread: c.unreadMessages || 0,
             lastMessage: lastMsg?.text,
