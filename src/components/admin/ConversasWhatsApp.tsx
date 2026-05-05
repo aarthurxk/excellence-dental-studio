@@ -48,6 +48,7 @@ interface EvoChat { remoteJid: string; name: string | null; unreadMessages: numb
 interface EvoContact { remoteJid: string; pushName: string | null; profilePicUrl: string | null; }
 interface EvoMessageRecord { key: { id: string; fromMe: boolean; remoteJid: string }; pushName: string | null; messageType: string; message: Record<string, string>; messageTimestamp: number; }
 interface ChatItem { remoteJid: string; name: string; profilePic: string | null; unread: number; lastMessage?: string; lastTimestamp?: number; }
+interface VeraContatoResumo { session_id: string; nome: string; }
 
 interface ConvLogMeta {
   id: string;
@@ -169,8 +170,51 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
   const [simulatedFollowUp, setSimulatedFollowUp] = useState<{ decision: string; note: string; text: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { data: veraNames = {} } = useQuery({
+    queryKey: ["vera-whatsapp-names"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("vera-conversation-logs", { body: {} });
+        if (error) throw error;
+        const contatos: VeraContatoResumo[] = (data as { contatos?: VeraContatoResumo[] })?.contatos ?? [];
+        const map: Record<string, string> = {};
+        for (const contato of contatos) {
+          if (!String(contato.session_id ?? "").startsWith("wa:")) continue;
+          const phone = normalizeWhatsappPhone(contato.session_id.replace(/^wa:/, ""));
+          if (phone && contato.nome) map[phone] = contato.nome;
+        }
+        return map;
+      } catch {
+        return {} as Record<string, string>;
+      }
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 30_000,
+  });
+
+  const { data: leadNames = {} } = useQuery({
+    queryKey: ["whatsapp-lead-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("leads").select("phone, name, push_name").limit(1000);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const lead of data ?? []) {
+        const phone = normalizeWhatsappPhone(lead.phone);
+        const displayName = lead.push_name || lead.name;
+        if (phone && displayName) map[phone] = displayName;
+      }
+      return map;
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 30_000,
+  });
+
   const { data: chats = [], isLoading: chatsLoading, refetch: refetchChats } = useQuery({
-    queryKey: ["evo-chats"],
+    queryKey: [
+      "evo-chats",
+      Object.entries(leadNames).sort().map(([phone, name]) => `${phone}:${name}`).join("|"),
+      Object.entries(veraNames).sort().map(([phone, name]) => `${phone}:${name}`).join("|"),
+    ],
     queryFn: async () => {
       const [chatsData, contactsData] = await Promise.all([
         evoProxy<EvoChat[]>("findChats", {}),
@@ -185,9 +229,16 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
         .filter((c) => c.remoteJid?.endsWith("@s.whatsapp.net"))
         .map((c) => {
           const contact = contactMap.get(c.remoteJid);
-          const phone = c.remoteJid.replace("@s.whatsapp.net", "");
+          const phone = normalizeWhatsappPhone(c.remoteJid.replace("@s.whatsapp.net", ""));
           const lastMsg = lastMsgMap.get(c.remoteJid);
-          return { remoteJid: c.remoteJid, name: contact?.pushName || c.name || phone, profilePic: contact?.profilePicUrl || null, unread: c.unreadMessages || 0, lastMessage: lastMsg?.text, lastTimestamp: lastMsg?.timestamp ? new Date(lastMsg.timestamp).getTime() : undefined } as ChatItem;
+          return {
+            remoteJid: c.remoteJid,
+            name: veraNames[phone] || leadNames[phone] || contact?.pushName || c.name || phone,
+            profilePic: contact?.profilePicUrl || null,
+            unread: c.unreadMessages || 0,
+            lastMessage: lastMsg?.text,
+            lastTimestamp: lastMsg?.timestamp ? new Date(lastMsg.timestamp).getTime() : undefined,
+          } as ChatItem;
         })
         .sort((a, b) => (b.lastTimestamp ?? 0) - (a.lastTimestamp ?? 0));
     },
