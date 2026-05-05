@@ -89,7 +89,7 @@ export default function AdminAoVivo() {
   );
 
   const { data: pushNameByPhone = {} } = useQuery({
-    queryKey: ["ao-vivo-pushnames", phonesNeedingName.length],
+    queryKey: ["ao-vivo-pushnames", phonesNeedingName.map(normalizePhone).sort().join(",")],
     enabled: phonesNeedingName.length > 0,
     queryFn: async () => {
       try {
