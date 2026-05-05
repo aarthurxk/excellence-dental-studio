@@ -7,12 +7,13 @@ import {
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   SidebarProvider, SidebarTrigger, useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   LayoutDashboard, Stethoscope, Users, Star, Video, CalendarDays,
   Sparkles, Info, MessageSquare, Settings, LogOut, Map, UserCog,
   ExternalLink, SlidersHorizontal, BarChart3, Smartphone, MessagesSquare,
   Contact, FileBarChart, FileText, HandHelping, Brain, ShieldCheck,
-  ListChecks, Activity, Zap, Clock, Search,
+  ListChecks, Activity, Zap, Clock, Search, ChevronDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
