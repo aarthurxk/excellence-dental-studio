@@ -39,6 +39,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import LeadTagsEditor from "@/components/admin/LeadTagsEditor";
 import { normalizeWhatsappPhone, whatsappRemoteJidFromVeraChatId } from "@/lib/veraActions";
+import { resolveContactName } from "@/lib/contactName";
 import { DeletedMessageBadge } from "@/components/admin/badges/DeletedMessageBadge";
 import { usePermissions } from "@/hooks/usePermissions";
 import { TagFilter } from "@/components/admin/filters/TagFilter";
