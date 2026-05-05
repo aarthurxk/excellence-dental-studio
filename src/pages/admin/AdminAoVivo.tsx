@@ -83,6 +83,27 @@ export default function AdminAoVivo() {
     staleTime: 30_000,
   });
 
+  // Últimas mensagens da IA por telefone (para extrair nome do conteúdo)
+  const { data: lastAiMsgByPhone = {} } = useQuery({
+    queryKey: ["ao-vivo-last-ai-msgs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("conversations_log")
+        .select("remote_jid, message_text, direction, created_at")
+        .eq("direction", "outgoing")
+        .not("message_text", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      const map: Record<string, string> = {};
+      for (const m of data ?? []) {
+        const phone = normalizePhone((m.remote_jid ?? "").replace("@s.whatsapp.net", ""));
+        if (phone && !map[phone] && m.message_text) map[phone] = m.message_text;
+      }
+      return map;
+    },
+    refetchInterval: 60_000,
+  });
+
   // Fallback: pushName via Evolution Contacts
   const phonesNeedingName = useMemo(
     () => leads.filter((l) => !l.name && !l.push_name && !veraData?.[normalizePhone(l.phone)]?.nome).map((l) => l.phone),
@@ -111,6 +132,11 @@ export default function AdminAoVivo() {
           const jid: string = c?.remoteJid ?? "";
           const phone = normalizePhone(jid.replace("@s.whatsapp.net", ""));
           if (phone && c?.name) map[phone] = c.name;
+          // tenta extrair também da última mensagem do chat
+          const lastMsg = c?.lastMessage?.message?.conversation;
+          if (phone && lastMsg && !map[phone]) {
+            // Apenas referência, será resolvido pelo extractNameFromMessage no buildCardData
+          }
         }
 
         for (const c of contacts) {
