@@ -6,15 +6,11 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      throw new Error("Missing authorization");
-    }
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Missing authorization");
 
     const supabaseUser = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -24,14 +20,11 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
-      throw new Error("Not authenticated");
-    }
+    if (claimsError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
 
     const userId = claimsData.claims.sub;
-
-    const { data: isAdmin } = await supabaseUser.rpc("is_admin", { _user_id: userId });
-    if (!isAdmin) throw new Error("Not authorized");
+    const { data: isStaff } = await supabaseUser.rpc("is_staff", { _uid: userId });
+    if (!isStaff) throw new Error("Not authorized");
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -42,11 +35,18 @@ Deno.serve(async (req) => {
     if (error) throw error;
 
     const emailMap: Record<string, string> = {};
+    const userMeta: Record<string, { email: string; created_at: string; last_sign_in_at: string | null; banned_until: string | null }> = {};
     users.forEach((u) => {
       emailMap[u.id] = u.email ?? u.id;
+      userMeta[u.id] = {
+        email: u.email ?? "",
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at ?? null,
+        banned_until: (u as unknown as { banned_until?: string }).banned_until ?? null,
+      };
     });
 
-    return new Response(JSON.stringify({ emails: emailMap }), {
+    return new Response(JSON.stringify({ emails: emailMap, users: userMeta }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
