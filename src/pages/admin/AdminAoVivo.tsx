@@ -45,30 +45,31 @@ export default function AdminAoVivo() {
     refetchInterval: 30_000,
   });
 
-  // Buscar push_name mais recente de conversations_log para leads sem name/push_name
+  // Fallback: buscar pushName via Evolution Contacts para leads sem nome
   const phonesNeedingName = useMemo(
-    () => leads.filter((l) => !l.name && !l.push_name).map((l) => `${l.phone}@s.whatsapp.net`),
+    () => leads.filter((l) => !l.name && !l.push_name).map((l) => l.phone),
     [leads],
   );
 
-  const { data: pushNameByJid = {} } = useQuery({
-    queryKey: ["ao-vivo-pushnames", phonesNeedingName.join(",")],
+  const { data: pushNameByPhone = {} } = useQuery({
+    queryKey: ["ao-vivo-pushnames", phonesNeedingName.length],
     enabled: phonesNeedingName.length > 0,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("conversations_log")
-        .select("remote_jid, push_name, created_at")
-        .in("remote_jid", phonesNeedingName)
-        .not("push_name", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(500);
-      const map: Record<string, string> = {};
-      for (const r of data ?? []) {
-        if (r.remote_jid && r.push_name && !map[r.remote_jid]) {
-          map[r.remote_jid] = r.push_name;
+      try {
+        const { data } = await supabase.functions.invoke("evo-proxy", {
+          body: { action: "findContacts", payload: {} },
+        });
+        const arr = Array.isArray(data) ? data : (data as any)?.data ?? [];
+        const map: Record<string, string> = {};
+        for (const c of arr) {
+          const jid: string = c?.remoteJid ?? "";
+          const phone = jid.replace("@s.whatsapp.net", "");
+          if (phone && c?.pushName) map[phone] = c.pushName;
         }
+        return map;
+      } catch {
+        return {} as Record<string, string>;
       }
-      return map;
     },
   });
 
