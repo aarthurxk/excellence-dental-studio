@@ -213,7 +213,7 @@ export default function AdminAoVivo() {
       )}
 
       <Sheet open={!!openChat} onOpenChange={(o) => !o && setOpenChat(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 flex flex-col">
           <SheetHeader className="border-b p-4">
             <SheetTitle className="flex items-center gap-3 text-left">
               <Avatar className="h-10 w-10">
@@ -241,24 +241,21 @@ export default function AdminAoVivo() {
               </div>
             ) : (
               <div className="space-y-2">
-                {previewMessages.map((m: any) => {
-                  const isOut = m.direction === "outgoing" || m.sent_by;
-                  return (
-                    <div key={m.id} className={cn("flex", isOut ? "justify-end" : "justify-start")}>
-                      <div
-                        className={cn(
-                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
-                          isOut ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm",
-                        )}
-                      >
-                        <p className="whitespace-pre-wrap break-words">{m.message_text || "[mídia]"}</p>
-                        <p className={cn("mt-1 text-[10px]", isOut ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                          {m.created_at ? format(new Date(m.created_at), "dd/MM HH:mm", { locale: ptBR }) : ""}
-                        </p>
-                      </div>
+                {previewMessages.map((m) => (
+                  <div key={m.id} className={cn("flex", m.isOut ? "justify-end" : "justify-start")}>
+                    <div
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                        m.isOut ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted rounded-bl-sm",
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                      <p className={cn("mt-1 text-[10px]", m.isOut ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                        {m.ts ? format(new Date(m.ts), "dd/MM HH:mm", { locale: ptBR }) : ""}
+                      </p>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </ScrollArea>
