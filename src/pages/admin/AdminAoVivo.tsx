@@ -17,7 +17,22 @@ import { ExternalLink, MessageSquare, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function initials(name: string) {
-  return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const cleaned = (name ?? "").trim();
+  if (!cleaned) return "?";
+  if (/^\+?\d[\d\s()-]*$/.test(cleaned)) return "#";
+  return cleaned.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
+
+function parseAiContent(raw: string): string {
+  const m = raw.match(/<resposta>([\s\S]*?)<\/resposta>/);
+  let text = m ? m[1] : raw;
+  text = text.replace(/<proximo_estagio>[\s\S]*?<\/proximo_estagio>/g, "");
+  text = text.replace(/\[CONTEXTO_SESSAO\][\s\S]*?(\[\/CONTEXTO_SESSAO\]|$)/g, "");
+  return text.trim();
+}
+
+function normalizePhone(v: string) {
+  return String(v ?? "").replace(/\D/g, "");
 }
 
 export default function AdminAoVivo() {
