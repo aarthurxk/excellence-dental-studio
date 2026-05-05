@@ -1,4 +1,5 @@
-import { Calendar, Facebook, Instagram } from "lucide-react";
+import { Calendar, Facebook, Instagram, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -56,6 +57,9 @@ const TopBar = () => {
         <div className="flex items-center gap-3">
           <a href={settings?.facebook_url || "https://www.facebook.com/profile.php?id=61587090797815"} target="_blank" rel="noopener noreferrer" className="text-primary-foreground/70 hover:text-primary transition-colors"><Facebook className="h-4 w-4" /></a>
           <a href={settings?.instagram_url || "https://www.instagram.com/odontoexcellencerecife/"} target="_blank" rel="noopener noreferrer" className="text-primary-foreground/70 hover:text-primary transition-colors"><Instagram className="h-4 w-4" /></a>
+          <Link to="/admin/login" aria-label="Painel administrativo" title="Painel administrativo" className="text-primary-foreground/70 hover:text-primary transition-colors ml-1">
+            <Lock className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </div>
