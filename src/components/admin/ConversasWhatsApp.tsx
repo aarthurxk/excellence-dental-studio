@@ -210,7 +210,11 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
   });
 
   const { data: chats = [], isLoading: chatsLoading, refetch: refetchChats } = useQuery({
-    queryKey: ["evo-chats", Object.keys(leadNames).length, Object.keys(veraNames).length],
+    queryKey: [
+      "evo-chats",
+      Object.entries(leadNames).sort().map(([phone, name]) => `${phone}:${name}`).join("|"),
+      Object.entries(veraNames).sort().map(([phone, name]) => `${phone}:${name}`).join("|"),
+    ],
     queryFn: async () => {
       const [chatsData, contactsData] = await Promise.all([
         evoProxy<EvoChat[]>("findChats", {}),
