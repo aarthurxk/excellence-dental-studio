@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Phone, ChevronDown, Home, Smile, Users, Info, Star, Video, Calendar, Phone as PhoneIcon, MessageCircle } from "lucide-react";
+import { Menu, Phone, ChevronDown, Home, Smile, Users, Info, Star, Video, Calendar, Phone as PhoneIcon, MessageCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -128,6 +128,14 @@ const Header = () => {
               Agendar Consulta
             </a>
           </Button>
+          <Link
+            to="/admin/login"
+            aria-label="Acesso ao painel administrativo"
+            title="Painel administrativo"
+            className="p-2 rounded-md text-muted-foreground/60 hover:text-primary hover:bg-muted transition-colors"
+          >
+            <Lock className="h-4 w-4" />
+          </Link>
         </div>
 
         {/* Mobile trigger */}
