@@ -93,16 +93,31 @@ export default function AdminAoVivo() {
     enabled: phonesNeedingName.length > 0,
     queryFn: async () => {
       try {
-        const { data } = await supabase.functions.invoke("evo-proxy", {
-          body: { action: "findContacts", payload: {} },
-        });
-        const arr = Array.isArray(data) ? data : (data as any)?.data ?? [];
+        const [{ data: contactsData }, { data: chatsData }] = await Promise.all([
+          supabase.functions.invoke("evo-proxy", {
+            body: { action: "findContacts", body: {} },
+          }),
+          supabase.functions.invoke("evo-proxy", {
+            body: { action: "findChats", body: {} },
+          }),
+        ]);
+
+        const contacts = Array.isArray(contactsData) ? contactsData : (contactsData as any)?.data ?? [];
+        const chats = Array.isArray(chatsData) ? chatsData : (chatsData as any)?.data ?? [];
         const map: Record<string, string> = {};
-        for (const c of arr) {
+
+        for (const c of chats) {
           const jid: string = c?.remoteJid ?? "";
-          const phone = jid.replace("@s.whatsapp.net", "");
+          const phone = normalizePhone(jid.replace("@s.whatsapp.net", ""));
+          if (phone && c?.name) map[phone] = c.name;
+        }
+
+        for (const c of contacts) {
+          const jid: string = c?.remoteJid ?? "";
+          const phone = normalizePhone(jid.replace("@s.whatsapp.net", ""));
           if (phone && c?.pushName) map[phone] = c.pushName;
         }
+
         return map;
       } catch {
         return {} as Record<string, string>;
@@ -117,7 +132,7 @@ export default function AdminAoVivo() {
       : undefined;
     const phoneKey = normalizePhone(lead.phone);
     const veraName = veraData?.[phoneKey]?.nome;
-    const fallbackPush = pushNameByPhone[lead.phone];
+    const fallbackPush = pushNameByPhone[phoneKey];
     return {
       id: lead.id,
       displayName: veraName || lead.push_name || lead.name || fallbackPush || lead.phone,
