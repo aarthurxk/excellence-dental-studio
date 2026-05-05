@@ -1,58 +1,118 @@
-Objetivo
-Fazer os nomes aparecerem corretamente em Ao Vivo e Conversas, eliminando a exibição de números quando já existe algum nome disponível no ecossistema do projeto.
 
-O que já foi confirmado
-- O preview já está rodando com as mudanças recentes, então não parece ser apenas falta de publicar.
-- A função de contatos do WhatsApp está retornando vazio em `findContacts`.
-- A listagem de chats do WhatsApp (`findChats`) está retornando os telefones, e no payload há evidência de nomes citados dentro das mensagens, mas não em um campo estruturado de contato.
-- A fonte da Vera que vimos no snapshot traz majoritariamente sessões `site:`; não ficou comprovado ainda que ela esteja entregando nomes `wa:` para os chats WhatsApp usados nessas telas.
+## Objetivo
+Tornar o sistema de Usuários & Papéis mais completo e prático: liberar fluxos operacionais para a **Secretaria** (atendimento WhatsApp), enriquecer os dados de cadastro, e melhorar a tela de gestão (filtros, visualização, busca).
 
-Plano
-1. Auditar a cadeia de resolução de nomes
-- Mapear exatamente como cada tela decide o nome exibido.
-- Comparar, para o mesmo telefone, estas fontes em ordem:
-  - nome salvo em `leads.name`
-  - nome salvo em `leads.push_name`
-  - nome vindo de Vera logs (`wa:` quando existir)
-  - nome vindo de `findChats`
-  - nome vindo de `findContacts`
-  - fallback final para telefone
-- Identificar em quais casos o sistema ainda cai no telefone mesmo havendo nome implícito em outra fonte.
+---
 
-2. Fortalecer a lógica de fallback no frontend
-- Unificar a resolução de nomes entre Ao Vivo e Conversas para não haver comportamentos diferentes.
-- Criar uma estratégia única de nome com prioridade consistente.
-- Normalizar telefone/chave em todos os pontos para evitar mismatch entre `5581...`, `wa:5581...` e `5581...@s.whatsapp.net`.
-- Revalidar chaves do React Query para garantir atualização quando os nomes mudarem, e não só quando a quantidade de registros mudar.
+## 1. Backend — papel "Secretaria" virando cidadão de primeira classe
 
-3. Adicionar fallback inteligente a partir do conteúdo das mensagens
-- Quando não houver nome estruturado em nenhuma fonte, extrair o primeiro nome detectável da última mensagem enviada pela IA ou do histórico recente, apenas em casos seguros.
-- Exemplo: se a mensagem contém “Perfeito, Glauber!” ou “Entendo, Diogo.”, usar esse nome como fallback visual temporário.
-- Aplicar heurísticas conservadoras para evitar nomes errados.
+### 1.1 Permissões da Secretaria (`role_permissions`)
+Atualmente `secretaria` não tem **nenhuma** linha em `role_permissions`. Inserir com `can_view=true, can_edit=true, can_delete=false` para os módulos:
 
-4. Opcionalmente persistir o nome no cadastro do lead
-- Quando o sistema descobrir um nome confiável para um telefone que ainda está sem `name/push_name`, salvar esse valor no lead para não depender sempre de heurística.
-- Só farei isso se a implementação mostrar que é seguro e compatível com as regras atuais do app.
+| Módulo | view | edit | delete |
+|---|---|---|---|
+| messages (formulário site) | ✓ | ✓ | ✗ |
+| testimonials | ✓ | ✗ | ✗ |
+| services / dentists / videos / events / about / features | ✓ | ✗ | ✗ |
+| settings / users | ✗ | ✗ | ✗ |
+| messages_audit | ✓ | ✗ | ✗ |
 
-5. Validar nas duas telas críticas
-- Ao Vivo: confirmar que os cards deixam de mostrar só o número quando há nome disponível.
-- Conversas / WhatsApp: confirmar que a lista lateral e o cabeçalho da conversa usam a mesma resolução de nome.
-- Conferir também o popup/sheet da conversa para garantir consistência.
+### 1.2 Liberar páginas operacionais (front)
+Hoje `RESTRICTED_URLS` em `AdminLayout.tsx` libera **Ao Vivo / Pendentes / Conversas / Leads / Handoff / Resumos / Vera Health** apenas para `admin | socio | gerente`. Adicionar `secretaria` à lista permitida desses URLs.
 
-6. Fechar a dúvida sobre publicação
-- Backend já entra em vigor automaticamente quando alterado.
-- Mudanças de frontend aparecem no preview; para ir ao site publicado, aí sim é preciso clicar em Update/Publish.
-- Ou seja: se no preview ainda não aparece, publicar sozinho não deve resolver a causa raiz; primeiro preciso corrigir a lógica/dados.
+A função `is_staff()` já inclui `secretaria` — RLS de `leads`, `appointments`, `conversations_log`, `vera_handoff_queue`, `vera_resumos`, `vera_conversation_state` já permitem acesso. Sem mudança de RLS necessária.
 
-Detalhes técnicos
-- Centralizar a função de resolução de nome em util compartilhado, em vez de manter regras diferentes em `AdminAoVivo.tsx` e `ConversasWhatsApp.tsx`.
-- Usar parsing defensivo para possíveis fontes de nome em `findChats` e nas últimas mensagens.
-- Se necessário, incluir logs temporários de diagnóstico no cliente para comparar telefone -> nome resolvido durante o teste.
-- Se eu concluir que o problema principal é ausência de nome persistido no banco, posso propor um passo seguinte para sincronizar nomes automaticamente no backend.
+### 1.3 Novo perfil estendido — tabela `user_profiles`
+Criar tabela vinculada a `auth.users(id)` com campos extras de cadastro:
 
-Entrega esperada
-- Nomes consistentes nas telas de operação.
-- Menos dependência de campos vazios da API de contatos.
-- Confirmação objetiva se faltava publicar ou se o problema era realmente a lógica/dados.
+```
+user_profiles
+  user_id uuid PK FK auth.users(id) ON DELETE CASCADE
+  full_name text
+  phone text
+  avatar_url text
+  job_title text          -- ex: "Recepcionista turno manhã"
+  department text         -- ex: "Atendimento", "Clínico"
+  active boolean default true   -- bloqueio sem deletar
+  notes text
+  last_login_at timestamptz     -- atualizado por trigger no signin
+  created_at, updated_at timestamptz
+```
 
-Se você aprovar, eu implemento esse plano e valido no preview.
+RLS:
+- SELECT: `is_staff(auth.uid())` (todo staff vê a lista)
+- UPDATE/INSERT/DELETE: `is_admin(auth.uid())` ou o próprio dono em UPDATE do seu registro
+- Trigger `handle_new_user`: ao criar um auth.user, inserir profile vazio
+
+---
+
+## 2. Edge functions
+
+- **`create-user`**: aceitar `full_name`, `phone`, `job_title`, `department` no body; após criar auth.user, fazer upsert em `user_profiles`.
+- **`update-user`** (NOVO): editar profile + (admin) reset de senha + ativar/desativar.
+- **`list-user-emails`** → renomear conceito para **`list-users`**: retornar array com `{id, email, last_sign_in_at, created_at}` cruzando com `user_profiles`. Mantém compat com `emailMap`.
+
+---
+
+## 3. Frontend — `src/pages/admin/AdminUsers.tsx`
+
+Reescrever a tela em layout de **cards/tabela rica**:
+
+**Topo**
+- Busca por nome/email
+- Filtro por papel (chips)
+- Filtro Ativos/Inativos
+- Botão "Novo Usuário"
+
+**Tabela**
+| Avatar + Nome | E-mail | Papel | Cargo / Setor | Último login | Status | Ações |
+
+Ações por linha: editar (modal), reset senha, ativar/desativar, remover.
+
+**Modal Novo/Editar Usuário** — campos:
+- Nome completo, E-mail, Telefone
+- Cargo, Setor
+- Papel (Select com `secretaria` + descrição curta do que cada papel pode)
+- Senha (apenas em criação) + botão "gerar senha forte"
+- Avatar URL (opcional)
+- Notas internas
+
+**Card de papéis** (sidebar ou seção colapsável)
+Mostrar matriz visual "papel × módulo" lendo `role_permissions` — somente leitura para esta entrega (editor visual fica fora do escopo).
+
+---
+
+## 4. AdminLayout & Sidebar
+
+- Adicionar "secretaria" ao filtro de visibilidade dos URLs operacionais.
+- `ROLE_LABELS` já inclui Secretaria — confirmar texto correto.
+- Mostrar badge do cargo (`job_title`) abaixo do papel quando disponível.
+
+---
+
+## 5. Detalhes técnicos
+
+- `Constants.public.Enums.app_role` já tem `secretaria` — sem migração de enum.
+- Datas em pt-BR via `date-fns/locale`.
+- `last_login_at`: atualizar via trigger em `auth.sessions` é restrito; alternativa simples — chamar `supabase.from("user_profiles").update({last_login_at: now})` no `AuthContext` após sign-in bem-sucedido.
+- Manter design neumórfico do admin (memória de design).
+
+---
+
+## Resumo de arquivos
+
+**Migração**
+- nova tabela `user_profiles` + RLS + trigger `handle_new_user`
+- inserts em `role_permissions` para `secretaria`
+
+**Edge functions**
+- `create-user/index.ts` (atualizado)
+- `update-user/index.ts` (novo)
+- `list-user-emails/index.ts` → estender para retornar profiles + last_sign_in_at
+
+**Frontend**
+- `src/pages/admin/AdminUsers.tsx` (reescrita)
+- `src/components/admin/AdminLayout.tsx` (liberar secretaria nas rotas operacionais; mostrar cargo)
+- `src/contexts/AuthContext.tsx` (gravar `last_login_at`)
+- novo `src/components/admin/UserFormDialog.tsx`
+- novo `src/components/admin/RolePermissionsMatrix.tsx`

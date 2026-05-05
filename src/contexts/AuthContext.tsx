@@ -68,7 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error && data.user) {
+      // Fire-and-forget last_login update
+      supabase.from("user_profiles").update({ last_login_at: new Date().toISOString() }).eq("user_id", data.user.id).then(() => {});
+    }
     return { error: error as Error | null };
   }, []);
 

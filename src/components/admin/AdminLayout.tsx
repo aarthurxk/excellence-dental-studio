@@ -27,9 +27,12 @@ const ROLE_LABELS: Record<string, string> = {
   gerente: "Gerente",
   dentista: "Dentista",
   recepcionista: "Recepcionista",
+  secretaria: "Secretaria",
   agencia: "Agência",
   user: "Usuário",
 };
+
+const OPERATIONAL_ROLES = new Set(["admin", "socio", "gerente", "secretaria"]);
 
 // ── Grouped nav definition ────────────────────────────────────────
 const NAV_GROUPS = [
@@ -103,7 +106,7 @@ function AdminSidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
 
   function isVisible(item: { url: string; module: string | null }) {
     if (role === "agencia") return item.url === "/admin/analytics" || item.url === "/admin";
-    if (RESTRICTED_URLS.has(item.url)) return role === "admin" || role === "socio" || role === "gerente";
+    if (RESTRICTED_URLS.has(item.url)) return OPERATIONAL_ROLES.has(role ?? "");
     if (!item.module) return true;
     return allPerms[item.module]?.can_view !== false;
   }
@@ -267,7 +270,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           continue;
         }
         if (RESTRICTED_URLS.has(item.url)) {
-          if (role === "admin" || role === "socio" || role === "gerente") set.add(item.url);
+          if (OPERATIONAL_ROLES.has(role ?? "")) set.add(item.url);
           continue;
         }
         if (!item.module || allPerms[item.module]?.can_view !== false) set.add(item.url);
