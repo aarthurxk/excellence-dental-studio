@@ -37,8 +37,12 @@ interface Props {
 }
 
 function initials(name: string) {
-  return name
-    .split(" ")
+  const cleaned = (name ?? "").trim();
+  if (!cleaned) return "?";
+  // Se for só dígitos (telefone), mostra ícone genérico
+  if (/^\+?\d[\d\s()-]*$/.test(cleaned)) return "#";
+  return cleaned
+    .split(/\s+/)
     .slice(0, 2)
     .map((w) => w[0])
     .join("")
