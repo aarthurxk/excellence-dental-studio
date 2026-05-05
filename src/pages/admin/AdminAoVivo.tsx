@@ -60,10 +60,32 @@ export default function AdminAoVivo() {
     refetchInterval: 30_000,
   });
 
-  // Fallback: buscar pushName via Evolution Contacts para leads sem nome
+  // Vera logs (n8n) — fonte oficial de nomes e mensagens
+  const { data: veraData } = useQuery({
+    queryKey: ["ao-vivo-vera-logs"],
+    queryFn: async () => {
+      try {
+        const { data } = await supabase.functions.invoke("vera-conversation-logs", { body: {} });
+        const contatos: any[] = (data as any)?.contatos ?? [];
+        const map: Record<string, { nome: string; mensagens: any[] }> = {};
+        for (const c of contatos) {
+          const phone = normalizePhone(c.session_id ?? "");
+          if (!phone) continue;
+          map[phone] = { nome: c.nome ?? "", mensagens: c.mensagens ?? [] };
+        }
+        return map;
+      } catch {
+        return {} as Record<string, { nome: string; mensagens: any[] }>;
+      }
+    },
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+
+  // Fallback: pushName via Evolution Contacts
   const phonesNeedingName = useMemo(
-    () => leads.filter((l) => !l.name && !l.push_name).map((l) => l.phone),
-    [leads],
+    () => leads.filter((l) => !l.name && !l.push_name && !veraData?.[normalizePhone(l.phone)]?.nome).map((l) => l.phone),
+    [leads, veraData],
   );
 
   const { data: pushNameByPhone = {} } = useQuery({
