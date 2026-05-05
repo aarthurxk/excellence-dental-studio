@@ -151,41 +151,75 @@ function AdminSidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
           {NAV_GROUPS.map((group) => {
             const visible = group.items.filter(isVisible);
             if (!visible.length) return null;
+            if (collapsed) {
+              return (
+                <SidebarGroup key={group.label} className="py-1">
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {visible.map((item) => (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              end={item.url === "/admin"}
+                              className="group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                              activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+                            >
+                              <item.icon className="h-4 w-4 shrink-0" />
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              );
+            }
             return (
-              <SidebarGroup key={group.label} className="py-1">
-                {!collapsed && (
-                  <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 px-3 py-1">
-                    {group.label}
-                  </SidebarGroupLabel>
-                )}
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visible.map((item) => (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.url}
-                            end={item.url === "/admin"}
-                            className="group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
-                            activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-                          >
-                            <item.icon className="h-4 w-4 shrink-0" />
-                            {!collapsed && <span className="truncate">{item.title}</span>}
-                            {"module" in item && item.module === "messages" && unreadCount > 0 && (
-                              <Badge
-                                variant="destructive"
-                                className="ml-auto text-[10px] h-4 min-w-4 px-1 flex items-center justify-center"
+              <Collapsible key={group.label} defaultOpen className="group/collapsible py-1">
+                <SidebarGroup className="py-0">
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel
+                      asChild
+                      className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 px-3 py-1 hover:text-sidebar-foreground/70 cursor-pointer"
+                    >
+                      <button type="button" className="flex w-full items-center justify-between">
+                        <span>{group.label}</span>
+                        <ChevronDown className="h-3 w-3 transition-transform group-data-[state=closed]/collapsible:-rotate-90" />
+                      </button>
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {visible.map((item) => (
+                          <SidebarMenuItem key={item.url}>
+                            <SidebarMenuButton asChild>
+                              <NavLink
+                                to={item.url}
+                                end={item.url === "/admin"}
+                                className="group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                                activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
                               >
-                                {unreadCount > 99 ? "99+" : unreadCount}
-                              </Badge>
-                            )}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                                <item.icon className="h-4 w-4 shrink-0" />
+                                <span className="truncate">{item.title}</span>
+                                {"module" in item && item.module === "messages" && unreadCount > 0 && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="ml-auto text-[10px] h-4 min-w-4 px-1 flex items-center justify-center"
+                                  >
+                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                  </Badge>
+                                )}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
             );
           })}
         </div>
