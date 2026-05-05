@@ -156,20 +156,20 @@ export default function AdminAoVivo() {
     (c) => c.conversations.length > 0 || c.agentId !== "__unassigned__",
   );
 
-  // Mensagens da conversa selecionada (preview lateral)
-  const { data: previewMessages = [], isLoading: msgsLoading } = useQuery({
-    queryKey: ["ao-vivo-preview", openChat?.phone],
-    enabled: !!openChat?.phone,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("conversations_log")
-        .select("id, message_text, direction, created_at, sent_by")
-        .eq("remote_jid", `${openChat!.phone}@s.whatsapp.net`)
-        .order("created_at", { ascending: false })
-        .limit(40);
-      return (data ?? []).reverse();
-    },
-  });
+  // Mensagens da conversa (Vera n8n é a fonte oficial)
+  const previewMessages = useMemo(() => {
+    if (!openChat?.phone) return [] as { id: string; text: string; isOut: boolean; ts: string }[];
+    const phoneKey = normalizePhone(openChat.phone);
+    const msgs = veraData?.[phoneKey]?.mensagens ?? [];
+    return msgs
+      .map((m: any, i: number) => {
+        const isOut = m.tipo === "ai";
+        const text = isOut ? parseAiContent(m.conteudo ?? "") : (m.conteudo ?? "");
+        return { id: `${i}`, text, isOut, ts: m.timestamp };
+      })
+      .filter((m) => m.text);
+  }, [openChat?.phone, veraData]);
+  const msgsLoading = false;
 
   if (isLoading) {
     return (
