@@ -134,9 +134,17 @@ export default function AdminAoVivo() {
     const phoneKey = normalizePhone(lead.phone);
     const veraName = veraData?.[phoneKey]?.nome;
     const fallbackPush = pushNameByPhone[phoneKey];
+    const displayName = resolveContactName({
+      veraName,
+      leadPushName: lead.push_name,
+      leadName: lead.name,
+      evoContactName: fallbackPush,
+      lastMessage: lead.last_message_preview,
+      phone: lead.phone,
+    });
     return {
       id: lead.id,
-      displayName: veraName || lead.push_name || lead.name || fallbackPush || lead.phone,
+      displayName,
       phone: lead.phone,
       avatarUrl: lead.profile_pic_url,
       lastMessage: lead.last_message_preview,
