@@ -36,6 +36,10 @@ function normalizePhone(v: string) {
   return String(v ?? "").replace(/\D/g, "");
 }
 
+function getMessageText(message: any): string | null {
+  return message?.conteudo ?? message?.content ?? message?.text ?? message?.message_text ?? null;
+}
+
 export default function AdminAoVivo() {
   const { sorted: agentsSorted } = useAgentPresence();
   const [openChat, setOpenChat] = useState<ConversationCardData | null>(null);
@@ -160,12 +164,14 @@ export default function AdminAoVivo() {
     const phoneKey = normalizePhone(lead.phone);
     const veraName = veraData?.[phoneKey]?.nome;
     const fallbackPush = pushNameByPhone[phoneKey];
+    const veraMessageHints = (veraData?.[phoneKey]?.mensagens ?? []).map(getMessageText);
     const displayName = resolveContactName({
       veraName,
       leadPushName: lead.push_name,
       leadName: lead.name,
       evoContactName: fallbackPush,
-      lastMessage: lead.last_message_preview ?? lastAiMsgByPhone[phoneKey],
+      lastMessage: lead.last_message_preview,
+      messageHints: [lastAiMsgByPhone[phoneKey], ...veraMessageHints],
       phone: lead.phone,
     });
     return {

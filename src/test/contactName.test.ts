@@ -6,6 +6,10 @@ describe("contactName", () => {
     expect(resolveContactName({ leadPushName: "558192453424", phone: "558192453424" })).toBe("558192453424");
   });
 
+  it("ignora labels de telefone com prefixo wa", () => {
+    expect(resolveContactName({ leadPushName: "wa:558192453424", phone: "wa:558192453424" })).toBe("558192453424");
+  });
+
   it("prioriza nome vindo dos logs da Vera", () => {
     expect(resolveContactName({ veraName: "Glauber", leadName: "558192453424", phone: "558192453424" })).toBe("Glauber");
   });
@@ -22,6 +26,19 @@ describe("contactName", () => {
         evoContactName: "558192453424",
         lastMessage: "Perfeito, Glauber! Pode me passar seu telefone?",
         phone: "558192453424",
+      }),
+    ).toBe("Glauber");
+  });
+
+  it("procura nome em mensagens anteriores quando a ultima nao tem nome", () => {
+    expect(
+      resolveContactName({
+        leadName: null,
+        leadPushName: null,
+        evoContactName: "wa:558192453424",
+        lastMessage: "09:30",
+        messageHints: ["1", "Perfeito, Glauber! Vou agendar para as 09h30."],
+        phone: "wa:558192453424",
       }),
     ).toBe("Glauber");
   });

@@ -237,6 +237,7 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
             leadPushName: leadNames[phone],
             evoContactName: contact?.pushName || c.name,
             lastMessage: lastMsg?.text,
+            messageHints: [c.name, contact?.pushName],
             phone,
           });
           return {

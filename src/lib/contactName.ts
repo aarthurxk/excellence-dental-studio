@@ -21,6 +21,21 @@ function looksLikeName(word: string): boolean {
   return true;
 }
 
+function cleanPhoneFallback(phone?: string | null): string {
+  const raw = (phone ?? "").trim();
+  const digits = raw.replace(/\D/g, "");
+  return digits || raw;
+}
+
+function looksLikePhoneLabel(value: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  if (/^(wa|whatsapp|phone|tel|telefone)\s*:/i.test(v)) {
+    return v.replace(/\D/g, "").length >= 8;
+  }
+  return /^\+?\d[\d\s()-]*$/.test(v);
+}
+
 /**
  * Tenta extrair o primeiro nome do destinatário a partir de uma mensagem
  * enviada pela IA/atendente. Procura padrões como:
@@ -69,6 +84,7 @@ export function resolveContactName(opts: {
   leadName?: string | null;
   evoContactName?: string | null;
   lastMessage?: string | null;
+  messageHints?: Array<string | null | undefined>;
   phone?: string | null;
 }): string {
   const candidates = [
@@ -79,9 +95,12 @@ export function resolveContactName(opts: {
   ];
   for (const c of candidates) {
     const v = (c ?? "").trim();
-    if (v && !/^\+?\d[\d\s()-]*$/.test(v)) return v;
+    if (v && !looksLikePhoneLabel(v)) return v;
   }
-  const fromMsg = extractNameFromMessage(opts.lastMessage);
-  if (fromMsg) return fromMsg;
-  return (opts.phone ?? "").trim() || "Sem nome";
+  const messages = [opts.lastMessage, ...(opts.messageHints ?? [])];
+  for (const message of messages) {
+    const fromMsg = extractNameFromMessage(message);
+    if (fromMsg) return fromMsg;
+  }
+  return cleanPhoneFallback(opts.phone) || "Sem nome";
 }
