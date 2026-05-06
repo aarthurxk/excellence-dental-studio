@@ -8,7 +8,7 @@ const STOP_WORDS = new Set([
   "agradeço", "agradeco", "ate", "até", "amanha", "amanhã", "hoje", "logo",
   "deus", "favor", "tchau", "fica", "fique", "vamos", "querido", "querida",
   "amor", "amigo", "amiga", "doutor(a)", "ok", "okay", "show", "legal",
-  "qualquer", "coisa", "ja", "já", "agora", "depois",
+  "qualquer", "coisa", "ja", "já", "agora", "depois", "vera", "odonto",
 ]);
 
 function looksLikeName(word: string): boolean {
@@ -36,6 +36,10 @@ function looksLikePhoneLabel(value: string): boolean {
   return /^\+?\d[\d\s()-]*$/.test(v);
 }
 
+function looksLikeInvalidContactName(value: string): boolean {
+  return looksLikePhoneLabel(value) || STOP_WORDS.has(value.trim().toLowerCase());
+}
+
 /**
  * Tenta extrair o primeiro nome do destinatário a partir de uma mensagem
  * enviada pela IA/atendente. Procura padrões como:
@@ -51,6 +55,12 @@ export function extractNameFromMessage(text?: string | null): string | null {
   if (!t) return null;
 
   const patterns: RegExp[] = [
+    // "meu nome e Glauber" / "meu nome é Glauber"
+    /\bmeu\s+nome\s+(?:e|é|eh)\s+([A-ZÀ-Ý][a-zà-ÿ]{2,19})\b/i,
+    // "me chamo Arthur" / "eu me chamo Arthur"
+    /\b(?:eu\s+)?me\s+chamo\s+([A-ZÀ-Ý][a-zà-ÿ]{2,19})\b/i,
+    // "sou Glauber" / "aqui e Arthur"
+    /\b(?:sou|aqui\s+(?:e|é|eh))\s+([A-ZÀ-Ý][a-zà-ÿ]{2,19})\b/i,
     // ", Nome!" ou ", Nome." ou ", Nome,"
     /,\s*([A-ZÀ-Ý][a-zà-ÿ]{2,19})\s*[!.,?]/,
     // "Oi Nome," / "Olá Nome," / "Ola Nome,"
@@ -95,7 +105,7 @@ export function resolveContactName(opts: {
   ];
   for (const c of candidates) {
     const v = (c ?? "").trim();
-    if (v && !looksLikePhoneLabel(v)) return v;
+    if (v && !looksLikeInvalidContactName(v)) return v;
   }
   const messages = [opts.lastMessage, ...(opts.messageHints ?? [])];
   for (const message of messages) {

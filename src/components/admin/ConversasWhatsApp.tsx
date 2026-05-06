@@ -225,7 +225,15 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
       if (Array.isArray(contactsData)) contactsData.forEach((c) => contactMap.set(c.remoteJid, c));
       const { data: lastMsgs } = await supabase.from("conversations_log").select("remote_jid, message_text, created_at, direction, sent_by").order("created_at", { ascending: false }).limit(500);
       const lastMsgMap = new Map<string, { text: string; timestamp: string }>();
-      if (lastMsgs) for (const m of lastMsgs) { if (!lastMsgMap.has(m.remote_jid)) lastMsgMap.set(m.remote_jid, { text: m.message_text || "[mídia]", timestamp: m.created_at || "" }); }
+      const msgHintsByJid = new Map<string, string[]>();
+      if (lastMsgs) for (const m of lastMsgs) {
+        if (!lastMsgMap.has(m.remote_jid)) lastMsgMap.set(m.remote_jid, { text: m.message_text || "[mídia]", timestamp: m.created_at || "" });
+        if (m.remote_jid && m.message_text) {
+          const hints = msgHintsByJid.get(m.remote_jid) ?? [];
+          hints.push(m.message_text);
+          msgHintsByJid.set(m.remote_jid, hints);
+        }
+      }
       return (Array.isArray(chatsData) ? chatsData : [])
         .filter((c) => c.remoteJid?.endsWith("@s.whatsapp.net"))
         .map((c) => {
@@ -237,7 +245,7 @@ export default function ConversasWhatsApp({ initialPhone }: { initialPhone?: str
             leadPushName: leadNames[phone],
             evoContactName: contact?.pushName || c.name,
             lastMessage: lastMsg?.text,
-            messageHints: [c.name, contact?.pushName],
+            messageHints: [...(msgHintsByJid.get(c.remoteJid) ?? []), c.name, contact?.pushName],
             phone,
           });
           return {

@@ -18,6 +18,11 @@ describe("contactName", () => {
     expect(extractNameFromMessage("Perfeito, Glauber! Vou agendar para as 09h30.")).toBe("Glauber");
   });
 
+  it("extrai nome quando o lead se apresenta", () => {
+    expect(extractNameFromMessage("Oi Vera, tudo bom? Meu nome é Glauber. Glauber Medrado.")).toBe("Glauber");
+    expect(extractNameFromMessage("quero agendar uma consulta, me chamo Arthur")).toBe("Arthur");
+  });
+
   it("usa a ultima mensagem quando lead e evolution nao tem nome util", () => {
     expect(
       resolveContactName({
@@ -25,6 +30,16 @@ describe("contactName", () => {
         leadPushName: null,
         evoContactName: "558192453424",
         lastMessage: "Perfeito, Glauber! Pode me passar seu telefone?",
+        phone: "558192453424",
+      }),
+    ).toBe("Glauber");
+  });
+
+  it("nao usa Vera como nome do paciente", () => {
+    expect(
+      resolveContactName({
+        veraName: "Vera",
+        messageHints: ["Oi Vera, tudo bom? Meu nome é Glauber."],
         phone: "558192453424",
       }),
     ).toBe("Glauber");

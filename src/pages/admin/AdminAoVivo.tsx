@@ -164,7 +164,7 @@ export default function AdminAoVivo() {
     const phoneKey = normalizePhone(lead.phone);
     const veraName = veraData?.[phoneKey]?.nome;
     const fallbackPush = pushNameByPhone[phoneKey];
-    const veraMessageHints = (veraData?.[phoneKey]?.mensagens ?? []).map(getMessageText);
+    const veraMessageHints = [...(veraData?.[phoneKey]?.mensagens ?? [])].reverse().map(getMessageText);
     const displayName = resolveContactName({
       veraName,
       leadPushName: lead.push_name,
