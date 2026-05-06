@@ -9,6 +9,7 @@ import { useConversationFilters } from "@/hooks/useConversationFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { resolveContactName } from "@/lib/contactName";
 
 export default function AdminPendentes() {
   const navigate = useNavigate();
@@ -31,14 +32,39 @@ export default function AdminPendentes() {
         .order("last_contact_at", { ascending: false })
         .limit(300);
       if (error) throw error;
-      return (data ?? []).map((lead) => {
+      const rows = data ?? [];
+      const phones = rows.map((lead) => lead.phone).filter(Boolean);
+      const { data: logs } = phones.length
+        ? await supabase
+            .from("conversations_log")
+            .select("lead_phone, message_text")
+            .in("lead_phone", phones)
+            .order("created_at", { ascending: false })
+            .limit(600)
+        : { data: [] };
+
+      const hintsByPhone = new Map<string, string[]>();
+      for (const log of logs ?? []) {
+        const phone = log.lead_phone;
+        if (!phone) continue;
+        const hints = hintsByPhone.get(phone) ?? [];
+        if (log.message_text) hints.push(log.message_text);
+        hintsByPhone.set(phone, hints);
+      }
+
+      return rows.map((lead) => {
         const tags = (lead.lead_tag_assignments ?? []).map((a: any) => a.tag).filter(Boolean);
         const waitMinutes = lead.last_contact_at
           ? Math.floor((Date.now() - new Date(lead.last_contact_at).getTime()) / 60_000)
           : undefined;
         return {
           id: lead.id,
-          displayName: lead.push_name || lead.name || lead.phone,
+          displayName: resolveContactName({
+            leadName: lead.name,
+            leadPushName: lead.push_name,
+            phone: lead.phone,
+            lastMessage: lead.last_message_preview ?? hintsByPhone.get(lead.phone)?.[0],
+          }),
           phone: lead.phone,
           avatarUrl: lead.profile_pic_url,
           lastMessage: lead.last_message_preview,
